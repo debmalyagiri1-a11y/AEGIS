@@ -1,8 +1,8 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -16,19 +16,11 @@
         rel="stylesheet"
         href="style.css"
     >
-
 </head>
-
 
 <body class="auth-page">
 
-
 <div class="auth-card">
-
-
-    <!-- ================================================= -->
-    <!-- HEADER -->
-    <!-- ================================================= -->
 
     <div class="auth-header">
 
@@ -36,9 +28,7 @@
             🛡️
         </div>
 
-        <h1>
-            AEGIS
-        </h1>
+        <h1>AEGIS</h1>
 
         <p>
             AI-Powered Smart Campus Cybersecurity System
@@ -47,30 +37,19 @@
     </div>
 
 
-
-    <!-- ================================================= -->
-    <!-- LOGIN FORM -->
-    <!-- ================================================= -->
+    <!-- LOGIN SECTION -->
 
     <div id="loginSection">
-
 
         <h2>
             Welcome Back
         </h2>
 
-
         <p class="subtitle">
             Sign in to access your secure campus account.
         </p>
 
-
-        <form
-            id="loginForm"
-        >
-
-
-            <!-- EMAIL -->
+        <form id="loginForm">
 
             <div class="form-group">
 
@@ -88,9 +67,6 @@
             </div>
 
 
-
-            <!-- PASSWORD -->
-
             <div class="form-group">
 
                 <label for="password">
@@ -107,7 +83,6 @@
             </div>
 
 
-
             <button
                 type="submit"
                 class="btn btn-primary btn-full"
@@ -115,7 +90,6 @@
             >
                 Login
             </button>
-
 
         </form>
 
@@ -133,29 +107,22 @@
                 margin-top:20px;
             "
         >
-
             Don't have an account?
 
             <a href="register.html">
                 Create Account
             </a>
-
         </p>
-
 
     </div>
 
 
-
-    <!-- ================================================= -->
     <!-- MFA SECTION -->
-    <!-- ================================================= -->
 
     <div
         id="mfaSection"
         style="display:none;"
     >
-
 
         <div
             style="
@@ -174,17 +141,11 @@
 
 
         <p class="subtitle">
-
             Your password was verified.
-
             Enter the 6-digit verification code
             to complete your login.
-
         </p>
 
-
-
-        <!-- DEMO OTP -->
 
         <div
             id="demoCodeBox"
@@ -223,13 +184,7 @@
         </div>
 
 
-
-        <!-- MFA FORM -->
-
-        <form
-            id="mfaForm"
-        >
-
+        <form id="mfaForm">
 
             <div class="form-group">
 
@@ -251,7 +206,6 @@
             </div>
 
 
-
             <button
                 type="submit"
                 class="btn btn-primary btn-full"
@@ -260,9 +214,7 @@
                 Verify & Login
             </button>
 
-
         </form>
-
 
 
         <div
@@ -270,7 +222,6 @@
             class="message"
             style="display:none;"
         ></div>
-
 
 
         <button
@@ -282,14 +233,8 @@
             ← Back to Login
         </button>
 
-
     </div>
 
-
-
-    <!-- ================================================= -->
-    <!-- FOOTER -->
-    <!-- ================================================= -->
 
     <div class="auth-footer">
 
@@ -299,512 +244,335 @@
 
     </div>
 
-
 </div>
 
 
-
-<!-- ===================================================== -->
-<!-- JAVASCRIPT -->
-<!-- ===================================================== -->
-
 <script>
-
 
 const API_URL = "https://aegis-4lcw.onrender.com";
 
-
 let pendingUserId = null;
-
 let pendingUser = null;
 
 
-// =======================================================
+// =====================================================
 // DISPLAY MESSAGE
-// =======================================================
+// =====================================================
 
-function showMessage(
-    elementId,
-    message,
-    type
-) {
+function showMessage(elementId, message, type) {
 
-    const element =
-        document.getElementById(
-            elementId
-        );
+    const element = document.getElementById(elementId);
 
+    element.textContent = message;
 
-    element.textContent =
-        message;
+    element.className = "message " + type;
 
-
-    element.className =
-        `message ${type}`;
-
-
-    element.style.display =
-        "block";
-
+    element.style.display = "block";
 }
 
 
-// =======================================================
+// =====================================================
 // LOGIN
-// =======================================================
+// =====================================================
 
 document
     .getElementById("loginForm")
-    .addEventListener(
-        "submit",
-        async function(event) {
+    .addEventListener("submit", async function(event) {
 
-            event.preventDefault();
+        event.preventDefault();
 
+        const email =
+            document.getElementById("email").value.trim();
 
-            const email =
-                document
-                    .getElementById("email")
-                    .value
-                    .trim();
+        const password =
+            document.getElementById("password").value;
 
+        const button =
+            document.getElementById("loginButton");
 
-            const password =
-                document
-                    .getElementById("password")
-                    .value;
+        button.disabled = true;
+        button.textContent = "Checking...";
 
 
-            const button =
-                document
-                    .getElementById("loginButton");
+        document
+            .getElementById("loginMessage")
+            .style.display = "none";
 
 
-            button.disabled =
-                true;
+        try {
 
+            const response = await fetch(
+                API_URL + "/login",
+                {
+                    method: "POST",
 
-            button.textContent =
-                "Checking...";
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
 
-
-            document
-                .getElementById(
-                    "loginMessage"
-                )
-                .style.display =
-                "none";
-
-
-            try {
-
-
-                const response =
-                    await fetch(
-                        `${API}/login`,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body: JSON.stringify({
-
-                                email:
-                                    email,
-
-                                password:
-                                    password
-
-                            })
-                        }
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-
-                // ========================================
-                // LOGIN FAILED
-                // ========================================
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        data.detail ||
-                        "Invalid email or password"
-                    );
-
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
                 }
+            );
 
 
-
-                // ========================================
-                // MFA REQUIRED
-                // ========================================
-
-                if (
-                    data.mfa_required === true
-                ) {
+            const data = await response.json();
 
 
-                    pendingUserId =
-                        data.user_id;
+            if (!response.ok) {
 
-
-                    pendingUser = {
-
-                        user_id:
-                            data.user_id,
-
-                        name:
-                            data.name,
-
-                        email:
-                            data.email,
-
-                        role:
-                            data.role
-
-                    };
-
-
-                    // Show demo OTP
-
-                    document
-                        .getElementById(
-                            "demoCode"
-                        )
-                        .textContent =
-                        data.demo_mfa_code;
-
-
-
-                    // Switch screens
-
-                    document
-                        .getElementById(
-                            "loginSection"
-                        )
-                        .style.display =
-                        "none";
-
-
-                    document
-                        .getElementById(
-                            "mfaSection"
-                        )
-                        .style.display =
-                        "block";
-
-
-                    document
-                        .getElementById(
-                            "mfaCode"
-                        )
-                        .focus();
-
-
-                    return;
-
-                }
-
-
-            }
-
-            catch(error) {
-
-
-                showMessage(
-
-                    "loginMessage",
-
-                    error.message,
-
-                    "error"
-
+                throw new Error(
+                    data.detail ||
+                    "Invalid email or password"
                 );
 
             }
 
-            finally {
+
+            // =================================================
+            // MFA REQUIRED
+            // =================================================
+
+            if (data.mfa_required === true) {
+
+                pendingUserId = data.user_id;
 
 
-                button.disabled =
-                    false;
+                pendingUser = {
+
+                    id: data.user_id,
+
+                    user_id: data.user_id,
+
+                    userId: data.user_id,
+
+                    name: data.name,
+
+                    email: data.email,
+
+                    role: data.role
+
+                };
 
 
-                button.textContent =
-                    "Login";
+                document
+                    .getElementById("demoCode")
+                    .textContent = data.demo_mfa_code;
 
+
+                document
+                    .getElementById("loginSection")
+                    .style.display = "none";
+
+
+                document
+                    .getElementById("mfaSection")
+                    .style.display = "block";
+
+
+                document
+                    .getElementById("mfaCode")
+                    .focus();
+
+
+                return;
             }
 
         }
-    );
+        catch(error) {
+
+            showMessage(
+                "loginMessage",
+                error.message,
+                "error"
+            );
+
+        }
+        finally {
+
+            button.disabled = false;
+
+            button.textContent = "Login";
+
+        }
+
+    });
 
 
-
-// =======================================================
+// =====================================================
 // MFA VERIFICATION
-// =======================================================
+// =====================================================
 
 document
     .getElementById("mfaForm")
-    .addEventListener(
-        "submit",
-        async function(event) {
+    .addEventListener("submit", async function(event) {
 
-            event.preventDefault();
+        event.preventDefault();
 
 
-            const code =
-                document
-                    .getElementById("mfaCode")
-                    .value
-                    .trim();
+        const code =
+            document.getElementById("mfaCode").value.trim();
 
 
-            const button =
-                document
-                    .getElementById(
-                        "verifyButton"
-                    );
+        const button =
+            document.getElementById("verifyButton");
 
 
-            if (
-                !/^\d{6}$/.test(code)
-            ) {
+        if (!/^\d{6}$/.test(code)) {
 
-                showMessage(
+            showMessage(
+                "mfaMessage",
+                "Please enter a valid 6-digit code.",
+                "error"
+            );
 
-                    "mfaMessage",
+            return;
+        }
 
-                    "Please enter a valid 6-digit code.",
 
-                    "error"
+        button.disabled = true;
 
+        button.textContent = "Verifying...";
+
+
+        document
+            .getElementById("mfaMessage")
+            .style.display = "none";
+
+
+        try {
+
+            const response = await fetch(
+                API_URL + "/verify-mfa",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        user_id: pendingUserId,
+
+                        code: code
+
+                    })
+                }
+            );
+
+
+            const data = await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.detail ||
+                    "MFA verification failed"
                 );
-
-                return;
 
             }
 
 
-            button.disabled =
-                true;
+            // =================================================
+            // SAVE LOGIN SESSION
+            // =================================================
+
+            localStorage.setItem(
+                "aegisUser",
+                JSON.stringify(pendingUser)
+            );
 
 
-            button.textContent =
-                "Verifying...";
+            localStorage.setItem(
+                "aegisUserId",
+                String(pendingUserId)
+            );
 
 
-            document
-                .getElementById(
-                    "mfaMessage"
-                )
-                .style.display =
-                "none";
+            showMessage(
+                "mfaMessage",
+                "MFA verified successfully. Redirecting...",
+                "success"
+            );
 
 
-            try {
+            // =================================================
+            // REDIRECT
+            // =================================================
 
+            setTimeout(function() {
 
-                const response =
-                    await fetch(
-                        `${API}/verify-mfa`,
-                        {
+                if (pendingUser.role === "admin") {
 
-                            method: "POST",
+                    window.location.href = "admin.html";
 
-                            headers: {
+                }
+                else {
 
-                                "Content-Type":
-                                    "application/json"
-
-                            },
-
-                            body:
-                                JSON.stringify({
-
-                                    user_id:
-                                        pendingUserId,
-
-                                    code:
-                                        code
-
-                                })
-
-                        }
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-
-                        data.detail ||
-                        "MFA verification failed"
-
-                    );
+                    window.location.href = "dashboard.html";
 
                 }
 
-
-
-                // ========================================
-                // SAVE LOGIN SESSION
-                // ========================================
-
-                localStorage.setItem(
-
-                    "aegisUser",
-
-                    JSON.stringify(
-                        pendingUser
-                    )
-
-                );
-
-
-
-                showMessage(
-
-                    "mfaMessage",
-
-                    "MFA verified successfully. Redirecting...",
-
-                    "success"
-
-                );
-
-
-
-                // ========================================
-                // REDIRECT
-                // ========================================
-
-                setTimeout(
-
-                    function() {
-
-                        if (
-                            pendingUser.role ===
-                            "admin"
-                        ) {
-
-                            window.location.href =
-                                "admin.html";
-
-                        }
-
-                        else {
-
-                            window.location.href =
-                                "dashboard.html";
-
-                        }
-
-                    },
-
-                    700
-
-                );
-
-            }
-
-
-            catch(error) {
-
-
-                showMessage(
-
-                    "mfaMessage",
-
-                    error.message,
-
-                    "error"
-
-                );
-
-            }
-
-
-            finally {
-
-                button.disabled =
-                    false;
-
-                button.textContent =
-                    "Verify & Login";
-
-            }
+            }, 700);
 
         }
-    );
+        catch(error) {
+
+            showMessage(
+                "mfaMessage",
+                error.message,
+                "error"
+            );
+
+        }
+        finally {
+
+            button.disabled = false;
+
+            button.textContent = "Verify & Login";
+
+        }
+
+    });
 
 
-
-// =======================================================
+// =====================================================
 // BACK TO LOGIN
-// =======================================================
+// =====================================================
 
 function backToLogin() {
 
+    pendingUserId = null;
 
-    pendingUserId =
-        null;
-
-
-    pendingUser =
-        null;
+    pendingUser = null;
 
 
     document
-        .getElementById(
-            "mfaSection"
-        )
-        .style.display =
-        "none";
+        .getElementById("mfaSection")
+        .style.display = "none";
 
 
     document
-        .getElementById(
-            "loginSection"
-        )
-        .style.display =
-        "block";
+        .getElementById("loginSection")
+        .style.display = "block";
 
 
     document
-        .getElementById(
-            "mfaCode"
-        )
-        .value =
-        "";
+        .getElementById("mfaCode")
+        .value = "";
 
 
     document
-        .getElementById(
-            "demoCode"
-        )
-        .textContent =
-        "------";
+        .getElementById("demoCode")
+        .textContent = "------";
 
 }
 
-
 </script>
 
-
 </body>
-
 </html>
