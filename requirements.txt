@@ -1,4 +1,3 @@
-```text
 fastapi
 uvicorn
 sqlalchemy
@@ -6,4 +5,3 @@ passlib
 bcrypt
 email-validator
 psycopg2-binary
-```
