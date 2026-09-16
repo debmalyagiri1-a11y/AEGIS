@@ -1722,3 +1722,9 @@ def detect_threat(url: str):
     )
 
     return result
+def scan_url(url: str):
+    """
+    Compatibility wrapper for the FastAPI /scan-url endpoint.
+    Uses the advanced detect_threat() engine.
+    """
+    return detect_threat(url)
