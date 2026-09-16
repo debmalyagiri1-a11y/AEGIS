@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -11,8 +12,9 @@ from backend.models import (
     ThreatReport,
     URLScan,
     LoginEvent,
+    MFACode,
     AuditLog,
-    MFACode
+    QuizResult
 )
 
 from backend.schemas import (
@@ -24,8 +26,8 @@ from backend.schemas import (
 )
 
 from backend.detector import (
-    detect_threat,
-    scan_url
+    scan_url,
+    detect_threat
 )
 
 from backend.security import (
@@ -39,9 +41,20 @@ from backend.security import (
 # ============================================================
 
 app = FastAPI(
-    title="AEGIS",
-    description="AI-Powered Smart Campus Cybersecurity System",
-    version="1.2"
+    title="AEGIS - AI-Powered Smart Campus Cybersecurity System"
+)
+
+
+# ============================================================
+# CORS
+# ============================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
 )
 
 
@@ -59,9 +72,43 @@ Base.metadata.create_all(
 # ============================================================
 
 pwd_context = CryptContext(
-    schemes=["pbkdf2_sha256"],
+    schemes=["bcrypt"],
     deprecated="auto"
 )
+
+
+def hash_password(password: str):
+
+    return pwd_context.hash(
+        password
+    )
+
+
+def verify_password(
+    password: str,
+    stored_password: str
+):
+
+    if not stored_password:
+
+        return False
+
+    try:
+
+        if stored_password.startswith(
+            ("$2a$", "$2b$", "$2y$")
+        ):
+
+            return pwd_context.verify(
+                password,
+                stored_password
+            )
+
+        return password == stored_password
+
+    except Exception:
+
+        return False
 
 
 # ============================================================
@@ -82,25 +129,37 @@ def get_db():
 
 
 # ============================================================
-# AUDIT LOG HELPER
+# HELPER FUNCTIONS
 # ============================================================
 
-def create_audit_log(
-    db: Session,
-    user_id: int | None,
-    action: str,
-    details: str = "",
-    ip_address: str | None = None
+def client_ip(
+    request: Request
 ):
 
-    log = AuditLog(
-        user_id=user_id,
-        action=action,
-        details=details,
-        ip_address=ip_address
-    )
+    if request.client:
 
-    db.add(log)
+        return request.client.host
+
+    return "Unknown"
+
+
+def user_dict(user):
+
+    return {
+
+        "id": user.id,
+
+        "user_id": user.id,
+
+        "userId": user.id,
+
+        "name": user.name,
+
+        "email": user.email,
+
+        "role": user.role
+
+    }
 
 
 # ============================================================
@@ -108,21 +167,27 @@ def create_audit_log(
 # ============================================================
 
 @app.get("/")
-def home():
+def root():
 
     return {
 
-        "project":
-            "AEGIS",
+        "project": "AEGIS",
 
-        "name":
-            "AI-Powered Smart Campus Cybersecurity System",
+        "status": "running"
 
-        "status":
-            "Backend is running",
+    }
 
-        "database":
-            "Connected"
+
+# ============================================================
+# HEALTH CHECK
+# ============================================================
+
+@app.get("/health")
+def health():
+
+    return {
+
+        "status": "healthy"
 
     }
 
@@ -134,7 +199,7 @@ def home():
 @app.post("/register")
 def register(
 
-    user: UserCreate,
+    data: UserCreate,
 
     request: Request,
 
@@ -142,10 +207,37 @@ def register(
 
 ):
 
+    email = str(
+        data.email
+    ).strip().lower()
+
+
+    if not data.name.strip():
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="Name cannot be empty"
+
+        )
+
+
+    if len(data.password) < 6:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail="Password must contain at least 6 characters"
+
+        )
+
+
     existing_user = db.query(
         User
     ).filter(
-        User.email == user.email
+        User.email == email
     ).first()
 
 
@@ -155,22 +247,21 @@ def register(
 
             status_code=400,
 
-            detail=
-                "Email already registered"
+            detail="Email already registered"
 
         )
 
 
-    hashed_password = pwd_context.hash(
-        user.password
+    hashed_password = hash_password(
+        data.password
     )
 
 
-    new_user = User(
+    user = User(
 
-        name=user.name,
+        name=data.name.strip(),
 
-        email=user.email,
+        email=email,
 
         password=hashed_password,
 
@@ -179,31 +270,29 @@ def register(
     )
 
 
-    db.add(new_user)
+    db.add(user)
 
     db.commit()
 
-    db.refresh(new_user)
+    db.refresh(user)
 
 
-    create_audit_log(
+    audit = AuditLog(
 
-        db=db,
-
-        user_id=new_user.id,
+        user_id=user.id,
 
         action="USER_REGISTERED",
 
         details=
-            f"New user registered: {new_user.email}",
+            f"New account registered: {email}",
 
         ip_address=
-            request.client.host
-            if request.client
-            else None
+            client_ip(request)
 
     )
 
+
+    db.add(audit)
 
     db.commit()
 
@@ -213,17 +302,7 @@ def register(
         "message":
             "Registration successful",
 
-        "user_id":
-            new_user.id,
-
-        "name":
-            new_user.name,
-
-        "email":
-            new_user.email,
-
-        "role":
-            new_user.role
+        **user_dict(user)
 
     }
 
@@ -235,7 +314,7 @@ def register(
 @app.post("/login")
 def login(
 
-    user: UserLogin,
+    data: UserLogin,
 
     request: Request,
 
@@ -243,34 +322,26 @@ def login(
 
 ):
 
-    ip_address = (
+    email = str(
+        data.email
+    ).strip().lower()
 
-        request.client.host
 
-        if request.client
-
-        else None
-
+    ip = client_ip(
+        request
     )
 
 
     user_agent = request.headers.get(
-
-        "user-agent",
-
+        "User-Agent",
         "Unknown"
-
     )
 
-
-    # --------------------------------------------------------
-    # FIND USER
-    # --------------------------------------------------------
 
     existing_user = db.query(
         User
     ).filter(
-        User.email == user.email
+        User.email == email
     ).first()
 
 
@@ -280,81 +351,26 @@ def login(
 
     if not existing_user:
 
-        window_start = (
-            get_failed_attempt_window(15)
-        )
+        db.add(
 
+            LoginEvent(
 
-        failed_attempts = db.query(
-            LoginEvent
-        ).filter(
+                user_id=None,
 
-            LoginEvent.email == user.email,
+                email=email,
 
-            LoginEvent.success == 0,
+                success=0,
 
-            LoginEvent.created_at >= window_start
+                ip_address=ip,
 
-        ).count()
+                user_agent=user_agent,
 
+                risk_level="Medium",
 
-        failed_attempts += 1
+                anomaly_reason=
+                    "Unknown email login attempt"
 
-
-        anomaly = analyze_login_anomaly(
-
-            failed_attempts=failed_attempts
-
-        )
-
-
-        login_event = LoginEvent(
-
-            user_id=None,
-
-            email=user.email,
-
-            success=0,
-
-            ip_address=ip_address,
-
-            user_agent=user_agent,
-
-            risk_level=
-                anomaly["risk_level"],
-
-            anomaly_reason=
-                anomaly["reason"],
-
-            created_at=datetime.utcnow()
-
-        )
-
-
-        db.add(login_event)
-
-
-        create_audit_log(
-
-            db=db,
-
-            user_id=None,
-
-            action="FAILED_LOGIN",
-
-            details=(
-
-                f"Unknown email. "
-
-                f"Risk: "
-                f"{anomaly['risk_level']}. "
-
-                f"Reason: "
-                f"{anomaly['reason']}"
-
-            ),
-
-            ip_address=ip_address
+            )
 
         )
 
@@ -366,119 +382,96 @@ def login(
 
             status_code=401,
 
-            detail=
-                "Invalid email or password"
+            detail="Invalid email or password"
 
         )
+
+
+    # --------------------------------------------------------
+    # FAILED LOGIN COUNT
+    # --------------------------------------------------------
+
+    since = get_failed_attempt_window(
+        15
+    )
+
+
+    failed_attempts = db.query(
+        LoginEvent
+    ).filter(
+
+        LoginEvent.email == email,
+
+        LoginEvent.success == 0,
+
+        LoginEvent.created_at >= since
+
+    ).count()
 
 
     # --------------------------------------------------------
     # PASSWORD VERIFICATION
     # --------------------------------------------------------
 
-    password_correct = pwd_context.verify(
-
-        user.password,
-
+    if not verify_password(
+        data.password,
         existing_user.password
-
-    )
-
-
-    # --------------------------------------------------------
-    # WRONG PASSWORD
-    # --------------------------------------------------------
-
-    if not password_correct:
-
-        window_start = (
-            get_failed_attempt_window(15)
-        )
-
-
-        failed_attempts = db.query(
-            LoginEvent
-        ).filter(
-
-            LoginEvent.user_id ==
-                existing_user.id,
-
-            LoginEvent.success == 0,
-
-            LoginEvent.created_at >=
-                window_start
-
-        ).count()
-
+    ):
 
         failed_attempts += 1
 
 
         anomaly = analyze_login_anomaly(
 
-            failed_attempts=
-                failed_attempts
+            failed_attempts,
+
+            False
 
         )
 
 
-        login_event = LoginEvent(
+        db.add(
 
-            user_id=
-                existing_user.id,
+            LoginEvent(
 
-            email=
-                existing_user.email,
+                user_id=
+                    existing_user.id,
 
-            success=0,
+                email=
+                    existing_user.email,
 
-            ip_address=
-                ip_address,
+                success=0,
 
-            user_agent=
-                user_agent,
+                ip_address=ip,
 
-            risk_level=
-                anomaly["risk_level"],
+                user_agent=user_agent,
 
-            anomaly_reason=
-                anomaly["reason"],
+                risk_level=
+                    anomaly["risk_level"],
 
-            created_at=
-                datetime.utcnow()
+                anomaly_reason=
+                    anomaly["reason"]
+
+            )
 
         )
 
 
-        db.add(login_event)
+        db.add(
 
+            AuditLog(
 
-        create_audit_log(
+                user_id=
+                    existing_user.id,
 
-            db=db,
+                action="LOGIN_FAILED",
 
-            user_id=
-                existing_user.id,
+                details=
+                    "Incorrect password",
 
-            action=
-                "FAILED_LOGIN",
+                ip_address=ip
 
-            details=(
-
-                f"Failed password attempt. "
-
-                f"Attempts in last 15 minutes: "
-
-                f"{failed_attempts}. "
-
-                f"Risk: "
-
-                f"{anomaly['risk_level']}"
-
-            ),
-
-            ip_address=
-                ip_address
+            )
 
         )
 
@@ -490,40 +483,33 @@ def login(
 
             status_code=401,
 
-            detail=
-                "Invalid email or password"
+            detail="Invalid email or password"
 
         )
 
 
-    # ========================================================
-    # PASSWORD CORRECT
-    # ========================================================
+    # --------------------------------------------------------
+    # UPGRADE OLD PASSWORD FORMAT IF NEEDED
+    # --------------------------------------------------------
 
-    previous_success = (
+    if not existing_user.password.startswith(
+        ("$2a$", "$2b$", "$2y$")
+    ):
 
-        db.query(
-            LoginEvent
-        ).filter(
+        existing_user.password = hash_password(
+            data.password
+        )
 
-            LoginEvent.user_id ==
-                existing_user.id,
 
-            LoginEvent.success == 1
-
-        ).first()
-
-        is not None
-
-    )
-
+    # --------------------------------------------------------
+    # LOGIN ANOMALY ANALYSIS
+    # --------------------------------------------------------
 
     anomaly = analyze_login_anomaly(
 
-        failed_attempts=0,
+        failed_attempts,
 
-        previous_success=
-            previous_success
+        True
 
     )
 
@@ -532,57 +518,35 @@ def login(
     # LOGIN EVENT
     # --------------------------------------------------------
 
-    login_event = LoginEvent(
+    db.add(
 
-        user_id=
-            existing_user.id,
+        LoginEvent(
 
-        email=
-            existing_user.email,
+            user_id=
+                existing_user.id,
 
-        success=1,
+            email=
+                existing_user.email,
 
-        ip_address=
-            ip_address,
+            success=1,
 
-        user_agent=
-            user_agent,
+            ip_address=ip,
 
-        risk_level=
-            anomaly["risk_level"],
+            user_agent=user_agent,
 
-        anomaly_reason=
-            anomaly["reason"],
+            risk_level=
+                anomaly["risk_level"],
 
-        created_at=
-            datetime.utcnow()
+            anomaly_reason=
+                anomaly["reason"]
 
-    )
-
-
-    db.add(login_event)
-
-
-    # --------------------------------------------------------
-    # GENERATE MFA CODE
-    # --------------------------------------------------------
-
-    mfa_code = str(
-        random.randint(
-            100000,
-            999999
         )
-    )
 
-
-    expires_at = (
-        datetime.utcnow()
-        + timedelta(minutes=5)
     )
 
 
     # --------------------------------------------------------
-    # REMOVE OLD UNUSED CODES
+    # REMOVE OLD MFA CODES
     # --------------------------------------------------------
 
     old_codes = db.query(
@@ -603,43 +567,61 @@ def login(
 
 
     # --------------------------------------------------------
-    # SAVE NEW MFA CODE
+    # GENERATE MFA CODE
     # --------------------------------------------------------
 
-    new_mfa = MFACode(
+    code = str(
+        random.randint(
+            100000,
+            999999
+        )
+    )
 
-        user_id=
-            existing_user.id,
 
-        code=
-            mfa_code,
+    expires_at = (
+        datetime.utcnow()
+        + timedelta(minutes=5)
+    )
 
-        expires_at=
-            expires_at,
 
-        verified=0
+    db.add(
+
+        MFACode(
+
+            user_id=
+                existing_user.id,
+
+            code=code,
+
+            expires_at=expires_at,
+
+            verified=0
+
+        )
 
     )
 
 
-    db.add(new_mfa)
+    # --------------------------------------------------------
+    # AUDIT LOG
+    # --------------------------------------------------------
 
+    db.add(
 
-    create_audit_log(
+        AuditLog(
 
-        db=db,
+            user_id=
+                existing_user.id,
 
-        user_id=
-            existing_user.id,
+            action=
+                "MFA_CODE_GENERATED",
 
-        action=
-            "MFA_CODE_GENERATED",
+            details=
+                "MFA code generated",
 
-        details=
-            "MFA verification code generated.",
+            ip_address=ip
 
-        ip_address=
-            ip_address
+        )
 
     )
 
@@ -647,43 +629,24 @@ def login(
     db.commit()
 
 
-    # --------------------------------------------------------
-    # RETURN MFA REQUIRED
-    # --------------------------------------------------------
-
     return {
 
         "message":
-            "Password verified. MFA verification required.",
+            "Password verified. MFA required.",
 
         "mfa_required":
             True,
 
-        "user_id":
-            existing_user.id,
+        "user":
+            user_dict(existing_user),
 
-        "name":
-            existing_user.name,
+        **user_dict(existing_user),
 
-        "email":
-            existing_user.email,
+        "login_security":
+            anomaly,
 
-        "role":
-            existing_user.role,
-
-        "login_security": {
-
-            "risk_level":
-                anomaly["risk_level"],
-
-            "reason":
-                anomaly["reason"]
-
-        },
-
-        # DEVELOPMENT / TESTING ONLY
         "demo_mfa_code":
-            mfa_code
+            code
 
     }
 
@@ -695,7 +658,7 @@ def login(
 @app.post("/verify-mfa")
 def verify_mfa(
 
-    request_data: MFAVerifyRequest,
+    data: MFAVerifyRequest,
 
     request: Request,
 
@@ -703,51 +666,30 @@ def verify_mfa(
 
 ):
 
-    ip_address = (
-
-        request.client.host
-
-        if request.client
-
-        else None
-
-    )
-
-
-    # --------------------------------------------------------
-    # CHECK USER
-    # --------------------------------------------------------
-
-    existing_user = db.query(
+    user = db.query(
         User
     ).filter(
-        User.id ==
-            request_data.user_id
+        User.id == data.user_id
     ).first()
 
 
-    if not existing_user:
+    if not user:
 
         raise HTTPException(
 
             status_code=404,
 
-            detail=
-                "User not found"
+            detail="User not found"
 
         )
 
 
-    # --------------------------------------------------------
-    # FIND LATEST UNUSED CODE
-    # --------------------------------------------------------
-
-    mfa = db.query(
+    record = db.query(
         MFACode
     ).filter(
 
         MFACode.user_id ==
-            request_data.user_id,
+            user.id,
 
         MFACode.verified == 0
 
@@ -758,141 +700,64 @@ def verify_mfa(
     ).first()
 
 
-    if not mfa:
+    if not record:
 
-        create_audit_log(
+        raise HTTPException(
 
-            db=db,
+            status_code=400,
 
-            user_id=
-                existing_user.id,
-
-            action=
-                "MFA_FAILED",
-
-            details=
-                "No active MFA code found.",
-
-            ip_address=
-                ip_address
+            detail="No active MFA code found"
 
         )
 
+
+    if datetime.utcnow() > record.expires_at:
+
+        record.verified = 1
 
         db.commit()
 
 
         raise HTTPException(
 
-            status_code=401,
+            status_code=400,
 
-            detail=
-                "No active MFA code found"
-
-        )
-
-
-    # --------------------------------------------------------
-    # CHECK EXPIRATION
-    # --------------------------------------------------------
-
-    if datetime.utcnow() > mfa.expires_at:
-
-        mfa.verified = 1
-
-
-        create_audit_log(
-
-            db=db,
-
-            user_id=
-                existing_user.id,
-
-            action=
-                "MFA_FAILED",
-
-            details=
-                "MFA code expired.",
-
-            ip_address=
-                ip_address
+            detail="MFA code expired"
 
         )
 
 
-        db.commit()
-
+    if str(data.code).strip() != str(
+        record.code
+    ).strip():
 
         raise HTTPException(
 
-            status_code=401,
+            status_code=400,
 
-            detail=
-                "MFA code has expired"
+            detail="Invalid MFA code"
 
         )
 
 
-    # --------------------------------------------------------
-    # CHECK CODE
-    # --------------------------------------------------------
+    record.verified = 1
 
-    if request_data.code != mfa.code:
 
-        create_audit_log(
+    db.add(
 
-            db=db,
+        AuditLog(
 
-            user_id=
-                existing_user.id,
+            user_id=user.id,
 
-            action=
-                "MFA_FAILED",
+            action="MFA_VERIFIED",
 
             details=
-                "Incorrect MFA code.",
+                "MFA verification successful",
 
             ip_address=
-                ip_address
+                client_ip(request)
 
         )
-
-
-        db.commit()
-
-
-        raise HTTPException(
-
-            status_code=401,
-
-            detail=
-                "Invalid MFA code"
-
-        )
-
-
-    # --------------------------------------------------------
-    # MFA SUCCESS
-    # --------------------------------------------------------
-
-    mfa.verified = 1
-
-
-    create_audit_log(
-
-        db=db,
-
-        user_id=
-            existing_user.id,
-
-        action=
-            "MFA_VERIFIED",
-
-        details=
-            "Multi-factor authentication completed.",
-
-        ip_address=
-            ip_address
 
     )
 
@@ -903,22 +768,15 @@ def verify_mfa(
     return {
 
         "message":
-            "MFA verification successful",
+            "Login successful",
 
         "login_success":
             True,
 
-        "user_id":
-            existing_user.id,
+        "user":
+            user_dict(user),
 
-        "name":
-            existing_user.name,
-
-        "email":
-            existing_user.email,
-
-        "role":
-            existing_user.role
+        **user_dict(user)
 
     }
 
@@ -928,7 +786,7 @@ def verify_mfa(
 # ============================================================
 
 @app.get("/login-events")
-def get_login_events(
+def login_events(
 
     db: Session = Depends(get_db)
 
@@ -937,7 +795,7 @@ def get_login_events(
     events = db.query(
         LoginEvent
     ).order_by(
-        LoginEvent.id.desc()
+        LoginEvent.created_at.desc()
     ).all()
 
 
@@ -945,38 +803,32 @@ def get_login_events(
 
         {
 
-            "id":
-                event.id,
+            "id": x.id,
 
-            "user_id":
-                event.user_id,
+            "user_id": x.user_id,
 
-            "email":
-                event.email,
+            "email": x.email,
 
-            "success":
-                bool(event.success),
+            "success": x.success,
 
             "ip_address":
-                event.ip_address,
+                x.ip_address,
 
             "user_agent":
-                event.user_agent,
+                x.user_agent,
 
             "risk_level":
-                event.risk_level,
+                x.risk_level,
 
             "anomaly_reason":
-                event.anomaly_reason,
+                x.anomaly_reason,
 
             "created_at":
-                event.created_at.isoformat()
-                if event.created_at
-                else None
+                x.created_at
 
         }
 
-        for event in events
+        for x in events
 
     ]
 
@@ -986,7 +838,7 @@ def get_login_events(
 # ============================================================
 
 @app.get("/login-events/{user_id}")
-def get_user_login_events(
+def user_login_events(
 
     user_id: int,
 
@@ -1007,8 +859,7 @@ def get_user_login_events(
 
             status_code=404,
 
-            detail=
-                "User not found"
+            detail="User not found"
 
         )
 
@@ -1016,10 +867,9 @@ def get_user_login_events(
     events = db.query(
         LoginEvent
     ).filter(
-        LoginEvent.user_id ==
-            user_id
+        LoginEvent.user_id == user_id
     ).order_by(
-        LoginEvent.id.desc()
+        LoginEvent.created_at.desc()
     ).all()
 
 
@@ -1027,38 +877,32 @@ def get_user_login_events(
 
         {
 
-            "id":
-                event.id,
+            "id": x.id,
 
-            "user_id":
-                event.user_id,
+            "user_id": x.user_id,
 
-            "email":
-                event.email,
+            "email": x.email,
 
-            "success":
-                bool(event.success),
+            "success": x.success,
 
             "ip_address":
-                event.ip_address,
+                x.ip_address,
 
             "user_agent":
-                event.user_agent,
+                x.user_agent,
 
             "risk_level":
-                event.risk_level,
+                x.risk_level,
 
             "anomaly_reason":
-                event.anomaly_reason,
+                x.anomaly_reason,
 
             "created_at":
-                event.created_at.isoformat()
-                if event.created_at
-                else None
+                x.created_at
 
         }
 
-        for event in events
+        for x in events
 
     ]
 
@@ -1068,7 +912,7 @@ def get_user_login_events(
 # ============================================================
 
 @app.get("/audit-logs")
-def get_audit_logs(
+def audit_logs(
 
     db: Session = Depends(get_db)
 
@@ -1077,7 +921,7 @@ def get_audit_logs(
     logs = db.query(
         AuditLog
     ).order_by(
-        AuditLog.id.desc()
+        AuditLog.created_at.desc()
     ).all()
 
 
@@ -1085,29 +929,23 @@ def get_audit_logs(
 
         {
 
-            "id":
-                log.id,
+            "id": x.id,
 
-            "user_id":
-                log.user_id,
+            "user_id": x.user_id,
 
-            "action":
-                log.action,
+            "action": x.action,
 
-            "details":
-                log.details,
+            "details": x.details,
 
             "ip_address":
-                log.ip_address,
+                x.ip_address,
 
             "created_at":
-                log.created_at.isoformat()
-                if log.created_at
-                else None
+                x.created_at
 
         }
 
-        for log in logs
+        for x in logs
 
     ]
 
@@ -1117,9 +955,11 @@ def get_audit_logs(
 # ============================================================
 
 @app.post("/scan-url")
-def scan_url_endpoint(
+def scan(
 
-    request: URLScanRequest,
+    data: URLScanRequest,
+
+    request: Request,
 
     db: Session = Depends(get_db)
 
@@ -1128,8 +968,7 @@ def scan_url_endpoint(
     existing_user = db.query(
         User
     ).filter(
-        User.id ==
-            request.user_id
+        User.id == data.user_id
     ).first()
 
 
@@ -1139,84 +978,126 @@ def scan_url_endpoint(
 
             status_code=404,
 
-            detail=
-                "User not found"
+            detail="User not found"
 
         )
 
 
-    result = scan_url(
-        request.url
+    try:
+
+        result = scan_url(
+            data.url
+        )
+
+    except Exception as e:
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail=
+                f"URL scanner error: {e}"
+
+        )
+
+
+    if not result.get(
+        "valid",
+        False
+    ):
+
+        raise HTTPException(
+
+            status_code=400,
+
+            detail=
+                result.get(
+                    "error",
+                    "Invalid URL"
+                )
+
+        )
+
+
+    indicators = result.get(
+        "indicators",
+        []
     )
 
 
-    if not result["valid"]:
+    if isinstance(
+        indicators,
+        list
+    ):
 
-        return {
+        indicators_text = ", ".join(
+            map(
+                str,
+                indicators
+            )
+        )
 
-            "message":
-                "URL scan completed",
+    else:
 
-            "result":
-                result
-
-        }
+        indicators_text = str(
+            indicators
+        )
 
 
-    indicators_text = " | ".join(
-        result["indicators"]
+    saved = URLScan(
+
+        user_id=data.user_id,
+
+        url=result.get(
+            "url",
+            data.url
+        ),
+
+        domain=result.get(
+            "domain"
+        ),
+
+        protocol=result.get(
+            "protocol"
+        ),
+
+        risk_level=result.get(
+            "risk_level",
+            "Low"
+        ),
+
+        risk_score=int(
+            result.get(
+                "risk_score",
+                0
+            )
+        ),
+
+        indicators=indicators_text,
+
+        recommendation=result.get(
+            "recommendation"
+        )
+
     )
 
 
-    new_scan = URLScan(
-
-        user_id=
-            request.user_id,
-
-        url=
-            result["url"],
-
-        domain=
-            result["domain"],
-
-        protocol=
-            result["protocol"],
-
-        risk_level=
-            result["risk_level"],
-
-        risk_score=
-            result["risk_score"],
-
-        indicators=
-            indicators_text,
-
-        recommendation=
-            result["recommendation"]
-
-    )
+    db.add(saved)
 
 
-    db.add(new_scan)
+    db.add(
 
+        AuditLog(
 
-    create_audit_log(
+            user_id=data.user_id,
 
-        db=db,
+            action="URL_SCANNED",
 
-        user_id=
-            request.user_id,
+            details=
+                f"Risk: {result.get('risk_level', 'Low')}",
 
-        action=
-            "URL_SCAN",
-
-        details=(
-
-            f"Scanned {result['url']} | "
-
-            f"Risk: {result['risk_level']} | "
-
-            f"Score: {result['risk_score']}"
+            ip_address=
+                client_ip(request)
 
         )
 
@@ -1225,16 +1106,16 @@ def scan_url_endpoint(
 
     db.commit()
 
-    db.refresh(new_scan)
+    db.refresh(saved)
 
 
     return {
 
         "message":
-            "URL scan completed and saved",
+            "URL scanned successfully",
 
         "scan_id":
-            new_scan.id,
+            saved.id,
 
         "result":
             result
@@ -1247,7 +1128,7 @@ def scan_url_endpoint(
 # ============================================================
 
 @app.get("/url-scan-history/{user_id}")
-def get_user_scan_history(
+def scan_history(
 
     user_id: int,
 
@@ -1255,21 +1136,17 @@ def get_user_scan_history(
 
 ):
 
-    existing_user = db.query(
+    if not db.query(
         User
     ).filter(
         User.id == user_id
-    ).first()
-
-
-    if not existing_user:
+    ).first():
 
         raise HTTPException(
 
             status_code=404,
 
-            detail=
-                "User not found"
+            detail="User not found"
 
         )
 
@@ -1277,8 +1154,7 @@ def get_user_scan_history(
     scans = db.query(
         URLScan
     ).filter(
-        URLScan.user_id ==
-            user_id
+        URLScan.user_id == user_id
     ).order_by(
         URLScan.id.desc()
     ).all()
@@ -1288,36 +1164,35 @@ def get_user_scan_history(
 
         {
 
-            "id":
-                scan.id,
+            "id": x.id,
 
             "user_id":
-                scan.user_id,
+                x.user_id,
 
             "url":
-                scan.url,
+                x.url,
 
             "domain":
-                scan.domain,
+                x.domain,
 
             "protocol":
-                scan.protocol,
+                x.protocol,
 
             "risk_level":
-                scan.risk_level,
+                x.risk_level,
 
             "risk_score":
-                scan.risk_score,
+                x.risk_score,
 
             "indicators":
-                scan.indicators,
+                x.indicators,
 
             "recommendation":
-                scan.recommendation
+                x.recommendation
 
         }
 
-        for scan in scans
+        for x in scans
 
     ]
 
@@ -1327,7 +1202,7 @@ def get_user_scan_history(
 # ============================================================
 
 @app.get("/url-scans")
-def get_all_url_scans(
+def all_scans(
 
     db: Session = Depends(get_db)
 
@@ -1344,36 +1219,35 @@ def get_all_url_scans(
 
         {
 
-            "id":
-                scan.id,
+            "id": x.id,
 
             "user_id":
-                scan.user_id,
+                x.user_id,
 
             "url":
-                scan.url,
+                x.url,
 
             "domain":
-                scan.domain,
+                x.domain,
 
             "protocol":
-                scan.protocol,
+                x.protocol,
 
             "risk_level":
-                scan.risk_level,
+                x.risk_level,
 
             "risk_score":
-                scan.risk_score,
+                x.risk_score,
 
             "indicators":
-                scan.indicators,
+                x.indicators,
 
             "recommendation":
-                scan.recommendation
+                x.recommendation
 
         }
 
-        for scan in scans
+        for x in scans
 
     ]
 
@@ -1383,9 +1257,11 @@ def get_all_url_scans(
 # ============================================================
 
 @app.post("/threat-report")
-def create_threat_report(
+def report(
 
-    report: ThreatReportCreate,
+    data: ThreatReportCreate,
+
+    request: Request,
 
     db: Session = Depends(get_db)
 
@@ -1394,8 +1270,7 @@ def create_threat_report(
     existing_user = db.query(
         User
     ).filter(
-        User.id ==
-            report.user_id
+        User.id == data.user_id
     ).first()
 
 
@@ -1405,76 +1280,87 @@ def create_threat_report(
 
             status_code=404,
 
-            detail=
-                "User not found"
+            detail="User not found"
 
         )
 
 
-    detection_result = detect_threat(
+    if len(
+        data.description.strip()
+    ) < 5:
 
-        report.threat_type,
+        raise HTTPException(
 
-        report.description
+            status_code=400,
 
+            detail="Description is too short"
+
+        )
+
+
+    threat_type = (
+        data.threat_type.strip()
+        or "Other"
     )
 
 
-    detected_type = detection_result[
-        "detected_type"
-    ]
+    try:
+
+        detected = detect_threat(
+            data.description.strip()
+        )
 
 
-    detected_risk = detection_result[
-        "risk_level"
-    ]
+        if isinstance(
+            detected,
+            str
+        ) and detected.strip():
+
+            threat_type = detected.strip()
 
 
-    matched_keywords = detection_result[
-        "matched_keywords"
-    ]
+    except Exception:
+
+        pass
 
 
-    new_report = ThreatReport(
+    report = ThreatReport(
 
-        user_id=
-            report.user_id,
+        user_id=data.user_id,
 
-        threat_type=
-            detected_type,
+        threat_type=threat_type,
 
         description=
-            report.description,
+            data.description.strip(),
 
         severity=
-            detected_risk,
+            data.severity or "Medium",
 
-        status=
-            "Pending"
+        status="Pending"
 
     )
 
 
-    db.add(new_report)
+    db.add(report)
+
+    db.commit()
+
+    db.refresh(report)
 
 
-    create_audit_log(
+    db.add(
 
-        db=db,
+        AuditLog(
 
-        user_id=
-            report.user_id,
+            user_id=data.user_id,
 
-        action=
-            "THREAT_REPORTED",
+            action="THREAT_REPORTED",
 
-        details=(
+            details=
+                f"Report #{report.id} created",
 
-            f"Threat type: "
-            f"{detected_type} | "
-
-            f"Risk: "
-            f"{detected_risk}"
+            ip_address=
+                client_ip(request)
 
         )
 
@@ -1483,8 +1369,6 @@ def create_threat_report(
 
     db.commit()
 
-    db.refresh(new_report)
-
 
     return {
 
@@ -1492,22 +1376,10 @@ def create_threat_report(
             "Threat report submitted successfully",
 
         "report_id":
-            new_report.id,
+            report.id,
 
         "status":
-            new_report.status,
-
-        "original_threat_type":
-            report.threat_type,
-
-        "detected_threat_type":
-            detected_type,
-
-        "risk_level":
-            detected_risk,
-
-        "matched_keywords":
-            matched_keywords
+            report.status
 
     }
 
@@ -1517,13 +1389,13 @@ def create_threat_report(
 # ============================================================
 
 @app.get("/threat-reports")
-def get_threat_reports(
+def reports(
 
     db: Session = Depends(get_db)
 
 ):
 
-    reports = db.query(
+    reports_data = db.query(
         ThreatReport
     ).order_by(
         ThreatReport.id.desc()
@@ -1534,27 +1406,26 @@ def get_threat_reports(
 
         {
 
-            "id":
-                report.id,
+            "id": x.id,
 
             "user_id":
-                report.user_id,
+                x.user_id,
 
             "threat_type":
-                report.threat_type,
+                x.threat_type,
 
             "description":
-                report.description,
+                x.description,
 
             "severity":
-                report.severity,
+                x.severity,
 
             "status":
-                report.status
+                x.status
 
         }
 
-        for report in reports
+        for x in reports_data
 
     ]
 
@@ -1563,12 +1434,16 @@ def get_threat_reports(
 # UPDATE THREAT STATUS
 # ============================================================
 
-@app.put("/threat-report/{report_id}/status")
-def update_threat_status(
+@app.put(
+    "/threat-report/{report_id}/status"
+)
+def report_status(
 
     report_id: int,
 
     status: str,
+
+    request: Request,
 
     db: Session = Depends(get_db)
 
@@ -1577,8 +1452,7 @@ def update_threat_status(
     report = db.query(
         ThreatReport
     ).filter(
-        ThreatReport.id ==
-            report_id
+        ThreatReport.id == report_id
     ).first()
 
 
@@ -1588,8 +1462,7 @@ def update_threat_status(
 
             status_code=404,
 
-            detail=
-                "Threat report not found"
+            detail="Threat report not found"
 
         )
 
@@ -1600,7 +1473,9 @@ def update_threat_status(
 
         "Investigating",
 
-        "Resolved"
+        "Resolved",
+
+        "Rejected"
 
     ]
 
@@ -1611,39 +1486,31 @@ def update_threat_status(
 
             status_code=400,
 
-            detail=(
-
-                "Invalid status. "
-
-                "Use Pending, Investigating "
-                "or Resolved."
-
-            )
+            detail="Invalid status"
 
         )
 
 
     old_status = report.status
 
-
     report.status = status
 
 
-    create_audit_log(
+    db.add(
 
-        db=db,
+        AuditLog(
 
-        user_id=
-            report.user_id,
+            user_id=
+                report.user_id,
 
-        action=
-            "THREAT_STATUS_UPDATED",
+            action=
+                "THREAT_STATUS_UPDATED",
 
-        details=(
+            details=
+                f"Report #{report.id}: {old_status} -> {status}",
 
-            f"Report #{report.id}: "
-
-            f"{old_status} -> {status}"
+            ip_address=
+                client_ip(request)
 
         )
 
@@ -1652,18 +1519,141 @@ def update_threat_status(
 
     db.commit()
 
-    db.refresh(report)
-
 
     return {
 
         "message":
-            "Threat report status updated successfully",
+            "Threat report status updated",
 
         "report_id":
             report.id,
 
-        "status":
-            report.status
+        "old_status":
+            old_status,
+
+        "new_status":
+            status
 
     }
+
+
+# ============================================================
+# ADMIN STATISTICS
+# ============================================================
+
+@app.get("/admin/stats")
+def admin_stats(
+
+    db: Session = Depends(get_db)
+
+):
+
+    return {
+
+        "users":
+            db.query(User).count(),
+
+        "threat_reports":
+            db.query(ThreatReport).count(),
+
+        "pending_reports":
+            db.query(
+                ThreatReport
+            ).filter(
+                ThreatReport.status == "Pending"
+            ).count(),
+
+        "high_critical_reports":
+            db.query(
+                ThreatReport
+            ).filter(
+                ThreatReport.severity.in_(
+                    ["High", "Critical"]
+                )
+            ).count(),
+
+        "resolved_reports":
+            db.query(
+                ThreatReport
+            ).filter(
+                ThreatReport.status == "Resolved"
+            ).count(),
+
+        "login_events":
+            db.query(LoginEvent).count(),
+
+        "failed_logins":
+            db.query(
+                LoginEvent
+            ).filter(
+                LoginEvent.success == 0
+            ).count(),
+
+        "high_risk_logins":
+            db.query(
+                LoginEvent
+            ).filter(
+                LoginEvent.risk_level.in_(
+                    ["High", "Critical"]
+                )
+            ).count(),
+
+        "url_scans":
+            db.query(URLScan).count(),
+
+        "high_risk_urls":
+            db.query(
+                URLScan
+            ).filter(
+                URLScan.risk_level.in_(
+                    ["High", "Critical"]
+                )
+            ).count(),
+
+        "quiz_results":
+            db.query(QuizResult).count()
+
+    }
+
+
+# ============================================================
+# GET USER
+# ============================================================
+
+@app.get("/users/{user_id}")
+def get_user(
+
+    user_id: int,
+
+    db: Session = Depends(get_db)
+
+):
+
+    user = db.query(
+        User
+    ).filter(
+        User.id == user_id
+    ).first()
+
+
+    if not user:
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail="User not found"
+
+        )
+
+
+    return user_dict(user)
+
+
+# ============================================================
+# SERVER START MESSAGE
+# ============================================================
+
+print(
+    "AEGIS Backend Started Successfully"
+)
