@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+```
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>AEGIS - Admin Dashboard</title>
+
+<link
+    rel="stylesheet"
+    href="style.css"
+>
+
+<style>
+
+    .admin-container {
+        max-width: 1200px;
+        margin: 30px auto;
+    }
+
+    .admin-header {
+        margin-bottom: 25px;
+    }
+
+    .admin-header h1 {
+        margin-bottom: 5px;
+    }
+
+    .admin-header p {
+        color: #64748b;
+    }
+
+    .admin-stats {
+        display: grid;
+
+        grid-template-columns:
+            repeat(4, 1fr);
+
+        gap: 15px;
+
+        margin-bottom: 25px;
+    }
+
+    .admin-stat {
+        background: white;
+
+        border: 1px solid #e2e8f0;
+
+        border-radius: 12px;
+
+        padding: 20px;
+
+        box-shadow:
+            0 5px 18px
+            rgba(0,0,0,0.05);
+    }
+
+    .admin-stat-label {
+        display: block;
+
+        color: #64748b;
+
+        font-size: 14px;
+
+        margin-bottom: 8px;
+    }
+
+    .admin-stat-value {
+        font-size: 28px;
+
+        font-weight: 700;
+    }
+
+    .reports-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .reports-table {
+        width: 100%;
+
+        border-collapse: collapse;
+
+        min-width: 850px;
+    }
+
+    .reports-table th,
+    .reports-table td {
+
+        padding: 13px;
+
+        text-align: left;
+
+        border-bottom:
+            1px solid #e2e8f0;
+
+        vertical-align: top;
+    }
+
+    .reports-table th {
+        background: #f8fafc;
+
+        font-size: 14px;
+    }
+
+    .reports-table td {
+        font-size: 14px;
+    }
+
+    .description-cell {
+        max-width: 300px;
+
+        white-space: normal;
+
+        line-height: 1.5;
+    }
+
+    .status-select {
+        min-width: 140px;
+
+        padding: 8px;
+
+        border:
+            1px solid #cbd5e1;
+
+        border-radius: 7px;
+
+        background: white;
+    }
+
+    .severity-badge,
+    .status-badge {
+
+        display: inline-block;
+
+        padding: 5px 9px;
+
+        border-radius: 20px;
+
+        font-size: 12px;
+
+        font-weight: 600;
+
+        white-space: nowrap;
+    }
+
+    .severity-critical {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .severity-high {
+        background: #ffedd5;
+        color: #9a3412;
+    }
+
+    .severity-medium {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .severity-low {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-investigating {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-resolved {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-rejected {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .action-button {
+        padding: 7px 11px;
+
+        border: none;
+
+        border-radius: 7px;
+
+        background: #0284c7;
+
+        color: white;
+
+        cursor: pointer;
+    }
+
+    .action-button:hover {
+        background: #0369a1;
+    }
+
+    .action-button:disabled {
+        opacity: 0.6;
+
+        cursor: not-allowed;
+    }
+
+    .message-box {
+        display: none;
+
+        margin-bottom: 20px;
+
+        padding: 14px;
+
+        border-radius: 9px;
+    }
+
+    .success-message {
+        background: #f0fdf4;
+
+        border-left:
+            4px solid #16a34a;
+
+        color: #166534;
+    }
+
+    .error-message {
+        background: #fef2f2;
+
+        border-left:
+            4px solid #dc2626;
+
+        color: #991b1b;
+    }
+
+    .empty-state {
+        text-align: center;
+
+        padding: 40px;
+
+        color: #64748b;
+    }
+
+    .quick-actions-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, 1fr);
+
+        gap: 15px;
+    }
+
+    .quick-action-card {
+
+        display: block;
+
+        text-decoration: none;
+
+        color: inherit;
+
+        background: #f8fafc;
+
+        border:
+            1px solid #e2e8f0;
+
+        border-radius: 10px;
+
+        padding: 18px;
+
+        transition: 0.2s;
+
+    }
+
+    .quick-action-card:hover {
+        transform: translateY(-2px);
+
+        border-color: #bae6fd;
+
+        background: #eff6ff;
+    }
+
+    .quick-action-icon {
+        font-size: 25px;
+
+        margin-bottom: 8px;
+    }
+
+    @media (max-width: 850px) {
+
+        .admin-stats {
+            grid-template-columns:
+                repeat(2, 1fr);
+        }
+
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+    @media (max-width: 500px) {
+
+        .admin-stats {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<!-- NAVIGATION -->
+
+<nav class="navbar">
+
+    <div class="nav-brand">
+
+        <strong>AEGIS</strong>
+
+    </div>
+
+
+    <div class="nav-links">
+
+        <a href="admin.html">
+            Admin Dashboard
+        </a>
+
+        <a href="security-monitor.html">
+            Security Monitor
+        </a>
+
+        <a href="alerts.html">
+            Security Alerts
+        </a>
+
+        <a
+            href="#"
+            onclick="logout()"
+        >
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+
+<!-- MAIN -->
+
+<main class="container">
+
+    <div class="admin-container">
+
+
+        <!-- HEADER -->
+
+        <div class="admin-header">
+
+            <h1>
+                🛡️ AEGIS Admin Dashboard
+            </h1>
+
+            <p>
+                Monitor campus cybersecurity incidents
+                and manage security reports.
+            </p>
+
+        </div>
+
+
+        <!-- MESSAGE -->
+
+        <div
+            id="messageBox"
+            class="message-box"
+        ></div>
+
+
+        <!-- STATISTICS -->
+
+        <div class="admin-stats">
+
+
+            <div class="admin-stat">
+
+                <span class="admin-stat-label">
+                    Total Reports
+                </span>
+
+                <div
+                    id="totalReports"
+                    class="admin-stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="admin-stat">
+
+                <span class="admin-stat-label">
+                    Pending
+                </span>
+
+                <div
+                    id="pendingReports"
+                    class="admin-stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="admin-stat">
+
+                <span class="admin-stat-label">
+                    High / Critical
+                </span>
+
+                <div
+                    id="highReports"
+                    class="admin-stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="admin-stat">
+
+                <span class="admin-stat-label">
+                    Resolved
+                </span>
+
+                <div
+                    id="resolvedReports"
+                    class="admin-stat-value"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- QUICK ACTIONS -->
+
+        <div class="card">
+
+            <h2>
+                Quick Actions
+            </h2>
+
+
+            <div class="quick-actions-grid">
+
+
+                <a
+                    href="security-monitor.html"
+                    class="quick-action-card"
+                >
+
+                    <div class="quick-action-icon">
+                        📊
+                    </div>
+
+                    <strong>
+                        Security Monitor
+                    </strong>
+
+                    <p>
+                        Monitor login events,
+                        failed attempts and
+                        security activity.
+                    </p>
+
+                </a>
+
+
+                <a
+                    href="alerts.html"
+                    class="quick-action-card"
+                >
+
+                    <div class="quick-action-icon">
+                        🔔
+                    </div>
+
+                    <strong>
+                        Security Alerts
+                    </strong>
+
+                    <p>
+                        Review security alerts
+                        and threat notifications.
+                    </p>
+
+                </a>
+
+
+                <a
+                    href="dashboard.html"
+                    class="quick-action-card"
+                >
+
+                    <div class="quick-action-icon">
+                        👤
+                    </div>
+
+                    <strong>
+                        Student Dashboard
+                    </strong>
+
+                    <p>
+                        Open the student-facing
+                        AEGIS dashboard.
+                    </p>
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- INCIDENT REPORTS -->
+
+        <div class="card">
+
+            <div
+                style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:10px;
+                flex-wrap:wrap;
+                "
+            >
+
+                <div>
+
+                    <h2>
+                        Incident Reports
+                    </h2>
+
+                    <p>
+                        Review and manage reported
+                        cybersecurity incidents.
+                    </p>
+
+                </div>
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="loadReports()"
+                >
+                    🔄 Refresh
+                </button>
+
+            </div>
+
+
+            <br>
+
+
+            <div class="reports-table-wrapper">
+
+                <table class="reports-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                ID
+                            </th>
+
+                            <th>
+                                User ID
+                            </th>
+
+                            <th>
+                                Threat Type
+                            </th>
+
+                            <th>
+                                Description
+                            </th>
+
+                            <th>
+                                Severity
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody
+                        id="reportsTableBody"
+                    >
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="empty-state"
+                            >
+                                Loading reports...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</main>
+
+
+<!-- FOOTER -->
+
+<footer class="footer">
+
+    <p>
+        AEGIS — AI-Powered Smart Campus Cybersecurity System
+    </p>
+
+</footer>
+
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+
+    /* =========================================
+       BACKEND
+    ========================================= */
+
+    const API_URL =
+        "http://127.0.0.1:8000";
+
+
+    /* =========================================
+       ADMIN LOGIN CHECK
+    ========================================= */
+
+    const storedUser =
+        localStorage.getItem(
+            "aegisUser"
+        );
+
+
+    if (!storedUser) {
+
+        window.location.href =
+            "login.html";
+
+    }
+
+
+    let currentUser = null;
+
+
+    try {
+
+        currentUser =
+            JSON.parse(
+                storedUser
+            );
+
+    }
+
+    catch (error) {
+
+        localStorage.removeItem(
+            "aegisUser"
+        );
+
+        localStorage.removeItem(
+            "aegisUserId"
+        );
+
+        window.location.href =
+            "login.html";
+
+    }
+
+
+    if (
+        currentUser &&
+        currentUser.role !== "admin"
+    ) {
+
+        alert(
+            "Administrator access required."
+        );
+
+        window.location.href =
+            "dashboard.html";
+
+    }
+
+
+    /* =========================================
+       MESSAGE
+    ========================================= */
+
+    function showMessage(
+        text,
+        type
+    ) {
+
+        const box =
+            document.getElementById(
+                "messageBox"
+            );
+
+
+        box.style.display =
+            "block";
+
+
+        box.className =
+            "message-box " +
+            (
+                type === "success"
+                    ? "success-message"
+                    : "error-message"
+            );
+
+
+        box.innerHTML =
+            text;
+
+
+        setTimeout(
+            function() {
+
+                box.style.display =
+                    "none";
+
+            },
+            4000
+        );
+
+    }
+
+
+    /* =========================================
+       ESCAPE HTML
+    ========================================= */
+
+    function escapeHTML(value) {
+
+        return String(value)
+
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+
+            .replace(
+                /</g,
+                "&lt;"
+            )
+
+            .replace(
+                />/g,
+                "&gt;"
+            )
+
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+
+            .replace(
+                /'/g,
+                "&#039;"
+            );
+
+    }
+
+
+    /* =========================================
+       SEVERITY CLASS
+    ========================================= */
+
+    function getSeverityClass(
+        severity
+    ) {
+
+        return (
+            "severity-" +
+            String(severity || "medium")
+                .toLowerCase()
+        );
+
+    }
+
+
+    /* =========================================
+       STATUS CLASS
+    ========================================= */
+
+    function getStatusClass(
+        status
+    ) {
+
+        return (
+            "status-" +
+            String(status || "pending")
+                .toLowerCase()
+                .replace(
+                    /\s+/g,
+                    "-"
+                )
+        );
+
+    }
+
+
+    /* =========================================
+       LOAD REPORTS
+    ========================================= */
+
+    async function loadReports() {
+
+        const tbody =
+            document.getElementById(
+                "reportsTableBody"
+            );
+
+
+        tbody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    class="empty-state"
+                >
+                    Loading incident reports...
+                </td>
+
+            </tr>
+
+        `;
+
+
+        try {
+
+
+            const response =
+                await fetch(
+                    `${API_URL}/threat-reports`
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.detail ||
+                    "Failed to load reports."
+                );
+
+            }
+
+
+            const reports =
+                Array.isArray(data)
+                    ? data
+                    : (
+                        data.reports || []
+                    );
+
+
+            updateStatistics(
+                reports
+            );
+
+
+            renderReports(
+                reports
+            );
+
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Load reports error:",
+                error
+            );
+
+
+            tbody.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="empty-state"
+                    >
+                        ❌ Unable to load reports.
+                        Make sure the AEGIS backend is running.
+                    </td>
+
+                </tr>
+
+            `;
+
+
+            showMessage(
+                escapeHTML(
+                    error.message
+                ),
+                "error"
+            );
+
+        }
+
+    }
+
+
+    /* =========================================
+       UPDATE STATISTICS
+    ========================================= */
+
+    function updateStatistics(
+        reports
+    ) {
+
+
+        const total =
+            reports.length;
+
+
+        const pending =
+            reports.filter(
+                report =>
+                    String(
+                        report.status
+                    ).toLowerCase()
+                    === "pending"
+            ).length;
+
+
+        const high =
+            reports.filter(
+                report => {
+
+                    const severity =
+                        String(
+                            report.severity ||
+                            ""
+                        ).toLowerCase();
+
+                    return (
+                        severity === "high" ||
+                        severity === "critical"
+                    );
+
+                }
+            ).length;
+
+
+        const resolved =
+            reports.filter(
+                report =>
+                    String(
+                        report.status
+                    ).toLowerCase()
+                    === "resolved"
+            ).length;
+
+
+        document.getElementById(
+            "totalReports"
+        ).textContent = total;
+
+
+        document.getElementById(
+            "pendingReports"
+        ).textContent = pending;
+
+
+        document.getElementById(
+            "highReports"
+        ).textContent = high;
+
+
+        document.getElementById(
+            "resolvedReports"
+        ).textContent = resolved;
+
+    }
+
+
+    /* =========================================
+       RENDER REPORTS
+    ========================================= */
+
+    function renderReports(
+        reports
+    ) {
+
+
+        const tbody =
+            document.getElementById(
+                "reportsTableBody"
+            );
+
+
+        if (
+            !reports ||
+            reports.length === 0
+        ) {
+
+            tbody.innerHTML = `
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="empty-state"
+                    >
+                        No incident reports found.
+                    </td>
+
+                </tr>
+
+            `;
+
+            return;
+
+        }
+
+
+        reports.sort(
+            function(a, b) {
+
+                return (
+                    Number(b.id || 0) -
+                    Number(a.id || 0)
+                );
+
+            }
+        );
+
+
+        tbody.innerHTML =
+            reports.map(
+                function(report) {
+
+
+                    const id =
+                        report.id ??
+                        report.report_id ??
+                        "";
+
+
+                    const userId =
+                        report.user_id ??
+                        report.userId ??
+                        "";
+
+
+                    const threatType =
+                        report.threat_type ??
+                        report.threatType ??
+                        "Unknown";
+
+
+                    const description =
+                        report.description ??
+                        "No description";
+
+
+                    const severity =
+                        report.severity ??
+                        "Medium";
+
+
+                    const status =
+                        report.status ??
+                        "Pending";
+
+
+                    return `
+
+                        <tr>
+
+                            <td>
+                                <strong>
+                                    #${escapeHTML(
+                                        String(id)
+                                    )}
+                                </strong>
+                            </td>
+
+
+                            <td>
+                                ${escapeHTML(
+                                    String(userId)
+                                )}
+                            </td>
+
+
+                            <td>
+                                ${escapeHTML(
+                                    String(
+                                        threatType
+                                    )
+                                )}
+                            </td>
+
+
+                            <td
+                                class="description-cell"
+                            >
+                                ${escapeHTML(
+                                    String(
+                                        description
+                                    )
+                                )}
+                            </td>
+
+
+                            <td>
+
+                                <span
+                                    class="severity-badge ${getSeverityClass(
+                                        severity
+                                    )}"
+                                >
+                                    ${escapeHTML(
+                                        String(
+                                            severity
+                                        )
+                                    )}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                <span
+                                    class="status-badge ${getStatusClass(
+                                        status
+                                    )}"
+                                >
+                                    ${escapeHTML(
+                                        String(
+                                            status
+                                        )
+                                    )}
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
+                                <select
+                                    class="status-select"
+                                    id="status-${escapeHTML(
+                                        String(id)
+                                    )}"
+                                >
+
+                                    <option
+                                        value="Pending"
+                                        ${
+                                            String(
+                                                status
+                                            ).toLowerCase()
+                                            === "pending"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Pending
+                                    </option>
+
+
+                                    <option
+                                        value="Investigating"
+                                        ${
+                                            String(
+                                                status
+                                            ).toLowerCase()
+                                            === "investigating"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Investigating
+                                    </option>
+
+
+                                    <option
+                                        value="Resolved"
+                                        ${
+                                            String(
+                                                status
+                                            ).toLowerCase()
+                                            === "resolved"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Resolved
+                                    </option>
+
+
+                                    <option
+                                        value="Rejected"
+                                        ${
+                                            String(
+                                                status
+                                            ).toLowerCase()
+                                            === "rejected"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Rejected
+                                    </option>
+
+                                </select>
+
+
+                                <br><br>
+
+
+                                <button
+                                    class="action-button"
+                                    onclick="updateStatus(${Number(id)})"
+                                >
+                                    Update
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+    }
+
+
+    /* =========================================
+       UPDATE STATUS
+    ========================================= */
+
+    async function updateStatus(
+        reportId
+    ) {
+
+
+        const select =
+            document.getElementById(
+                `status-${reportId}`
+            );
+
+
+        if (!select) {
+
+            return;
+
+        }
+
+
+        const newStatus =
+            select.value;
+
+
+        try {
+
+
+            const response =
+                await fetch(
+                    `${API_URL}/threat-report/${reportId}/status?status=${encodeURIComponent(newStatus)}`,
+                    {
+                        method: "PUT"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.detail ||
+                    "Failed to update report status."
+                );
+
+            }
+
+
+            showMessage(
+                `✅ Report #${reportId} status updated to ${escapeHTML(newStatus)}.`,
+                "success"
+            );
+
+
+            await loadReports();
+
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Update status error:",
+                error
+            );
+
+
+            showMessage(
+                `❌ ${escapeHTML(error.message)}`,
+                "error"
+            );
+
+        }
+
+    }
+
+
+    /* =========================================
+       LOGOUT
+    ========================================= */
+
+    function logout() {
+
+        localStorage.removeItem(
+            "aegisUser"
+        );
+
+
+        localStorage.removeItem(
+            "aegisUserId"
+        );
+
+
+        window.location.href =
+            "login.html";
+
+    }
+
+
+    /* =========================================
+       INITIAL LOAD
+    ========================================= */
+
+    loadReports();
+
+</script>
+```
+
+</body>
+
+</html>

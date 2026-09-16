@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Security Alerts - AEGIS</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<!-- ================= NAVBAR ================= -->
+
+<nav class="navbar">
+
+    <div class="nav-container">
+
+        <a
+            href="index.html"
+            class="logo">
+
+            🛡️ AEGIS
+
+        </a>
+
+
+        <div class="nav-links">
+
+            <a href="dashboard.html">
+                Dashboard
+            </a>
+
+            <a href="url-scanner.html">
+                URL Scanner
+            </a>
+
+            <a
+                href="alerts.html"
+                class="active">
+
+                Security Alerts
+
+            </a>
+
+            <a href="report-threat.html">
+                Report Threat
+            </a>
+
+            <a
+                href="admin.html"
+                id="adminLink"
+                style="display:none;">
+
+                Admin
+
+            </a>
+
+            <button
+                class="btn btn-outline"
+                onclick="logout()">
+
+                Logout
+
+            </button>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+
+<!-- ================= MAIN ================= -->
+
+<main class="container">
+
+
+    <!-- PAGE HEADER -->
+
+    <section class="page-header">
+
+        <h1>
+            🔔 Security Alerts
+        </h1>
+
+        <p>
+            Stay informed about cybersecurity threats
+            reported within the AEGIS smart campus.
+        </p>
+
+    </section>
+
+
+
+    <!-- ================= SECURITY STATUS ================= -->
+
+    <section class="card">
+
+        <div class="section-header">
+
+            <div>
+
+                <h2>
+                    🛡️ Campus Security Monitoring
+                </h2>
+
+                <p class="text-secondary">
+
+                    AEGIS monitors reported cybersecurity
+                    incidents and displays them here.
+
+                </p>
+
+            </div>
+
+
+            <button
+                class="btn btn-outline"
+                onclick="loadAlerts()">
+
+                🔄 Refresh
+
+            </button>
+
+        </div>
+
+
+        <div
+            class="alert-box warning">
+
+            <strong>
+                ⚠️ Security Awareness
+            </strong>
+
+            <p>
+                If you encounter a suspicious website,
+                message, application, or cybersecurity
+                incident, report it through the
+                <strong>Report Threat</strong> section.
+            </p>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ================= ALERTS ================= -->
+
+    <section class="card">
+
+        <div class="section-header">
+
+            <div>
+
+                <h2>
+                    🚨 Reported Threats
+                </h2>
+
+                <p class="text-secondary">
+                    Latest cybersecurity reports received
+                    by AEGIS.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div id="alertsContainer">
+
+            <div class="empty">
+
+                Loading security alerts...
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- ================= FOOTER ================= -->
+
+<footer class="footer">
+
+    <div class="container">
+
+        <p>
+            🛡️ AEGIS — AI-Powered Smart Campus
+            Cybersecurity System
+        </p>
+
+        <p>
+            Cybersecurity awareness and threat
+            detection platform
+        </p>
+
+    </div>
+
+</footer>
+
+
+
+<script>
+
+
+/* =========================================
+   LOGIN CHECK
+========================================= */
+
+const storedUser =
+    localStorage.getItem("aegisUser");
+
+
+if (!storedUser) {
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+let currentUser = null;
+
+
+try {
+
+    currentUser =
+        JSON.parse(storedUser);
+
+} catch (error) {
+
+    localStorage.removeItem(
+        "aegisUser"
+    );
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+/* =========================================
+   ADMIN LINK
+========================================= */
+
+if (
+    currentUser &&
+    currentUser.role === "admin"
+) {
+
+    document.getElementById(
+        "adminLink"
+    ).style.display =
+        "inline-block";
+
+}
+
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+function logout() {
+
+    localStorage.removeItem(
+        "aegisUser"
+    );
+
+    window.location.href =
+        "login.html";
+
+}
+
+
+/* =========================================
+   LOAD ALERTS
+========================================= */
+
+async function loadAlerts() {
+
+    const container =
+        document.getElementById(
+            "alertsContainer"
+        );
+
+
+    container.innerHTML = `
+        <div class="empty">
+            Loading security alerts...
+        </div>
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                "http://127.0.0.1:8000/threat-reports"
+            );
+
+
+        const reports =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                reports.detail ||
+                "Unable to load alerts."
+            );
+
+        }
+
+
+        if (
+            !reports ||
+            reports.length === 0
+        ) {
+
+            container.innerHTML = `
+
+                <div class="empty">
+
+                    <p>
+                        🟢 No security threats have
+                        been reported yet.
+                    </p>
+
+                    <a
+                        href="report-threat.html"
+                        class="btn btn-primary">
+
+                        🚨 Report a Threat
+
+                    </a>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        /* -----------------------------------------
+           SHOW NEWEST FIRST
+        ----------------------------------------- */
+
+        reports.reverse();
+
+
+        container.innerHTML = "";
+
+
+        reports.forEach(
+            function(report) {
+
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "report-card";
+
+
+                const severity =
+                    report.severity ||
+                    "Medium";
+
+
+                const status =
+                    report.status ||
+                    "Pending";
+
+
+                /* --------------------------------
+                   DESCRIPTION
+                -------------------------------- */
+
+                const description =
+                    escapeHTML(
+                        report.description ||
+                        "No description provided."
+                    );
+
+
+                /* --------------------------------
+                   CREATE CARD
+                -------------------------------- */
+
+                card.innerHTML = `
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <h3>
+                                🚨
+                                ${escapeHTML(
+                                    report.threat_type ||
+                                    "Security Threat"
+                                )}
+                            </h3>
+
+                            <p class="text-secondary">
+
+                                Report ID:
+                                #${report.id}
+
+                            </p>
+
+                        </div>
+
+
+                        <div>
+
+                            <span
+                                class="severity ${severity.toLowerCase()}">
+
+                                ${escapeHTML(
+                                    severity
+                                )}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="report-box">
+
+                        <h4>
+                            Description
+                        </h4>
+
+                        <p>
+                            ${description}
+                        </p>
+
+                    </div>
+
+
+                    <div class="stats-grid">
+
+                        <div class="stat-card">
+
+                            <span class="stat-label">
+                                Threat Type
+                            </span>
+
+                            <strong>
+                                ${escapeHTML(
+                                    report.threat_type ||
+                                    "-"
+                                )}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat-card">
+
+                            <span class="stat-label">
+                                Severity
+                            </span>
+
+                            <strong>
+                                ${escapeHTML(
+                                    severity
+                                )}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat-card">
+
+                            <span class="stat-label">
+                                Status
+                            </span>
+
+                            <strong>
+
+                                <span
+                                    class="status ${
+                                        status.toLowerCase()
+                                    }">
+
+                                    ${escapeHTML(
+                                        status
+                                    )}
+
+                                </span>
+
+                            </strong>
+
+                        </div>
+
+
+                        <div class="stat-card">
+
+                            <span class="stat-label">
+                                Report ID
+                            </span>
+
+                            <strong>
+                                #${report.id}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+
+                container.appendChild(
+                    card
+                );
+
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <p>
+                    ❌ Unable to load security alerts.
+                </p>
+
+                <button
+                    class="btn btn-primary"
+                    onclick="loadAlerts()">
+
+                    🔄 Try Again
+
+                </button>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+/* =========================================
+   ESCAPE HTML
+========================================= */
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+
+        return "";
+
+    }
+
+
+    return String(value)
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================
+   INITIAL LOAD
+========================================= */
+
+loadAlerts();
+
+</script>
+
+
+</body>
+
+</html>

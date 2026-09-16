@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+```
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>AEGIS - Report Threat</title>
+
+<link
+    rel="stylesheet"
+    href="style.css"
+>
+
+<style>
+
+    .report-container {
+        max-width: 800px;
+        margin: 30px auto;
+    }
+
+    .report-header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .report-icon {
+        width: 70px;
+        height: 70px;
+
+        margin: 0 auto 15px;
+
+        border-radius: 50%;
+
+        background: #0284c7;
+        color: white;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 32px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+
+        margin-bottom: 8px;
+
+        font-weight: 600;
+    }
+
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+    }
+
+    .form-group textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .severity-info {
+        margin-top: 8px;
+
+        font-size: 13px;
+
+        color: #64748b;
+    }
+
+    .submit-area {
+        margin-top: 25px;
+
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .success-message {
+        margin-top: 20px;
+
+        padding: 16px;
+
+        border-radius: 10px;
+
+        background: #f0fdf4;
+
+        border-left: 5px solid #16a34a;
+
+        color: #166534;
+    }
+
+    .error-message {
+        margin-top: 20px;
+
+        padding: 16px;
+
+        border-radius: 10px;
+
+        background: #fef2f2;
+
+        border-left: 5px solid #dc2626;
+
+        color: #991b1b;
+    }
+
+    .report-info {
+        margin-top: 20px;
+
+        padding: 16px;
+
+        border-radius: 10px;
+
+        background: #f8fafc;
+
+        border: 1px solid #e2e8f0;
+    }
+
+    .report-info ul {
+        margin-bottom: 0;
+    }
+
+    @media (max-width: 600px) {
+
+        .submit-area {
+            flex-direction: column;
+        }
+
+    }
+
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<!-- NAVIGATION -->
+
+<nav class="navbar">
+
+    <div class="nav-brand">
+
+        <strong>AEGIS</strong>
+
+    </div>
+
+
+    <div class="nav-links">
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="url-scanner.html">
+            URL Scanner
+        </a>
+
+        <a
+            href="report-threat.html"
+        >
+            Report Threat
+        </a>
+
+        <a href="alerts.html">
+            Alerts
+        </a>
+
+        <a href="security-assistant.html">
+            Assistant
+        </a>
+
+        <a
+            href="#"
+            onclick="logout()"
+        >
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+
+<!-- MAIN -->
+
+<main class="container">
+
+    <div class="report-container">
+
+
+        <!-- HEADER -->
+
+        <div class="report-header">
+
+            <div class="report-icon">
+                🚨
+            </div>
+
+            <h1>
+                Report a Security Threat
+            </h1>
+
+            <p>
+                Report suspicious cybersecurity incidents
+                to the AEGIS campus security system.
+            </p>
+
+        </div>
+
+
+        <!-- FORM CARD -->
+
+        <div class="card">
+
+            <form
+                id="threatForm"
+            >
+
+
+                <!-- THREAT TYPE -->
+
+                <div class="form-group">
+
+                    <label for="threatType">
+                        Threat Type
+                    </label>
+
+
+                    <select
+                        id="threatType"
+                        class="form-control"
+                        required
+                    >
+
+                        <option value="">
+                            Select threat type
+                        </option>
+
+                        <option value="Phishing">
+                            Phishing
+                        </option>
+
+                        <option value="Suspicious URL">
+                            Suspicious URL
+                        </option>
+
+                        <option value="Malware">
+                            Malware
+                        </option>
+
+                        <option value="Account Compromise">
+                            Account Compromise
+                        </option>
+
+                        <option value="Suspicious Login">
+                            Suspicious Login
+                        </option>
+
+                        <option value="Data Breach">
+                            Data Breach
+                        </option>
+
+                        <option value="Social Engineering">
+                            Social Engineering
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- DESCRIPTION -->
+
+                <div class="form-group">
+
+                    <label for="description">
+                        Incident Description
+                    </label>
+
+
+                    <textarea
+                        id="description"
+                        class="form-control"
+                        placeholder="Describe what happened. Include relevant details, but do not enter passwords, OTPs, or other confidential information."
+                        required
+                    ></textarea>
+
+
+                    <div class="severity-info">
+
+                        Please provide enough information
+                        for the administrator to investigate
+                        the incident.
+
+                    </div>
+
+                </div>
+
+
+                <!-- SEVERITY -->
+
+                <div class="form-group">
+
+                    <label for="severity">
+                        Severity
+                    </label>
+
+
+                    <select
+                        id="severity"
+                        class="form-control"
+                        required
+                    >
+
+                        <option value="Low">
+                            Low - Minor concern
+                        </option>
+
+                        <option value="Medium" selected>
+                            Medium - Potential security issue
+                        </option>
+
+                        <option value="High">
+                            High - Serious security threat
+                        </option>
+
+                        <option value="Critical">
+                            Critical - Immediate attention required
+                        </option>
+
+                    </select>
+
+
+                    <div class="severity-info">
+
+                        <strong>Low:</strong>
+                        Minor or informational issue.
+
+                        <br>
+
+                        <strong>Medium:</strong>
+                        Possible security risk.
+
+                        <br>
+
+                        <strong>High:</strong>
+                        Significant security threat.
+
+                        <br>
+
+                        <strong>Critical:</strong>
+                        Immediate security attention may be required.
+
+                    </div>
+
+                </div>
+
+
+                <!-- SUBMIT -->
+
+                <div class="submit-area">
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="submitButton"
+                    >
+                        🚨 Submit Threat Report
+                    </button>
+
+
+                    <a
+                        href="dashboard.html"
+                        class="btn"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+
+                <!-- MESSAGE -->
+
+                <div
+                    id="message"
+                    style="display:none;"
+                ></div>
+
+
+            </form>
+
+        </div>
+
+
+        <!-- INFORMATION -->
+
+        <div class="card report-info">
+
+            <h2>
+                🛡️ Before You Submit
+            </h2>
+
+            <ul>
+
+                <li>
+                    Do not include passwords or OTPs.
+                </li>
+
+                <li>
+                    Do not share confidential personal information.
+                </li>
+
+                <li>
+                    Describe the suspicious activity clearly.
+                </li>
+
+                <li>
+                    Select the severity that best describes
+                    the incident.
+                </li>
+
+                <li>
+                    The administrator can investigate and
+                    update the report status.
+                </li>
+
+            </ul>
+
+        </div>
+
+
+    </div>
+
+</main>
+
+
+<!-- FOOTER -->
+
+<footer class="footer">
+
+    <p>
+        AEGIS — AI-Powered Smart Campus Cybersecurity System
+    </p>
+
+</footer>
+
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+
+    /* =========================================
+       BACKEND URL
+    ========================================= */
+
+    const API_URL =
+        "http://127.0.0.1:8000";
+
+
+    /* =========================================
+       CHECK LOGIN
+    ========================================= */
+
+    const storedUser =
+        localStorage.getItem("aegisUser");
+
+
+    if (!storedUser) {
+
+        window.location.href =
+            "login.html";
+
+    }
+
+
+    /* =========================================
+       GET USER
+    ========================================= */
+
+    function getCurrentUser() {
+
+        try {
+
+            return JSON.parse(
+                localStorage.getItem("aegisUser")
+            );
+
+        }
+
+        catch (error) {
+
+            return null;
+
+        }
+
+    }
+
+
+    /* =========================================
+       GET USER ID
+    ========================================= */
+
+    function getUserId() {
+
+        const user =
+            getCurrentUser();
+
+
+        if (!user) {
+
+            return null;
+
+        }
+
+
+        return (
+
+            user.id ??
+
+            user.user_id ??
+
+            user.userId
+
+        );
+
+    }
+
+
+    /* =========================================
+       SHOW MESSAGE
+    ========================================= */
+
+    function showMessage(
+        text,
+        type
+    ) {
+
+        const message =
+            document.getElementById(
+                "message"
+            );
+
+
+        message.style.display =
+            "block";
+
+
+        message.className =
+            type === "success"
+                ? "success-message"
+                : "error-message";
+
+
+        message.innerHTML =
+            text;
+
+    }
+
+
+    /* =========================================
+       SUBMIT THREAT REPORT
+    ========================================= */
+
+    document
+        .getElementById("threatForm")
+        .addEventListener(
+            "submit",
+            async function(event) {
+
+                event.preventDefault();
+
+
+                const userId =
+                    getUserId();
+
+
+                if (!userId) {
+
+                    showMessage(
+                        "⚠️ Your login session could not be found. Please log in again.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                const threatType =
+                    document
+                        .getElementById(
+                            "threatType"
+                        )
+                        .value;
+
+
+                const description =
+                    document
+                        .getElementById(
+                            "description"
+                        )
+                        .value
+                        .trim();
+
+
+                const severity =
+                    document
+                        .getElementById(
+                            "severity"
+                        )
+                        .value;
+
+
+                if (
+                    !threatType ||
+                    !description ||
+                    !severity
+                ) {
+
+                    showMessage(
+                        "⚠️ Please complete all required fields.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    description.length < 10
+                ) {
+
+                    showMessage(
+                        "⚠️ Please provide a little more information about the incident.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                const submitButton =
+                    document.getElementById(
+                        "submitButton"
+                    );
+
+
+                submitButton.disabled =
+                    true;
+
+
+                submitButton.textContent =
+                    "⏳ Submitting...";
+
+
+                try {
+
+
+                    const response =
+                        await fetch(
+                            `${API_URL}/threat-report`,
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+
+                                        user_id:
+                                            Number(userId),
+
+                                        threat_type:
+                                            threatType,
+
+                                        description:
+                                            description,
+
+                                        severity:
+                                            severity
+
+                                    })
+
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            data.detail ||
+                            "Failed to submit threat report."
+                        );
+
+                    }
+
+
+                    const reportId =
+                        data.id ??
+                        data.report_id ??
+                        "N/A";
+
+
+                    showMessage(
+
+                        `
+
+                        <strong>
+                            ✅ Threat Report Submitted Successfully
+                        </strong>
+
+                        <br><br>
+
+                        Your report has been recorded
+                        in the AEGIS incident management system.
+
+                        <br><br>
+
+                        <strong>
+                            Report ID:
+                        </strong>
+
+                        ${escapeHTML(
+                            String(reportId)
+                        )}
+
+                        <br>
+
+                        <strong>
+                            Status:
+                        </strong>
+
+                        Pending
+
+                        <br><br>
+
+                        The campus administrator can now
+                        review and update this incident.
+
+                        `,
+
+                        "success"
+
+                    );
+
+
+                    document
+                        .getElementById(
+                            "threatForm"
+                        )
+                        .reset();
+
+
+                    document
+                        .getElementById(
+                            "severity"
+                        )
+                        .value =
+                        "Medium";
+
+
+                }
+
+                catch (error) {
+
+                    console.error(
+                        "Threat report error:",
+                        error
+                    );
+
+
+                    showMessage(
+
+                        `
+
+                        <strong>
+                            ❌ Report Submission Failed
+                        </strong>
+
+                        <br><br>
+
+                        ${
+                            escapeHTML(
+                                error.message
+                            )
+                        }
+
+                        <br><br>
+
+                        Please make sure the
+                        AEGIS backend is running.
+
+                        `,
+
+                        "error"
+
+                    );
+
+                }
+
+                finally {
+
+                    submitButton.disabled =
+                        false;
+
+
+                    submitButton.textContent =
+                        "🚨 Submit Threat Report";
+
+                }
+
+            }
+        );
+
+
+    /* =========================================
+       ESCAPE HTML
+    ========================================= */
+
+    function escapeHTML(value) {
+
+        return String(value)
+
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+
+            .replace(
+                /</g,
+                "&lt;"
+            )
+
+            .replace(
+                />/g,
+                "&gt;"
+            )
+
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+
+            .replace(
+                /'/g,
+                "&#039;"
+            );
+
+    }
+
+
+    /* =========================================
+       LOGOUT
+    ========================================= */
+
+    function logout() {
+
+        localStorage.removeItem(
+            "aegisUser"
+        );
+
+
+        localStorage.removeItem(
+            "aegisUserId"
+        );
+
+
+        window.location.href =
+            "login.html";
+
+    }
+
+</script>
+```
+
+</body>
+
+</html>

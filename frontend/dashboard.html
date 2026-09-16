@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS - Student Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+```
+<nav class="navbar">
+    <div class="nav-brand">
+        <strong>AEGIS</strong>
+    </div>
+
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="url-scanner.html">URL Scanner</a>
+        <a href="report-threat.html">Report Threat</a>
+        <a href="alerts.html">Alerts</a>
+        <a href="security-assistant.html">Assistant</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </div>
+</nav>
+
+
+<main class="container">
+
+    <div class="page-header">
+        <h1 id="welcomeMessage">Welcome to AEGIS</h1>
+        <p>Your smart campus cybersecurity dashboard</p>
+    </div>
+
+
+    <!-- Account Information -->
+
+    <div class="card">
+
+        <h2>Account Information</h2>
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+                <span class="stat-label">Name</span>
+                <strong id="userName">-</strong>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-label">Email</span>
+                <strong id="userEmail">-</strong>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-label">Role</span>
+                <strong id="userRole">Student</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Security Tools -->
+
+    <div class="card">
+
+        <h2>Security Tools</h2>
+
+        <div class="quick-actions">
+
+            <!-- URL Scanner -->
+
+            <a href="url-scanner.html" class="quick-action">
+
+                <div class="quick-action-icon">🔗</div>
+
+                <h3>URL Threat Scanner</h3>
+
+                <p>
+                    Analyze suspicious URLs and identify
+                    potential security risks.
+                </p>
+
+            </a>
+
+
+            <!-- Threat Reporting -->
+
+            <a href="report-threat.html" class="quick-action">
+
+                <div class="quick-action-icon">🚨</div>
+
+                <h3>Report a Threat</h3>
+
+                <p>
+                    Report suspicious cybersecurity incidents
+                    to the campus administrator.
+                </p>
+
+            </a>
+
+
+            <!-- Security Alerts -->
+
+            <a href="alerts.html" class="quick-action">
+
+                <div class="quick-action-icon">🔔</div>
+
+                <h3>Security Alerts</h3>
+
+                <p>
+                    View security alerts and updates
+                    related to your account.
+                </p>
+
+            </a>
+
+
+            <!-- Cybersecurity Assistant -->
+
+            <a href="security-assistant.html" class="quick-action">
+
+                <div class="quick-action-icon">🛡️</div>
+
+                <h3>Cybersecurity Assistant</h3>
+
+                <p>
+                    Get quick guidance about phishing,
+                    suspicious links, MFA, and account security.
+                </p>
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Security Tips -->
+
+    <div class="card">
+
+        <h2>Security Tips</h2>
+
+        <ul>
+            <li>🔐 Never share your password or OTP with anyone.</li>
+            <li>🔗 Check suspicious URLs before opening them.</li>
+            <li>📧 Be careful with unexpected emails and messages.</li>
+            <li>🔑 Enable multi-factor authentication whenever possible.</li>
+            <li>🚨 Report suspicious activity through AEGIS.</li>
+        </ul>
+
+    </div>
+
+
+    <!-- Quick Access -->
+
+    <div class="card">
+
+        <h2>Quick Access</h2>
+
+        <div class="quick-actions">
+
+            <a href="url-scanner.html" class="btn btn-primary">
+                Scan URL
+            </a>
+
+            <a href="report-threat.html" class="btn btn-primary">
+                Report Threat
+            </a>
+
+            <a href="security-assistant.html" class="btn btn-primary">
+                Ask Assistant
+            </a>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<footer class="footer">
+    <p>AEGIS — AI-Powered Smart Campus Cybersecurity System</p>
+</footer>
+
+
+<script>
+
+    const userData = localStorage.getItem("aegisUser");
+
+    if (!userData) {
+
+        window.location.href = "login.html";
+
+    } else {
+
+        try {
+
+            const user = JSON.parse(userData);
+
+            document.getElementById("userName").textContent =
+                user.name || "Student";
+
+            document.getElementById("userEmail").textContent =
+                user.email || "-";
+
+            document.getElementById("userRole").textContent =
+                user.role || "student";
+
+            document.getElementById("welcomeMessage").textContent =
+                "Welcome, " + (user.name || "Student") + "!";
+
+        } catch (error) {
+
+            console.error("Invalid user data.");
+
+            localStorage.removeItem("aegisUser");
+            localStorage.removeItem("aegisUserId");
+
+            window.location.href = "login.html";
+        }
+    }
+
+
+    function logout() {
+
+        localStorage.removeItem("aegisUser");
+        localStorage.removeItem("aegisUserId");
+
+        window.location.href = "login.html";
+    }
+
+</script>
+```
+
+</body>
+</html>

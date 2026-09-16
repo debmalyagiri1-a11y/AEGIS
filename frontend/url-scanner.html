@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>URL Scanner - AEGIS</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+
+        <div class="nav-container">
+
+            <a href="index.html" class="logo">
+                🛡️ AEGIS
+            </a>
+
+            <div class="nav-links">
+
+                <a href="dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="url-scanner.html" class="active">
+                    URL Scanner
+                </a>
+
+                <a href="alerts.html">
+                    Security Alerts
+                </a>
+
+                <a href="report-threat.html">
+                    Report Threat
+                </a>
+
+                <a href="admin.html"
+                   id="adminLink"
+                   style="display:none;">
+                    Admin
+                </a>
+
+                <button
+                    class="btn btn-outline"
+                    onclick="logout()">
+                    Logout
+                </button>
+
+            </div>
+
+        </div>
+
+    </nav>
+
+
+    <!-- MAIN -->
+    <main class="container">
+
+        <div class="page-header">
+
+            <h1>🔎 AI-Powered URL Scanner</h1>
+
+            <p>
+                Check suspicious links before opening them.
+                AEGIS analyzes multiple security indicators
+                to estimate the risk level of a URL.
+            </p>
+
+        </div>
+
+
+        <!-- SCANNER CARD -->
+        <section class="card">
+
+            <h2>Scan a URL</h2>
+
+            <p class="text-secondary">
+                Enter a website link below and AEGIS will
+                analyze it for suspicious characteristics.
+            </p>
+
+
+            <form id="scanForm">
+
+                <div class="form-group">
+
+                    <label for="url">
+                        Website URL
+                    </label>
+
+                    <input
+                        type="text"
+                        id="url"
+                        name="url"
+                        placeholder="https://example.com"
+                        required
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    id="scanButton">
+
+                    🔍 Scan URL
+
+                </button>
+
+            </form>
+
+
+            <!-- MESSAGE -->
+            <div
+                id="message"
+                class="message"
+                style="display:none;">
+            </div>
+
+        </section>
+
+
+        <!-- RESULT -->
+        <section
+            id="resultSection"
+            class="card"
+            style="display:none;">
+
+            <div class="section-header">
+
+                <div>
+
+                    <h2>Scan Result</h2>
+
+                    <p class="text-secondary">
+                        Security analysis completed.
+                    </p>
+
+                </div>
+
+                <div id="riskBadge"></div>
+
+            </div>
+
+
+            <!-- SCORE -->
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        Risk Score
+                    </span>
+
+                    <strong id="riskScore">
+                        0
+                    </strong>
+
+                    <span>
+                        / 100
+                    </span>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        Risk Level
+                    </span>
+
+                    <strong id="riskLevel">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        Protocol
+                    </span>
+
+                    <strong id="protocol">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span class="stat-label">
+                        Domain
+                    </span>
+
+                    <strong
+                        id="domain"
+                        style="word-break:break-word;">
+                        -
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- URL -->
+            <div class="report-box">
+
+                <h3>Scanned URL</h3>
+
+                <p
+                    id="scannedUrl"
+                    style="word-break:break-all;">
+                    -
+                </p>
+
+            </div>
+
+
+            <!-- INDICATORS -->
+            <div class="report-box">
+
+                <h3>🔍 Security Indicators</h3>
+
+                <ul id="indicators">
+                </ul>
+
+            </div>
+
+
+            <!-- RECOMMENDATION -->
+            <div
+                class="report-box"
+                id="recommendationBox">
+
+                <h3>🛡️ Recommendation</h3>
+
+                <p id="recommendation">
+                    -
+                </p>
+
+            </div>
+
+
+            <!-- DISCLAIMER -->
+            <div class="alert-box warning">
+
+                <strong>⚠️ Important:</strong>
+
+                <p>
+                    AEGIS uses automated security indicators
+                    to estimate URL risk. A Low-risk result
+                    does not guarantee that a website is safe.
+                    Do not enter passwords, banking information,
+                    or other sensitive information on suspicious
+                    websites.
+                </p>
+
+            </div>
+
+
+            <button
+                class="btn btn-primary"
+                onclick="scanAnother()">
+
+                🔄 Scan Another URL
+
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <!-- FOOTER -->
+    <footer class="footer">
+
+        <div class="container">
+
+            <p>
+                🛡️ AEGIS — AI-Powered Smart Campus Cybersecurity System
+            </p>
+
+            <p>
+                Cybersecurity awareness and threat detection platform
+            </p>
+
+        </div>
+
+    </footer>
+
+
+<script>
+
+    // -----------------------------------------
+    // CHECK LOGIN
+    // -----------------------------------------
+
+    const storedUser =
+        localStorage.getItem("aegisUser");
+
+
+    if (!storedUser) {
+
+        window.location.href = "login.html";
+
+    }
+
+
+    let currentUser = null;
+
+
+    try {
+
+        currentUser = JSON.parse(storedUser);
+
+    } catch (error) {
+
+        localStorage.removeItem("aegisUser");
+
+        window.location.href = "login.html";
+
+    }
+
+
+    // -----------------------------------------
+    // CHECK ADMIN
+    // -----------------------------------------
+
+    if (
+        currentUser &&
+        currentUser.role === "admin"
+    ) {
+
+        document.getElementById("adminLink")
+            .style.display = "inline-block";
+
+    }
+
+
+    // -----------------------------------------
+    // LOGOUT
+    // -----------------------------------------
+
+    function logout() {
+
+        localStorage.removeItem("aegisUser");
+
+        window.location.href = "login.html";
+
+    }
+
+
+    // -----------------------------------------
+    // ESCAPE HTML
+    // -----------------------------------------
+
+    function escapeHTML(value) {
+
+        if (value === null || value === undefined) {
+            return "";
+        }
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    // -----------------------------------------
+    // SCAN FORM
+    // -----------------------------------------
+
+    document
+        .getElementById("scanForm")
+        .addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+
+            const url =
+                document.getElementById("url")
+                    .value
+                    .trim();
+
+
+            const scanButton =
+                document.getElementById("scanButton");
+
+
+            const message =
+                document.getElementById("message");
+
+
+            const resultSection =
+                document.getElementById("resultSection");
+
+
+            // Basic validation
+
+            if (!url) {
+
+                showMessage(
+                    "Please enter a URL.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            // Make sure user exists
+
+            if (
+                !currentUser ||
+                !currentUser.user_id
+            ) {
+
+                showMessage(
+                    "User session is invalid. Please login again.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            // Loading state
+
+            scanButton.disabled = true;
+
+            scanButton.innerHTML =
+                "⏳ Scanning...";
+
+
+            message.style.display = "none";
+
+            resultSection.style.display = "none";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "http://127.0.0.1:8000/scan-url",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+
+                                url: url,
+
+                                // IMPORTANT
+                                // Send logged-in user ID
+
+                                user_id:
+                                    currentUser.user_id
+
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail ||
+                        "URL scanning failed."
+                    );
+
+                }
+
+
+                // Display result
+
+                displayResult(
+                    data.result,
+                    data.scan_id
+                );
+
+
+            } catch (error) {
+
+                console.error(error);
+
+                showMessage(
+                    error.message ||
+                    "Unable to connect to AEGIS backend.",
+                    "error"
+                );
+
+            } finally {
+
+                scanButton.disabled = false;
+
+                scanButton.innerHTML =
+                    "🔍 Scan URL";
+
+            }
+
+        });
+
+
+    // -----------------------------------------
+    // DISPLAY RESULT
+    // -----------------------------------------
+
+    function displayResult(result, scanId) {
+
+        const resultSection =
+            document.getElementById(
+                "resultSection"
+            );
+
+
+        const riskBadge =
+            document.getElementById(
+                "riskBadge"
+            );
+
+
+        const riskLevel =
+            document.getElementById(
+                "riskLevel"
+            );
+
+
+        const riskScore =
+            document.getElementById(
+                "riskScore"
+            );
+
+
+        const protocol =
+            document.getElementById(
+                "protocol"
+            );
+
+
+        const domain =
+            document.getElementById(
+                "domain"
+            );
+
+
+        const scannedUrl =
+            document.getElementById(
+                "scannedUrl"
+            );
+
+
+        const indicators =
+            document.getElementById(
+                "indicators"
+            );
+
+
+        const recommendation =
+            document.getElementById(
+                "recommendation"
+            );
+
+
+        // Risk level
+
+        const level =
+            result.risk_level || "Unknown";
+
+
+        riskLevel.textContent =
+            level;
+
+
+        riskScore.textContent =
+            result.risk_score ?? 0;
+
+
+        protocol.textContent =
+            result.protocol || "-";
+
+
+        domain.textContent =
+            result.domain || "-";
+
+
+        scannedUrl.textContent =
+            result.url || "-";
+
+
+        // -----------------------------------------
+        // RISK BADGE
+        // -----------------------------------------
+
+        riskBadge.innerHTML = "";
+
+
+        const badge =
+            document.createElement("span");
+
+
+        badge.className =
+            "severity " +
+            level.toLowerCase();
+
+
+        badge.textContent =
+            level;
+
+
+        riskBadge.appendChild(badge);
+
+
+        // -----------------------------------------
+        // INDICATORS
+        // -----------------------------------------
+
+        indicators.innerHTML = "";
+
+
+        if (
+            result.indicators &&
+            result.indicators.length > 0
+        ) {
+
+            result.indicators.forEach(
+                function(indicator) {
+
+                    const li =
+                        document.createElement("li");
+
+                    li.textContent =
+                        indicator;
+
+                    indicators.appendChild(li);
+
+                }
+            );
+
+        } else {
+
+            const li =
+                document.createElement("li");
+
+            li.textContent =
+                "No suspicious indicators detected.";
+
+            indicators.appendChild(li);
+
+        }
+
+
+        // -----------------------------------------
+        // RECOMMENDATION
+        // -----------------------------------------
+
+        recommendation.textContent =
+            result.recommendation ||
+            "No recommendation available.";
+
+
+        // -----------------------------------------
+        // SHOW RESULT
+        // -----------------------------------------
+
+        resultSection.style.display =
+            "block";
+
+
+        // Scroll to result
+
+        resultSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+
+        // Show saved message
+
+        if (scanId) {
+
+            showMessage(
+                "URL scan completed successfully. Scan ID: " +
+                scanId,
+                "success"
+            );
+
+        }
+
+    }
+
+
+    // -----------------------------------------
+    // MESSAGE
+    // -----------------------------------------
+
+    function showMessage(text, type) {
+
+        const message =
+            document.getElementById(
+                "message"
+            );
+
+
+        message.textContent =
+            text;
+
+
+        message.className =
+            "message " + type;
+
+
+        message.style.display =
+            "block";
+
+    }
+
+
+    // -----------------------------------------
+    // SCAN ANOTHER
+    // -----------------------------------------
+
+    function scanAnother() {
+
+        document
+            .getElementById("url")
+            .value = "";
+
+
+        document
+            .getElementById("resultSection")
+            .style.display = "none";
+
+
+        document
+            .getElementById("message")
+            .style.display = "none";
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+
+        document
+            .getElementById("url")
+            .focus();
+
+    }
+
+</script>
+
+</body>
+</html>

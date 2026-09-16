@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>AEGIS Cybersecurity Assistant</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+    .assistant-container {
+        max-width: 900px;
+        margin: 30px auto;
+    }
+
+    .assistant-header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .assistant-icon {
+        width: 75px;
+        height: 75px;
+        margin: 0 auto 15px;
+
+        border-radius: 50%;
+
+        background: #0284c7;
+        color: white;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 34px;
+    }
+
+    .chat-card {
+        padding: 20px;
+    }
+
+    .chat-box {
+        min-height: 350px;
+        max-height: 500px;
+
+        overflow-y: auto;
+
+        padding: 20px;
+
+        background: #f8fafc;
+
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+    }
+
+    .message {
+        max-width: 80%;
+
+        padding: 13px 16px;
+
+        margin-bottom: 12px;
+
+        border-radius: 12px;
+
+        line-height: 1.6;
+    }
+
+    .bot-message {
+        margin-right: auto;
+
+        background: #eff6ff;
+
+        color: #111827;
+    }
+
+    .user-message {
+        margin-left: auto;
+
+        background: #0284c7;
+
+        color: white;
+    }
+
+    .quick-title {
+        margin-top: 20px;
+        margin-bottom: 10px;
+
+        font-weight: 600;
+    }
+
+    .quick-options {
+        display: flex;
+        flex-wrap: wrap;
+
+        gap: 10px;
+
+        margin-bottom: 20px;
+    }
+
+    .quick-options button {
+        padding: 10px 14px;
+
+        border: 1px solid #bae6fd;
+        border-radius: 8px;
+
+        background: white;
+        color: #0369a1;
+
+        cursor: pointer;
+
+        font-size: 14px;
+    }
+
+    .quick-options button:hover {
+        background: #eff6ff;
+    }
+
+    .input-area {
+        display: flex;
+        gap: 10px;
+    }
+
+    .input-area input {
+        flex: 1;
+    }
+
+    .security-note {
+        margin-top: 20px;
+
+        padding: 16px;
+
+        border-left: 4px solid #0284c7;
+
+        background: #f8fafc;
+
+        border-radius: 8px;
+    }
+
+    .scan-result {
+        margin-top: 10px;
+
+        padding: 16px;
+
+        background: white;
+
+        border: 1px solid #e2e8f0;
+
+        border-radius: 10px;
+    }
+
+    .risk-critical {
+        border-left: 5px solid #dc2626;
+    }
+
+    .risk-high {
+        border-left: 5px solid #ea580c;
+    }
+
+    .risk-medium {
+        border-left: 5px solid #d97706;
+    }
+
+    .risk-low {
+        border-left: 5px solid #16a34a;
+    }
+
+    .loading {
+        font-style: italic;
+        color: #64748b;
+    }
+
+    @media (max-width: 600px) {
+
+        .input-area {
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 90%;
+        }
+
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+```
+<!-- NAVIGATION -->
+
+<nav class="navbar">
+
+    <div class="nav-brand">
+        <strong>AEGIS</strong>
+    </div>
+
+    <div class="nav-links">
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="url-scanner.html">
+            URL Scanner
+        </a>
+
+        <a href="report-threat.html">
+            Report Threat
+        </a>
+
+        <a href="alerts.html">
+            Alerts
+        </a>
+
+        <a href="security-assistant.html">
+            Assistant
+        </a>
+
+        <a href="#" onclick="logout()">
+            Logout
+        </a>
+
+    </div>
+
+</nav>
+
+
+<!-- MAIN CONTENT -->
+
+<main class="container">
+
+    <div class="assistant-container">
+
+
+        <!-- HEADER -->
+
+        <div class="assistant-header">
+
+            <div class="assistant-icon">
+                🛡️
+            </div>
+
+            <h1>
+                AEGIS Cybersecurity Assistant
+            </h1>
+
+            <p>
+                Your smart campus cybersecurity guidance assistant
+            </p>
+
+        </div>
+
+
+        <!-- CHAT CARD -->
+
+        <div class="card chat-card">
+
+
+            <!-- CHAT -->
+
+            <div
+                id="chatBox"
+                class="chat-box"
+            >
+
+                <div class="message bot-message">
+
+                    👋 <strong>Hello!</strong>
+
+                    <br><br>
+
+                    I am the
+                    <strong>AEGIS Cybersecurity Assistant</strong>.
+
+                    <br><br>
+
+                    I can help you with:
+
+                    <ul>
+
+                        <li>
+                            🎣 Phishing
+                        </li>
+
+                        <li>
+                            🔗 Suspicious URLs
+                        </li>
+
+                        <li>
+                            🔐 Account security
+                        </li>
+
+                        <li>
+                            🔑 Multi-Factor Authentication
+                        </li>
+
+                        <li>
+                            🚨 Suspicious login activity
+                        </li>
+
+                    </ul>
+
+                    You can also paste a complete URL
+                    and I will analyze it using the
+                    AEGIS URL security system.
+
+                </div>
+
+            </div>
+
+
+            <!-- QUICK QUESTIONS -->
+
+            <div class="quick-title">
+                Quick Questions
+            </div>
+
+
+            <div class="quick-options">
+
+                <button
+                    onclick="askQuestion('What is phishing?')"
+                >
+                    🎣 What is phishing?
+                </button>
+
+
+                <button
+                    onclick="askQuestion('How can I identify a suspicious link?')"
+                >
+                    🔗 Suspicious Link
+                </button>
+
+
+                <button
+                    onclick="askQuestion('What should I do if my account is compromised?')"
+                >
+                    🔐 Account Compromised
+                </button>
+
+
+                <button
+                    onclick="askQuestion('What is MFA?')"
+                >
+                    🔑 MFA
+                </button>
+
+
+                <button
+                    onclick="askQuestion('What should I do about a suspicious login?')"
+                >
+                    🚨 Suspicious Login
+                </button>
+
+            </div>
+
+
+            <!-- INPUT -->
+
+            <div class="input-area">
+
+                <input
+                    type="text"
+                    id="userInput"
+                    class="form-control"
+                    placeholder="Ask a cybersecurity question or paste a URL..."
+                    autocomplete="off"
+                >
+
+
+                <button
+                    class="btn btn-primary"
+                    onclick="sendMessage()"
+                >
+                    Send
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- SECURITY NOTE -->
+
+        <div class="security-note">
+
+            <strong>
+                ⚠️ Security Reminder
+            </strong>
+
+            <br><br>
+
+            Never share your password, OTP,
+            recovery code, or other confidential
+            information with anyone.
+
+            <br><br>
+
+            If you believe your account has been
+            compromised, report the incident through
+            the AEGIS Threat Reporting system.
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- FOOTER -->
+
+<footer class="footer">
+
+    <p>
+        AEGIS — AI-Powered Smart Campus Cybersecurity System
+    </p>
+
+</footer>
+
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+
+    /* =========================================
+       AEGIS BACKEND
+    ========================================= */
+
+    const API_URL =
+        "http://127.0.0.1:8000";
+
+
+    /* =========================================
+       CHAT MESSAGE FUNCTION
+    ========================================= */
+
+    function addMessage(text, type) {
+
+        const chatBox =
+            document.getElementById("chatBox");
+
+
+        const message =
+            document.createElement("div");
+
+
+        message.className =
+            "message " + type;
+
+
+        message.innerHTML =
+            text;
+
+
+        chatBox.appendChild(message);
+
+
+        chatBox.scrollTop =
+            chatBox.scrollHeight;
+
+    }
+
+
+    /* =========================================
+       ESCAPE HTML
+    ========================================= */
+
+    function escapeHTML(value) {
+
+        return String(value)
+
+            .replace(/&/g, "&amp;")
+
+            .replace(/</g, "&lt;")
+
+            .replace(/>/g, "&gt;")
+
+            .replace(/"/g, "&quot;")
+
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    /* =========================================
+       CHECK WHETHER INPUT IS URL
+    ========================================= */
+
+    function isURL(text) {
+
+        const value =
+            text.trim().toLowerCase();
+
+
+        return (
+
+            value.startsWith("http://") ||
+
+            value.startsWith("https://") ||
+
+            value.startsWith("www.")
+
+        );
+
+    }
+
+
+    /* =========================================
+       GET USER ID
+    ========================================= */
+
+    function getUserId() {
+
+        const userData =
+            localStorage.getItem("aegisUser");
+
+
+        if (!userData) {
+
+            return null;
+
+        }
+
+
+        try {
+
+            const user =
+                JSON.parse(userData);
+
+
+            return (
+
+                user.id ??
+
+                user.user_id ??
+
+                user.userId
+
+            );
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Invalid user data",
+                error
+            );
+
+            return null;
+
+        }
+
+    }
+
+
+    /* =========================================
+       URL ANALYSIS
+    ========================================= */
+
+    async function analyzeURL(url) {
+
+
+        const userId =
+            getUserId();
+
+
+        if (!userId) {
+
+            addMessage(
+
+                "⚠️ Please log in again before scanning a URL.",
+
+                "bot-message"
+
+            );
+
+            return;
+
+        }
+
+
+        addMessage(
+
+            "<span class='loading'>🔍 AEGIS is analyzing the URL...</span>",
+
+            "bot-message"
+
+        );
+
+
+        try {
+
+
+            const response =
+                await fetch(
+
+                    `${API_URL}/scan-url`,
+
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type":
+                                "application/json"
+
+                        },
+
+                        body: JSON.stringify({
+
+                            url: url,
+
+                            user_id:
+                                Number(userId)
+
+                        })
+
+                    }
+
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                addMessage(
+
+                    "❌ URL analysis failed. Please check the URL and try again.",
+
+                    "bot-message"
+
+                );
+
+                return;
+
+            }
+
+
+            let indicatorsHTML =
+                "";
+
+
+            if (
+                Array.isArray(data.indicators)
+            ) {
+
+
+                data.indicators.forEach(
+                    function(indicator) {
+
+                        indicatorsHTML +=
+                            `<li>${escapeHTML(indicator)}</li>`;
+
+                    }
+                );
+
+            }
+
+
+            if (
+                indicatorsHTML === ""
+            ) {
+
+                indicatorsHTML =
+                    "<li>No major indicators returned.</li>";
+
+            }
+
+
+            const riskLevel =
+                data.risk_level || "Unknown";
+
+
+            const riskClass =
+                "risk-" +
+                String(riskLevel)
+                    .toLowerCase();
+
+
+            const resultHTML = `
+
+                <div class="scan-result ${riskClass}">
+
+                    <strong>
+                        🛡️ AEGIS URL Analysis
+                    </strong>
+
+                    <br><br>
+
+                    <strong>
+                        URL:
+                    </strong>
+
+                    ${escapeHTML(
+                        data.url || url
+                    )}
+
+                    <br><br>
+
+                    <strong>
+                        Domain:
+                    </strong>
+
+                    ${escapeHTML(
+                        data.domain || "Unknown"
+                    )}
+
+                    <br><br>
+
+                    <strong>
+                        Protocol:
+                    </strong>
+
+                    ${escapeHTML(
+                        data.protocol || "Unknown"
+                    )}
+
+                    <br><br>
+
+                    <strong>
+                        Risk Level:
+                    </strong>
+
+                    ${escapeHTML(
+                        riskLevel
+                    )}
+
+                    <br><br>
+
+                    <strong>
+                        Risk Score:
+                    </strong>
+
+                    ${escapeHTML(
+                        String(
+                            data.risk_score ??
+                            "N/A"
+                        )
+                    )}
+
+                    /100
+
+                    <br><br>
+
+                    <strong>
+                        Security Indicators:
+                    </strong>
+
+                    <ul>
+                        ${indicatorsHTML}
+                    </ul>
+
+                    <strong>
+                        Recommendation:
+                    </strong>
+
+                    <br><br>
+
+                    ${escapeHTML(
+                        data.recommendation ||
+                        "Use caution with this URL."
+                    )}
+
+                </div>
+
+            `;
+
+
+            addMessage(
+
+                resultHTML,
+
+                "bot-message"
+
+            );
+
+
+        }
+
+        catch (error) {
+
+
+            console.error(
+                "URL analysis error:",
+                error
+            );
+
+
+            addMessage(
+
+                "❌ Cannot connect to the AEGIS backend. Please make sure the FastAPI server is running.",
+
+                "bot-message"
+
+            );
+
+        }
+
+    }
+
+
+    /* =========================================
+       CYBERSECURITY ANSWERS
+    ========================================= */
+
+    function getResponse(question) {
+
+
+        const q =
+            question.toLowerCase();
+
+
+        /* PHISHING */
+
+        if (
+
+            q.includes("phishing") ||
+
+            q.includes("fake email") ||
+
+            q.includes("scam")
+
+        ) {
+
+
+            return `
+
+                <strong>
+                    🎣 Phishing
+                </strong>
+
+                <br><br>
+
+                Phishing is a cyberattack where an attacker
+                attempts to trick a user into providing
+                sensitive information.
+
+                <br><br>
+
+                <strong>
+                    Common warning signs:
+                </strong>
+
+                <ul>
+
+                    <li>
+                        Unexpected messages
+                    </li>
+
+                    <li>
+                        Urgent requests
+                    </li>
+
+                    <li>
+                        Suspicious links
+                    </li>
+
+                    <li>
+                        Spelling or grammar mistakes
+                    </li>
+
+                    <li>
+                        Requests for passwords or OTPs
+                    </li>
+
+                </ul>
+
+                <strong>
+                    Safety tip:
+                </strong>
+
+                Never share your password or OTP.
+
+            `;
+
+        }
+
+
+        /* SUSPICIOUS URL */
+
+        if (
+
+            q.includes("link") ||
+
+            q.includes("url") ||
+
+            q.includes("website")
+
+        ) {
+
+
+            return `
+
+                <strong>
+                    🔗 Suspicious Link
+                </strong>
+
+                <br><br>
+
+                Before opening a suspicious link:
+
+                <ol>
+
+                    <li>
+                        Check the domain name.
+                    </li>
+
+                    <li>
+                        Look for spelling mistakes.
+                    </li>
+
+                    <li>
+                        Be careful with shortened URLs.
+                    </li>
+
+                    <li>
+                        Do not enter your credentials.
+                    </li>
+
+                    <li>
+                        Use the AEGIS URL Scanner.
+                    </li>
+
+                </ol>
+
+                You can paste the complete URL
+                into this chat for AEGIS analysis.
+
+            `;
+
+        }
+
+
+        /* ACCOUNT COMPROMISED */
+
+        if (
+
+            q.includes("compromised") ||
+
+            q.includes("hacked") ||
+
+            q.includes("account")
+
+        ) {
+
+
+            return `
+
+                <strong>
+                    🔐 Account Security
+                </strong>
+
+                <br><br>
+
+                If you believe your account
+                has been compromised:
+
+                <ol>
+
+                    <li>
+                        Change your password immediately.
+                    </li>
+
+                    <li>
+                        Use a unique password.
+                    </li>
+
+                    <li>
+                        Enable MFA.
+                    </li>
+
+                    <li>
+                        Review recent login activity.
+                    </li>
+
+                    <li>
+                        Report the incident.
+                    </li>
+
+                </ol>
+
+                Never reuse the same password
+                across multiple services.
+
+            `;
+
+        }
+
+
+        /* MFA */
+
+        if (
+
+            q.includes("mfa") ||
+
+            q.includes("2fa") ||
+
+            q.includes("two factor")
+
+        ) {
+
+
+            return `
+
+                <strong>
+                    🔑 Multi-Factor Authentication
+                </strong>
+
+                <br><br>
+
+                MFA adds an additional verification
+                step to protect an account.
+
+                <br><br>
+
+                Examples include:
+
+                <ul>
+
+                    <li>
+                        Authentication applications
+                    </li>
+
+                    <li>
+                        One-time verification codes
+                    </li>
+
+                    <li>
+                        Security keys
+                    </li>
+
+                </ul>
+
+                <strong>
+                    Important:
+                </strong>
+
+                Never share an MFA verification code
+                with another person.
+
+            `;
+
+        }
+
+
+        /* LOGIN */
+
+        if (
+
+            q.includes("login") ||
+
+            q.includes("sign in") ||
+
+            q.includes("logged")
+
+        ) {
+
+
+            return `
+
+                <strong>
+                    🚨 Suspicious Login Activity
+                </strong>
+
+                <br><br>
+
+                If you notice an unfamiliar login:
+
+                <ol>
+
+                    <li>
+                        Change your password.
+                    </li>
+
+                    <li>
+                        Enable MFA.
+                    </li>
+
+                    <li>
+                        Review your login activity.
+                    </li>
+
+                    <li>
+                        Sign out unknown sessions.
+                    </li>
+
+                    <li>
+                        Report the suspicious activity.
+                    </li>
+
+                </ol>
+
+                AEGIS records login events
+                for security monitoring.
+
+            `;
+
+        }
+
+
+        /* DEFAULT */
+
+        return `
+
+            <strong>
+                🛡️ AEGIS Cybersecurity Assistant
+            </strong>
+
+            <br><br>
+
+            I can currently help you with:
+
+            <ul>
+
+                <li>
+                    🎣 Phishing
+                </li>
+
+                <li>
+                    🔗 Suspicious URLs
+                </li>
+
+                <li>
+                    🔐 Account security
+                </li>
+
+                <li>
+                    🔑 MFA
+                </li>
+
+                <li>
+                    🚨 Suspicious login activity
+                </li>
+
+            </ul>
+
+            You can also paste a complete URL
+            to perform AEGIS URL risk analysis.
+
+        `;
+
+    }
+
+
+    /* =========================================
+       QUICK QUESTION
+    ========================================= */
+
+    function askQuestion(question) {
+
+
+        addMessage(
+
+            escapeHTML(question),
+
+            "user-message"
+
+        );
+
+
+        setTimeout(
+
+            function() {
+
+                addMessage(
+
+                    getResponse(question),
+
+                    "bot-message"
+
+                );
+
+            },
+
+            300
+
+        );
+
+    }
+
+
+    /* =========================================
+       SEND MESSAGE
+    ========================================= */
+
+    function sendMessage() {
+
+
+        const input =
+            document.getElementById(
+                "userInput"
+            );
+
+
+        const question =
+            input.value.trim();
+
+
+        if (question === "") {
+
+            return;
+
+        }
+
+
+        addMessage(
+
+            escapeHTML(question),
+
+            "user-message"
+
+        );
+
+
+        input.value = "";
+
+
+        if (isURL(question)) {
+
+            analyzeURL(question);
+
+            return;
+
+        }
+
+
+        setTimeout(
+
+            function() {
+
+                addMessage(
+
+                    getResponse(question),
+
+                    "bot-message"
+
+                );
+
+            },
+
+            300
+
+        );
+
+    }
+
+
+    /* =========================================
+       ENTER KEY
+    ========================================= */
+
+    document
+        .getElementById("userInput")
+        .addEventListener(
+
+            "keydown",
+
+            function(event) {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    sendMessage();
+
+                }
+
+            }
+
+        );
+
+
+    /* =========================================
+       LOGOUT
+    ========================================= */
+
+    function logout() {
+
+
+        localStorage.removeItem(
+            "aegisUser"
+        );
+
+
+        localStorage.removeItem(
+            "aegisUserId"
+        );
+
+
+        window.location.href =
+            "login.html";
+
+    }
+
+</script>
+```
+
+</body>
+</html>

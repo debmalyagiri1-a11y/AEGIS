@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+sqlalchemy
+passlib
+bcrypt
+email-validator
+pydantic==2.12.5
+pydantic-core==2.46.5
