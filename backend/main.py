@@ -112,6 +112,71 @@ def verify_password(
 
 
 # ============================================================
+# DEFAULT ADMIN ACCOUNT
+# ============================================================
+
+def create_default_admin():
+
+    db = SessionLocal()
+
+    try:
+
+        admin_email = "admin@aegis.com"
+
+        existing_admin = db.query(
+            User
+        ).filter(
+            User.email == admin_email
+        ).first()
+
+        if existing_admin:
+
+            print(
+                "AEGIS admin account already exists"
+            )
+
+            return
+
+        admin = User(
+
+            name="AEGIS Administrator",
+
+            email=admin_email,
+
+            password=hash_password(
+                "Admin@123"
+            ),
+
+            role="admin"
+
+        )
+
+        db.add(admin)
+
+        db.commit()
+
+        print(
+            "Default AEGIS admin account created successfully"
+        )
+
+    except Exception as e:
+
+        db.rollback()
+
+        print(
+            f"Admin creation error: {e}"
+        )
+
+    finally:
+
+        db.close()
+
+
+# Create admin when backend starts
+create_default_admin()
+
+
+# ============================================================
 # DATABASE SESSION
 # ============================================================
 
