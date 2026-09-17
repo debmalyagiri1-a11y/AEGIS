@@ -94,6 +94,8 @@ pwd_context = CryptContext(
 
 
 def hash_password(password: str):
+    print("AEGIS DEBUG - password byte length:", len(password.encode("utf-8")))
+    return pwd_context.hash(password)
     password_bytes = password.encode("utf-8")
 
     if len(password_bytes) > 72:
