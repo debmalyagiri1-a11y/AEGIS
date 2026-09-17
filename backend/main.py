@@ -94,29 +94,15 @@ pwd_context = CryptContext(
 
 
 def hash_password(password: str):
-
     password_bytes = password.encode("utf-8")
 
     if len(password_bytes) > 72:
-
-        password = password_bytes[:72].decode(
-            "utf-8",
-            errors="ignore"
-        )
-
-    return pwd_context.hash(password)def hash_password(password: str):
-
-    password_bytes = password.encode("utf-8")
-
-    if len(password_bytes) > 72:
-
         password = password_bytes[:72].decode(
             "utf-8",
             errors="ignore"
         )
 
     return pwd_context.hash(password)
-
 
 def verify_password(
     password: str,
