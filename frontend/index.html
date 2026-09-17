@@ -2,47 +2,1209 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>AEGIS | Smart Campus Cybersecurity</title>
 
-    <!-- UNIFIED AEGIS CSS -->
+    <style>
 
-    <link rel="stylesheet" href="style.css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            background: #f8fbff;
+            color: #0f172a;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* =====================================================
+           NAVBAR
+        ===================================================== */
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+
+            width: 100%;
+
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(16px);
+
+            border-bottom: 1px solid #e2e8f0;
+
+            box-shadow:
+                0 4px 20px rgba(15, 23, 42, 0.04);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: auto;
+
+            height: 76px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 24px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            color: #0f172a;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 13px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0ea5e9,
+                    #2563eb
+                );
+
+            color: white;
+
+            font-size: 22px;
+
+            box-shadow:
+                0 8px 20px rgba(37, 99, 235, 0.25);
+        }
+
+        .logo-text h2 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-text span {
+            display: block;
+
+            font-size: 10px;
+            color: #64748b;
+
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+
+        .nav-links a {
+            color: #475569;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #2563eb;
+        }
+
+        .nav-login {
+            padding: 10px 18px;
+
+            border: 1px solid #2563eb;
+            border-radius: 9px;
+
+            color: #2563eb !important;
+        }
+
+        .nav-login:hover {
+            background: #eff6ff;
+        }
+
+        .nav-register {
+            padding: 11px 19px;
+
+            border-radius: 9px;
+
+            color: white !important;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #0ea5e9
+                );
+
+            box-shadow:
+                0 7px 18px rgba(37, 99, 235, 0.22);
+        }
+
+        .nav-register:hover {
+            transform: translateY(-1px);
+        }
+
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+
+            padding:
+                95px 24px
+                80px;
+
+            background:
+                radial-gradient(
+                    circle at 10% 20%,
+                    rgba(14, 165, 233, 0.12),
+                    transparent 30%
+                ),
+
+                radial-gradient(
+                    circle at 90% 10%,
+                    rgba(37, 99, 235, 0.13),
+                    transparent 30%
+                ),
+
+                linear-gradient(
+                    180deg,
+                    #ffffff,
+                    #f8fbff
+                );
+        }
+
+        .hero::before {
+            content: "";
+
+            position: absolute;
+
+            width: 450px;
+            height: 450px;
+
+            border-radius: 50%;
+
+            right: -180px;
+            top: 80px;
+
+            background:
+                rgba(37, 99, 235, 0.05);
+
+            filter: blur(10px);
+        }
+
+        .hero-container {
+            position: relative;
+            z-index: 2;
+
+            max-width: 1150px;
+            margin: auto;
+
+            display: grid;
+
+            grid-template-columns:
+                1.15fr
+                0.85fr;
+
+            gap: 70px;
+
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 8px 14px;
+
+            border-radius: 30px;
+
+            background: #eff6ff;
+
+            border: 1px solid #dbeafe;
+
+            color: #2563eb;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            margin-bottom: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #22c55e;
+
+            box-shadow:
+                0 0 0 4px
+                rgba(34, 197, 94, 0.12);
+        }
+
+        .hero h1 {
+            font-size:
+                clamp(48px, 7vw, 78px);
+
+            line-height: 0.98;
+
+            letter-spacing: -3px;
+
+            margin-bottom: 24px;
+
+            color: #0f172a;
+        }
+
+        .hero h1 span {
+            background:
+                linear-gradient(
+                    90deg,
+                    #2563eb,
+                    #0ea5e9
+                );
+
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 21px;
+            font-weight: 600;
+
+            color: #334155;
+
+            margin-bottom: 15px;
+        }
+
+        .hero-description {
+            max-width: 650px;
+
+            color: #64748b;
+
+            font-size: 16px;
+
+            margin-bottom: 32px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-wrap: wrap;
+
+            gap: 14px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 14px 24px;
+
+            border-radius: 10px;
+
+            color: white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #0ea5e9
+                );
+
+            font-weight: 700;
+
+            box-shadow:
+                0 10px 25px
+                rgba(37, 99, 235, 0.22);
+
+            transition: 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 14px 30px
+                rgba(37, 99, 235, 0.28);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 13px 24px;
+
+            border-radius: 10px;
+
+            color: #334155;
+
+            background: white;
+
+            border: 1px solid #cbd5e1;
+
+            font-weight: 700;
+
+            transition: 0.2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: #93c5fd;
+            background: #f8fbff;
+        }
+
+
+        /* =====================================================
+           HERO SECURITY CARD
+        ===================================================== */
+
+        .security-card {
+            position: relative;
+
+            background: white;
+
+            border: 1px solid #e2e8f0;
+
+            border-radius: 24px;
+
+            padding: 28px;
+
+            box-shadow:
+                0 25px 70px
+                rgba(15, 23, 42, 0.10);
+
+            overflow: hidden;
+        }
+
+        .security-card::before {
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 5px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #2563eb,
+                    #0ea5e9,
+                    #22c55e
+                );
+        }
+
+        .security-header {
+            display: flex;
+            align-items: center;
+
+            gap: 14px;
+
+            margin-bottom: 25px;
+        }
+
+        .shield-large {
+            width: 58px;
+            height: 58px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 17px;
+
+            background: #eff6ff;
+
+            font-size: 29px;
+        }
+
+        .security-header h3 {
+            font-size: 18px;
+        }
+
+        .security-header p {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .security-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 16px 0;
+
+            border-bottom:
+                1px solid #f1f5f9;
+        }
+
+        .security-row:last-child {
+            border-bottom: none;
+        }
+
+        .security-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            color: #334155;
+
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .security-icon {
+            width: 34px;
+            height: 34px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 9px;
+
+            background: #f1f5f9;
+        }
+
+        .status-safe {
+            padding: 5px 10px;
+
+            border-radius: 20px;
+
+            font-size: 11px;
+            font-weight: 800;
+
+            color: #15803d;
+            background: #dcfce7;
+        }
+
+
+        /* =====================================================
+           STATS
+        ===================================================== */
+
+        .stats {
+            max-width: 1050px;
+
+            margin: -25px auto 0;
+
+            position: relative;
+            z-index: 10;
+
+            padding: 0 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            background: white;
+
+            border: 1px solid #e2e8f0;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 15px 45px
+                rgba(15, 23, 42, 0.08);
+
+            overflow: hidden;
+        }
+
+        .stat {
+            padding: 25px;
+
+            text-align: center;
+
+            border-right:
+                1px solid #e2e8f0;
+        }
+
+        .stat:last-child {
+            border-right: none;
+        }
+
+        .stat-number {
+            font-size: 25px;
+
+            font-weight: 800;
+
+            color: #2563eb;
+        }
+
+        .stat-text {
+            font-size: 12px;
+
+            color: #64748b;
+
+            margin-top: 4px;
+        }
+
+
+        /* =====================================================
+           SECTION
+        ===================================================== */
+
+        .section {
+            max-width: 1150px;
+
+            margin: auto;
+
+            padding:
+                95px 24px;
+        }
+
+        .section-heading {
+            text-align: center;
+
+            max-width: 700px;
+
+            margin: 0 auto 50px;
+        }
+
+        .section-tag {
+            display: inline-block;
+
+            color: #2563eb;
+
+            background: #eff6ff;
+
+            border: 1px solid #dbeafe;
+
+            border-radius: 30px;
+
+            padding: 7px 13px;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+
+            margin-bottom: 13px;
+        }
+
+        .section-heading h2 {
+            font-size: 37px;
+
+            letter-spacing: -1px;
+
+            margin-bottom: 12px;
+        }
+
+        .section-heading p {
+            color: #64748b;
+
+            font-size: 15px;
+        }
+
+
+        /* =====================================================
+           FEATURE CARDS
+        ===================================================== */
+
+        .features-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: white;
+
+            border: 1px solid #e2e8f0;
+
+            border-radius: 18px;
+
+            padding: 27px;
+
+            transition:
+                transform 0.25s,
+                box-shadow 0.25s,
+                border-color 0.25s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+
+            border-color: #bfdbfe;
+
+            box-shadow:
+                0 20px 40px
+                rgba(37, 99, 235, 0.09);
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 14px;
+
+            background: #eff6ff;
+
+            font-size: 24px;
+
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 17px;
+
+            margin-bottom: 9px;
+        }
+
+        .feature-card p {
+            color: #64748b;
+
+            font-size: 13px;
+
+            line-height: 1.7;
+        }
+
+
+        /* =====================================================
+           WORKFLOW
+        ===================================================== */
+
+        .workflow-section {
+            background: #f1f7ff;
+
+            border-top:
+                1px solid #e2e8f0;
+
+            border-bottom:
+                1px solid #e2e8f0;
+        }
+
+        .workflow {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 25px;
+
+            max-width: 1050px;
+
+            margin: auto;
+        }
+
+        .workflow-card {
+            position: relative;
+
+            background: white;
+
+            border: 1px solid #dbeafe;
+
+            border-radius: 18px;
+
+            padding: 28px;
+        }
+
+        .workflow-number {
+            position: absolute;
+
+            top: 20px;
+            right: 22px;
+
+            font-size: 30px;
+
+            font-weight: 900;
+
+            color: #dbeafe;
+        }
+
+        .workflow-icon {
+            font-size: 25px;
+
+            margin-bottom: 17px;
+        }
+
+        .workflow-card h3 {
+            margin-bottom: 8px;
+        }
+
+        .workflow-card p {
+            color: #64748b;
+
+            font-size: 13px;
+        }
+
+
+        /* =====================================================
+           SECURITY LAYERS
+        ===================================================== */
+
+        .security-section {
+            background: white;
+        }
+
+        .security-layers {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 18px;
+
+            max-width: 900px;
+
+            margin: auto;
+        }
+
+        .layer {
+            display: flex;
+
+            align-items: center;
+
+            gap: 16px;
+
+            padding: 20px;
+
+            border:
+                1px solid #e2e8f0;
+
+            border-radius: 14px;
+
+            background: #fbfdff;
+        }
+
+        .layer-icon {
+            width: 45px;
+            height: 45px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background: #eff6ff;
+
+            font-size: 20px;
+        }
+
+        .layer h4 {
+            font-size: 14px;
+
+            margin-bottom: 2px;
+        }
+
+        .layer p {
+            font-size: 12px;
+
+            color: #64748b;
+        }
+
+
+        /* =====================================================
+           CTA
+        ===================================================== */
+
+        .cta {
+            max-width: 1100px;
+
+            margin:
+                20px auto
+                90px;
+
+            padding:
+                65px 35px;
+
+            border-radius: 25px;
+
+            text-align: center;
+
+            color: white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0f172a,
+                    #172554,
+                    #1d4ed8
+                );
+
+            box-shadow:
+                0 25px 60px
+                rgba(15, 23, 42, 0.18);
+
+            position: relative;
+
+            overflow: hidden;
+        }
+
+        .cta::before {
+            content: "";
+
+            position: absolute;
+
+            width: 300px;
+            height: 300px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(14, 165, 233, 0.16);
+
+            right: -100px;
+            top: -130px;
+        }
+
+        .cta h2 {
+            position: relative;
+
+            font-size: 34px;
+
+            margin-bottom: 12px;
+        }
+
+        .cta p {
+            position: relative;
+
+            color: #cbd5e1;
+
+            max-width: 650px;
+
+            margin: 0 auto 27px;
+
+            font-size: 14px;
+        }
+
+        .cta .btn-primary {
+            position: relative;
+
+            background: white;
+
+            color: #1d4ed8;
+
+            box-shadow: none;
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        footer {
+            background: #0f172a;
+
+            color: #cbd5e1;
+
+            padding:
+                45px 24px
+                25px;
+        }
+
+        .footer-container {
+            max-width: 1150px;
+
+            margin: auto;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 30px;
+
+            flex-wrap: wrap;
+        }
+
+        .footer-brand h3 {
+            color: white;
+
+            font-size: 20px;
+
+            margin-bottom: 7px;
+        }
+
+        .footer-brand p {
+            color: #94a3b8;
+
+            font-size: 12px;
+
+            max-width: 360px;
+        }
+
+        .footer-links {
+            display: flex;
+
+            gap: 22px;
+
+            align-items: center;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+
+            font-size: 12px;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            max-width: 1150px;
+
+            margin: 30px auto 0;
+
+            padding-top: 20px;
+
+            border-top:
+                1px solid #1e293b;
+
+            font-size: 11px;
+
+            color: #64748b;
+
+            text-align: center;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 900px) {
+
+            .hero-container {
+                grid-template-columns: 1fr;
+
+                gap: 45px;
+            }
+
+            .hero {
+                padding-top: 65px;
+            }
+
+            .security-card {
+                max-width: 550px;
+
+                margin: auto;
+            }
+
+            .features-grid {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .workflow {
+                grid-template-columns:
+                    1fr;
+            }
+
+        }
+
+
+        @media (max-width: 700px) {
+
+            .nav-container {
+                height: auto;
+
+                padding:
+                    15px 18px;
+
+                gap: 15px;
+            }
+
+            .nav-links {
+                gap: 8px;
+            }
+
+            .nav-links a:not(.nav-login):not(.nav-register) {
+                display: none;
+            }
+
+            .nav-login,
+            .nav-register {
+                padding:
+                    8px 11px;
+
+                font-size: 11px;
+            }
+
+            .hero h1 {
+                font-size: 50px;
+
+                letter-spacing: -2px;
+            }
+
+            .hero-subtitle {
+                font-size: 18px;
+            }
+
+            .hero-description {
+                font-size: 14px;
+            }
+
+            .stats-grid {
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+            .stat {
+                border-bottom:
+                    1px solid #e2e8f0;
+            }
+
+            .stat:nth-child(2) {
+                border-right: none;
+            }
+
+            .features-grid {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .security-layers {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .section {
+                padding:
+                    70px 20px;
+            }
+
+            .section-heading h2 {
+                font-size: 29px;
+            }
+
+            .cta {
+                margin:
+                    10px 20px
+                    70px;
+
+                padding:
+                    50px 25px;
+            }
+
+            .cta h2 {
+                font-size: 28px;
+            }
+
+            .footer-container {
+                flex-direction: column;
+            }
+
+        }
+
+    </style>
 </head>
 
 
 <body>
 
 
-<!-- =========================================
+<!-- =========================================================
      NAVBAR
-========================================= -->
+========================================================= -->
 
 <nav>
 
-    <h2>
-        AEGIS
-    </h2>
+    <div class="nav-container">
 
+        <a href="index.html" class="logo">
 
-    <div>
+            <div class="logo-icon">
+                🛡️
+            </div>
 
-        <a href="index.html">
-            Home
+            <div class="logo-text">
+
+                <h2>AEGIS</h2>
+
+                <span>
+                    Smart Campus Security
+                </span>
+
+            </div>
+
         </a>
 
-        <a href="login.html">
-            Login
-        </a>
 
-        <a href="register.html">
-            Register
-        </a>
+        <div class="nav-links">
+
+            <a href="index.html">
+                Home
+            </a>
+
+            <a href="#features">
+                Security
+            </a>
+
+            <a href="#how-it-works">
+                How It Works
+            </a>
+
+            <a
+                href="login.html"
+                class="nav-login"
+            >
+                Login
+            </a>
+
+            <a
+                href="register.html"
+                class="nav-register"
+            >
+                Create Account
+            </a>
+
+        </div>
 
     </div>
 
@@ -50,250 +1212,496 @@
 
 
 
-<!-- =========================================
-     HERO SECTION
-========================================= -->
+<!-- =========================================================
+     HERO
+========================================================= -->
 
 <section class="hero">
 
-
-    <h1>
-        AEGIS
-    </h1>
+    <div class="hero-container">
 
 
-    <p>
+        <div>
 
-        AI-Powered Smart Campus Cybersecurity System
+            <div class="hero-badge">
 
-    </p>
+                <span class="status-dot"></span>
 
+                AEGIS Security Platform
 
-    <p>
-
-        Protecting students, faculty and campus
-        digital infrastructure through intelligent
-        threat detection and security monitoring.
-
-    </p>
+            </div>
 
 
-    <div class="hero-buttons">
+            <h1>
+
+                Protecting the
+                <span>Smart Campus.</span>
+
+            </h1>
 
 
-        <a
-            href="login.html"
-            class="primary-button">
+            <p class="hero-subtitle">
 
-            Login
+                AI-Powered Smart Campus Cybersecurity System
 
-        </a>
+            </p>
 
 
-        <a
-            href="register.html"
-            class="secondary-button">
+            <p class="hero-description">
 
-            Create Account
+                AEGIS brings intelligent threat detection,
+                secure authentication, suspicious URL analysis,
+                email security and incident monitoring together
+                in one centralized cybersecurity platform.
 
-        </a>
+            </p>
 
+
+            <div class="hero-buttons">
+
+                <a
+                    href="login.html"
+                    class="btn-primary"
+                >
+                    🔐 Login to AEGIS
+                </a>
+
+
+                <a
+                    href="register.html"
+                    class="btn-secondary"
+                >
+                    Create Account →
+                </a>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- SECURITY CARD -->
+
+        <div class="security-card">
+
+            <div class="security-header">
+
+                <div class="shield-large">
+                    🛡️
+                </div>
+
+                <div>
+
+                    <h3>
+                        Security Status
+                    </h3>
+
+                    <p>
+                        AEGIS Protection Layer
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="security-row">
+
+                <div class="security-label">
+
+                    <div class="security-icon">
+                        🔗
+                    </div>
+
+                    URL Threat Scanner
+
+                </div>
+
+                <span class="status-safe">
+                    ACTIVE
+                </span>
+
+            </div>
+
+
+            <div class="security-row">
+
+                <div class="security-label">
+
+                    <div class="security-icon">
+                        📧
+                    </div>
+
+                    Email Threat Analyzer
+
+                </div>
+
+                <span class="status-safe">
+                    ACTIVE
+                </span>
+
+            </div>
+
+
+            <div class="security-row">
+
+                <div class="security-label">
+
+                    <div class="security-icon">
+                        🔑
+                    </div>
+
+                    Secure Authentication
+
+                </div>
+
+                <span class="status-safe">
+                    ACTIVE
+                </span>
+
+            </div>
+
+
+            <div class="security-row">
+
+                <div class="security-label">
+
+                    <div class="security-icon">
+                        🚨
+                    </div>
+
+                    Threat Monitoring
+
+                </div>
+
+                <span class="status-safe">
+                    ACTIVE
+                </span>
+
+            </div>
+
+
+        </div>
 
     </div>
-
 
 </section>
 
 
 
-<!-- =========================================
+<!-- =========================================================
+     STATS
+========================================================= -->
+
+<div class="stats">
+
+    <div class="stats-grid">
+
+        <div class="stat">
+
+            <div class="stat-number">
+                AI
+            </div>
+
+            <div class="stat-text">
+                Threat Analysis
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-number">
+                MFA
+            </div>
+
+            <div class="stat-text">
+                Secure Login
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-number">
+                24/7
+            </div>
+
+            <div class="stat-text">
+                Security Monitoring
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-number">
+                RBAC
+            </div>
+
+            <div class="stat-text">
+                Access Control
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
      FEATURES
-========================================= -->
+========================================================= -->
 
-<section class="features">
+<section
+    class="section"
+    id="features"
+>
 
+    <div class="section-heading">
 
-    <div class="feature">
+        <div class="section-tag">
+            Security Capabilities
+        </div>
 
-
-        <h3>
-            AI Threat Detection
-        </h3>
-
-
-        <p>
-
-            AEGIS analyzes submitted threat reports
-            and identifies suspicious indicators such
-            as phishing, malware and unauthorized access.
-
-        </p>
-
-
-    </div>
-
-
-
-    <div class="feature">
-
-
-        <h3>
-            Security Monitoring
-        </h3>
-
-
-        <p>
-
-            Monitor reported cybersecurity incidents
-            and track their current status through a
-            centralized security dashboard.
-
-        </p>
-
-
-    </div>
-
-
-
-    <div class="feature">
-
-
-        <h3>
-            Smart Campus Protection
-        </h3>
-
-
-        <p>
-
-            A centralized cybersecurity platform
-            designed to support safer digital
-            environments across educational campuses.
-
-        </p>
-
-
-    </div>
-
-
-</section>
-
-
-
-<!-- =========================================
-     HOW AEGIS WORKS
-========================================= -->
-
-<div class="container">
-
-
-    <div class="card">
-
-
-        <h2 style="margin-bottom:15px;">
-            How AEGIS Works
+        <h2>
+            One Platform. Multiple Security Layers.
         </h2>
 
-
-        <p
-            style="
-                color: #64748b;
-                margin-bottom: 20px;
-            ">
-
-            AEGIS provides a simple workflow for
-            reporting and monitoring cybersecurity
-            incidents.
-
+        <p>
+            AEGIS combines security analysis, authentication
+            and incident management into a centralized
+            smart-campus cybersecurity environment.
         </p>
 
-
-        <div
-            style="
-                display:grid;
-                grid-template-columns:
-                    repeat(3, 1fr);
-                gap:20px;
-            ">
+    </div>
 
 
-            <div>
+    <div class="features-grid">
 
-                <h3
-                    style="
-                        color:#0284c7;
-                        margin-bottom:8px;
-                    ">
 
-                    01. Report
+        <div class="feature-card">
 
+            <div class="feature-icon">
+                🔗
+            </div>
+
+            <h3>
+                Advanced URL Scanner
+            </h3>
+
+            <p>
+                Analyze suspicious URLs using multiple
+                security indicators including domain
+                intelligence, phishing patterns,
+                DNS information and risk scoring.
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                📧
+            </div>
+
+            <h3>
+                Email Threat Analyzer
+            </h3>
+
+            <p>
+                Analyze suspicious email files and
+                inspect embedded links using the
+                AEGIS threat-analysis engine.
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                🔐
+            </div>
+
+            <h3>
+                Secure Authentication
+            </h3>
+
+            <p>
+                Protect campus accounts using secure
+                password hashing, authentication,
+                MFA verification and role-based access.
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                🚨
+            </div>
+
+            <h3>
+                Login Anomaly Detection
+            </h3>
+
+            <p>
+                Monitor authentication events and
+                identify suspicious patterns such as
+                repeated failed login attempts.
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                📋
+            </div>
+
+            <h3>
+                Incident Management
+            </h3>
+
+            <p>
+                Report cybersecurity incidents and
+                provide administrators with a structured
+                workflow for investigation and tracking.
+            </p>
+
+        </div>
+
+
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                📊
+            </div>
+
+            <h3>
+                Security Monitoring
+            </h3>
+
+            <p>
+                Centralize security information through
+                dashboards, threat indicators, reports
+                and administrative monitoring.
+            </p>
+
+        </div>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     HOW AEGIS WORKS
+========================================================= -->
+
+<section
+    class="workflow-section"
+    id="how-it-works"
+>
+
+    <div class="section">
+
+        <div class="section-heading">
+
+            <div class="section-tag">
+                Security Workflow
+            </div>
+
+            <h2>
+                How AEGIS Works
+            </h2>
+
+            <p>
+                From security input to risk classification
+                and incident handling.
+            </p>
+
+        </div>
+
+
+        <div class="workflow">
+
+
+            <div class="workflow-card">
+
+                <div class="workflow-number">
+                    01
+                </div>
+
+                <div class="workflow-icon">
+                    👤
+                </div>
+
+                <h3>
+                    Authenticate
                 </h3>
 
-
-                <p
-                    style="
-                        color:#64748b;
-                        font-size:14px;
-                    ">
-
-                    Users submit suspicious activities
-                    or cybersecurity incidents.
-
+                <p>
+                    Users securely access the appropriate
+                    AEGIS campus security services through
+                    authentication and MFA.
                 </p>
 
             </div>
 
 
+            <div class="workflow-card">
 
-            <div>
+                <div class="workflow-number">
+                    02
+                </div>
 
-                <h3
-                    style="
-                        color:#0284c7;
-                        margin-bottom:8px;
-                    ">
+                <div class="workflow-icon">
+                    🔍
+                </div>
 
-                    02. Detect
-
+                <h3>
+                    Analyze
                 </h3>
 
-
-                <p
-                    style="
-                        color:#64748b;
-                        font-size:14px;
-                    ">
-
-                    The AEGIS detection engine analyzes
-                    the submitted information.
-
+                <p>
+                    URLs, suspicious messages and security
+                    events are analyzed using validation,
+                    detection rules and security intelligence.
                 </p>
 
             </div>
 
 
+            <div class="workflow-card">
 
-            <div>
+                <div class="workflow-number">
+                    03
+                </div>
 
-                <h3
-                    style="
-                        color:#0284c7;
-                        margin-bottom:8px;
-                    ">
+                <div class="workflow-icon">
+                    🚨
+                </div>
 
-                    03. Monitor
-
+                <h3>
+                    Respond
                 </h3>
 
-
-                <p
-                    style="
-                        color:#64748b;
-                        font-size:14px;
-                    ">
-
-                    Administrators can monitor reports
-                    and update investigation status.
-
+                <p>
+                    Risk information can be recorded as an
+                    incident and made available for
+                    appropriate administrative action.
                 </p>
 
             </div>
@@ -301,28 +1709,261 @@
 
         </div>
 
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     SECURITY LAYERS
+========================================================= -->
+
+<section class="security-section">
+
+    <div class="section">
+
+        <div class="section-heading">
+
+            <div class="section-tag">
+                Built With Security In Mind
+            </div>
+
+            <h2>
+                Multiple Layers of Protection
+            </h2>
+
+            <p>
+                AEGIS follows secure software engineering
+                principles across authentication, data
+                validation and monitoring.
+            </p>
+
+        </div>
+
+
+        <div class="security-layers">
+
+
+            <div class="layer">
+
+                <div class="layer-icon">
+                    🔑
+                </div>
+
+                <div>
+
+                    <h4>
+                        Password Security
+                    </h4>
+
+                    <p>
+                        Secure password hashing and
+                        authentication controls.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="layer">
+
+                <div class="layer-icon">
+                    🛡️
+                </div>
+
+                <div>
+
+                    <h4>
+                        Role-Based Access
+                    </h4>
+
+                    <p>
+                        Different access levels for
+                        authorized campus users.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="layer">
+
+                <div class="layer-icon">
+                    🔢
+                </div>
+
+                <div>
+
+                    <h4>
+                        Multi-Factor Authentication
+                    </h4>
+
+                    <p>
+                        Additional verification during
+                        secure account access.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="layer">
+
+                <div class="layer-icon">
+                    📝
+                </div>
+
+                <div>
+
+                    <h4>
+                        Audit Logging
+                    </h4>
+
+                    <p>
+                        Security events can be recorded
+                        for monitoring and review.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="layer">
+
+                <div class="layer-icon">
+                    ⚙️
+                </div>
+
+                <div>
+
+                    <h4>
+                        Input Validation
+                    </h4>
+
+                    <p>
+                        Security inputs are validated
+                        before processing.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="layer">
+
+                <div class="layer-icon">
+                        📡
+                </div>
+
+                <div>
+
+                    <h4>
+                        Security Monitoring
+                    </h4>
+
+                    <p>
+                        Centralized visibility into
+                        security events and incidents.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+        </div>
 
     </div>
 
+</section>
+
+
+
+<!-- =========================================================
+     CTA
+========================================================= -->
+
+<div class="cta">
+
+    <h2>
+        Secure Your Campus With AEGIS
+    </h2>
+
+    <p>
+        Analyze suspicious content, monitor security
+        events and manage cybersecurity incidents
+        through one intelligent platform.
+    </p>
+
+    <a
+        href="register.html"
+        class="btn-primary"
+    >
+        Create Your AEGIS Account →
+    </a>
 
 </div>
 
 
 
-<!-- =========================================
+<!-- =========================================================
      FOOTER
-========================================= -->
+========================================================= -->
 
 <footer>
 
-    AEGIS — AI-Powered Smart Campus Cybersecurity System
+    <div class="footer-container">
 
-    <br><br>
 
-    Smart Security • Threat Detection • Campus Protection
+        <div class="footer-brand">
+
+            <h3>
+                🛡️ AEGIS
+            </h3>
+
+            <p>
+                AI-Powered Smart Campus Cybersecurity System
+                designed for secure digital environments
+                across educational campuses.
+            </p>
+
+        </div>
+
+
+        <div class="footer-links">
+
+            <a href="index.html">
+                Home
+            </a>
+
+            <a href="login.html">
+                Login
+            </a>
+
+            <a href="register.html">
+                Register
+            </a>
+
+        </div>
+
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+        © 2026 AEGIS — Smart Campus Cybersecurity System.
+        Built for Software Engineering & Cybersecurity.
+
+    </div>
 
 </footer>
-
 
 
 </body>
