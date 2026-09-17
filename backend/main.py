@@ -396,61 +396,131 @@ def register(
                 f"{type(error).__name__}: {error}"
             )
         )
-    # --------------------------------------------------------
-    # LOGIN EVENT
-    # --------------------------------------------------------
+    
 
-    db.add(
+   # ============================================================
+# LOGIN
+# ============================================================
 
-        LoginEvent(
+@app.post("/login")
+def login(
+    data: UserLogin,
+    request: Request,
+    db: Session = Depends(get_db)
+):
 
-            user_id=
-                existing_user.id,
+    email = str(data.email).strip().lower()
 
-            email=
-                existing_user.email,
+    ip = client_ip(request)
 
-            success=1,
-
-            ip_address=ip,
-
-            user_agent=user_agent,
-
-            risk_level=
-                anomaly["risk_level"],
-
-            anomaly_reason=
-                anomaly["reason"]
-
-        )
-
+    user_agent = request.headers.get(
+        "User-Agent",
+        "Unknown"
     )
 
+    user = db.query(
+        User
+    ).filter(
+        User.email == email
+    ).first()
 
-    # --------------------------------------------------------
-    # REMOVE OLD MFA CODES
-    # --------------------------------------------------------
+    if not user:
+
+        db.add(
+            LoginEvent(
+                user_id=None,
+                email=email,
+                success=0,
+                ip_address=ip,
+                user_agent=user_agent,
+                risk_level="Medium",
+                anomaly_reason="Unknown email login attempt"
+            )
+        )
+
+        db.commit()
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    since = get_failed_attempt_window(15)
+
+    failed_attempts = db.query(
+        LoginEvent
+    ).filter(
+        LoginEvent.email == email,
+        LoginEvent.success == 0,
+        LoginEvent.created_at >= since
+    ).count()
+
+    if not verify_password(
+        data.password,
+        user.password
+    ):
+
+        failed_attempts += 1
+
+        anomaly = analyze_login_anomaly(
+            failed_attempts,
+            False
+        )
+
+        db.add(
+            LoginEvent(
+                user_id=user.id,
+                email=user.email,
+                success=0,
+                ip_address=ip,
+                user_agent=user_agent,
+                risk_level=anomaly["risk_level"],
+                anomaly_reason=anomaly["reason"]
+            )
+        )
+
+        db.add(
+            AuditLog(
+                user_id=user.id,
+                action="LOGIN_FAILED",
+                details="Incorrect password",
+                ip_address=ip
+            )
+        )
+
+        db.commit()
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password"
+        )
+
+    anomaly = analyze_login_anomaly(
+        failed_attempts,
+        True
+    )
+
+    db.add(
+        LoginEvent(
+            user_id=user.id,
+            email=user.email,
+            success=1,
+            ip_address=ip,
+            user_agent=user_agent,
+            risk_level=anomaly["risk_level"],
+            anomaly_reason=anomaly["reason"]
+        )
+    )
 
     old_codes = db.query(
         MFACode
     ).filter(
-
-        MFACode.user_id ==
-            existing_user.id,
-
+        MFACode.user_id == user.id,
         MFACode.verified == 0
-
     ).all()
 
-
     for old_code in old_codes:
-
         old_code.verified = 1
-
-
-    # --------------------------------------------------------
-    # GENERATE MFA CODE
-    # --------------------------------------------------------
 
     code = str(
         random.randint(
@@ -459,78 +529,41 @@ def register(
         )
     )
 
-
     expires_at = (
         datetime.utcnow()
         + timedelta(minutes=5)
     )
 
-
     db.add(
-
         MFACode(
-
-            user_id=
-                existing_user.id,
-
+            user_id=user.id,
             code=code,
-
             expires_at=expires_at,
-
             verified=0
-
         )
-
     )
-
-
-    # --------------------------------------------------------
-    # AUDIT LOG
-    # --------------------------------------------------------
 
     db.add(
-
         AuditLog(
-
-            user_id=
-                existing_user.id,
-
-            action=
-                "MFA_CODE_GENERATED",
-
-            details=
-                "MFA code generated",
-
+            user_id=user.id,
+            action="MFA_CODE_GENERATED",
+            details="MFA code generated",
             ip_address=ip
-
         )
-
     )
-
 
     db.commit()
 
-
     return {
-
-        "message":
-            "Password verified. MFA required.",
-
-        "mfa_required":
-            True,
-
-        "user":
-            user_dict(existing_user),
-
-        **user_dict(existing_user),
-
-        "login_security":
-            anomaly,
-
-        "demo_mfa_code":
-            code
-
+        "message": "Password verified. MFA required.",
+        "mfa_required": True,
+        "user": user_dict(user),
+        **user_dict(user),
+        "login_security": anomaly,
+        "demo_mfa_code": code
     }
+
+
 
 
 # ============================================================
