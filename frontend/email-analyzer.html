@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>AEGIS - Email Threat Analyzer</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #ffffff;
+            color: #0f172a;
+            min-height: 100vh;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 40px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0284c7;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #334155;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #0284c7;
+        }
+
+        .container {
+            max-width: 1050px;
+            margin: 45px auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+            color: #0284c7;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        .analyzer-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 10px 35px rgba(15, 23, 42, 0.08);
+        }
+
+        .upload-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #0f172a;
+        }
+
+        .file-upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 38px;
+            text-align: center;
+            background: #f8fafc;
+            transition: 0.2s;
+        }
+
+        .file-upload-box:hover {
+            border-color: #0284c7;
+            background: #f0f9ff;
+        }
+
+        .file-upload-box label {
+            display: inline-block;
+            padding: 15px 28px;
+            border-radius: 10px;
+            background: #0284c7;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .file-upload-box label:hover {
+            background: #0369a1;
+        }
+
+        #emailFile {
+            display: none;
+        }
+
+        #fileName {
+            margin-top: 18px;
+            color: #64748b;
+            word-break: break-word;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 14px 24px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .analyze-btn {
+            flex: 1;
+            background: #0284c7;
+            color: white;
+        }
+
+        .analyze-btn:hover {
+            background: #0369a1;
+        }
+
+        .clear-btn {
+            background: #334155;
+            color: white;
+        }
+
+        .clear-btn:hover {
+            background: #475569;
+        }
+
+        #status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            color: #0369a1;
+            min-height: 20px;
+        }
+
+        #result {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .risk-header {
+            padding: 25px;
+            border-radius: 12px;
+            background: #f8fafc;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .risk-level {
+            font-size: 34px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .risk-level.minimal {
+            color: #16a34a;
+        }
+
+        .risk-level.low {
+            color: #65a30d;
+        }
+
+        .risk-level.medium {
+            color: #ca8a04;
+        }
+
+        .risk-level.high {
+            color: #ea580c;
+        }
+
+        .risk-level.critical {
+            color: #dc2626;
+        }
+
+        .risk-level.unknown {
+            color: #64748b;
+        }
+
+        .risk-score {
+            margin-top: 8px;
+            color: #0f172a;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .confidence {
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .email-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .email-info-box {
+            background: #f8fafc;
+            padding: 18px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .email-info-box strong {
+            display: block;
+            color: #0284c7;
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .email-info-box span {
+            color: #334155;
+            word-break: break-word;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .detail-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .detail-box h3 {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .detail-box p {
+            font-size: 25px;
+            font-weight: bold;
+            margin: 0;
+            color: #0284c7;
+        }
+
+        .indicator-section {
+            margin-top: 25px;
+        }
+
+        .indicator-section h2,
+        .recommendation h2,
+        .url-section h2 {
+            color: #0284c7;
+            margin-bottom: 15px;
+        }
+
+        #indicators {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .indicator {
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 9px;
+            border-left: 4px solid #dc2626;
+            color: #334155;
+            line-height: 1.5;
+            border-top: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .url-section {
+            margin-top: 30px;
+        }
+
+        .url-card {
+            background: #f8fafc;
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .url-address {
+            color: #0284c7;
+            word-break: break-all;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .url-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: #e2e8f0;
+            color: #334155;
+            font-size: 12px;
+        }
+
+        .badge.critical {
+            color: #991b1b;
+            background: #fee2e2;
+        }
+
+        .badge.high {
+            color: #9a3412;
+            background: #ffedd5;
+        }
+
+        .badge.medium {
+            color: #854d0e;
+            background: #fef9c3;
+        }
+
+        .recommendation {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+        }
+
+        .recommendation h2 {
+            color: #0284c7;
+        }
+
+        .recommendation p {
+            color: #334155;
+            line-height: 1.7;
+            margin-bottom: 0;
+        }
+
+        .info {
+            margin-top: 25px;
+            padding: 18px;
+            border-radius: 10px;
+            background: #f8fafc;
+            color: #64748b;
+            line-height: 1.6;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .info strong {
+            color: #334155;
+        }
+
+        @media (max-width: 800px) {
+
+            nav {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .container {
+                margin: 25px auto;
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .details-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .email-info {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+        @media (max-width: 500px) {
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .analyzer-card {
+                padding: 20px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<nav>
+
+    <div class="logo">
+        🛡 AEGIS
+    </div>
+
+    <div class="nav-links">
+
+        <a href="dashboard.html">
+            Dashboard
+        </a>
+
+        <a href="url-scanner.html">
+            URL Scanner
+        </a>
+
+        <a href="email-analyzer.html">
+            Email Analyzer
+        </a>
+
+        <a href="report-threat.html">
+            Report Threat
+        </a>
+
+        <a href="alerts.html">
+            Alerts
+        </a>
+
+        <a href="security-assistant.html">
+            Assistant
+        </a>
+
+    </div>
+
+</nav>
+
+
+<div class="container">
+
+
+    <div class="header">
+
+        <h1>
+            📧 Email Threat Analyzer
+        </h1>
+
+        <p>
+            Upload a suspicious email and let AEGIS analyze
+            its URLs and security indicators.
+        </p>
+
+    </div>
+
+
+    <div class="analyzer-card">
+
+
+        <div class="upload-title">
+            Upload Email File
+        </div>
+
+
+        <div class="file-upload-box">
+
+            <label for="emailFile">
+                📁 Choose .EML File
+            </label>
+
+            <input
+                type="file"
+                id="emailFile"
+                accept=".eml,message/rfc822">
+
+            <p id="fileName">
+                No email file selected
+            </p>
+
+        </div>
+
+
+        <div class="button-row">
+
+            <button
+                class="analyze-btn"
+                onclick="analyzeEmail()">
+
+                🔍 Analyze Email
+
+            </button>
+
+
+            <button
+                class="clear-btn"
+                onclick="clearEmail()">
+
+                Clear
+
+            </button>
+
+        </div>
+
+
+        <div id="status"></div>
+
+
+        <div id="result">
+
+
+            <div class="result-card">
+
+
+                <div class="risk-header">
+
+                    <div
+                        id="riskLevel"
+                        class="risk-level">
+
+                        -
+
+                    </div>
+
+
+                    <div
+                        id="riskScore"
+                        class="risk-score">
+
+                        Risk Score: -
+
+                    </div>
+
+
+                    <div
+                        id="confidence"
+                        class="confidence">
+
+                        Confidence: -
+
+                    </div>
+
+                </div>
+
+
+                <div class="email-info">
+
+
+                    <div class="email-info-box">
+
+                        <strong>
+                            Sender
+                        </strong>
+
+                        <span id="sender">
+                            -
+                        </span>
+
+                    </div>
+
+
+                    <div class="email-info-box">
+
+                        <strong>
+                            Reply-To
+                        </strong>
+
+                        <span id="replyTo">
+                            -
+                        </span>
+
+                    </div>
+
+
+                    <div class="email-info-box">
+
+                        <strong>
+                            Subject
+                        </strong>
+
+                        <span id="subject">
+                            -
+                        </span>
+
+                    </div>
+
+
+                    <div class="email-info-box">
+
+                        <strong>
+                            Date
+                        </strong>
+
+                        <span id="emailDate">
+                            -
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="details-grid">
+
+
+                    <div class="detail-box">
+
+                        <h3>
+                            Email URLs Found
+                        </h3>
+
+                        <p id="urlCount">
+                            0
+                        </p>
+
+                    </div>
+
+
+                    <div class="detail-box">
+
+                        <h3>
+                            URLs Analyzed
+                        </h3>
+
+                        <p id="analyzedCount">
+                            0
+                        </p>
+
+                    </div>
+
+
+                    <div class="detail-box">
+
+                        <h3>
+                            High-Risk URLs
+                        </h3>
+
+                        <p id="highRiskCount">
+                            0
+                        </p>
+
+                    </div>
+
+
+                    <div class="detail-box">
+
+                        <h3>
+                            Analysis Status
+                        </h3>
+
+                        <p id="analysisStatus">
+                            -
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="url-section">
+
+                    <h2>
+                        🔗 URL Security Analysis
+                    </h2>
+
+                    <div id="urlResults"></div>
+
+                </div>
+
+
+                <div class="indicator-section">
+
+                    <h2>
+                        ⚠ Security Indicators
+                    </h2>
+
+                    <div id="indicators"></div>
+
+                </div>
+
+
+                <div class="recommendation">
+
+                    <h2>
+                        🛡 Recommendation
+                    </h2>
+
+                    <p id="recommendationText">
+                        -
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <div class="info">
+
+            <strong>
+                How AEGIS works:
+            </strong>
+
+            AEGIS accepts an .eml email file, extracts
+            URLs from the message, and sends the URLs
+            through the AEGIS cybersecurity analysis engine.
+            The analyzer displays the resulting risk level,
+            risk score, confidence, indicators and security
+            recommendation.
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+const API_URL =
+    "https://aegis-4lcw.onrender.com";
+
+
+document
+    .getElementById("emailFile")
+    .addEventListener(
+        "change",
+        function () {
+
+            const fileName =
+                document.getElementById(
+                    "fileName"
+                );
+
+
+            if (this.files.length > 0) {
+
+                fileName.textContent =
+                    "Selected: " +
+                    this.files[0].name;
+
+            } else {
+
+                fileName.textContent =
+                    "No email file selected";
+
+            }
+
+        }
+    );
+
+
+async function analyzeEmail() {
+
+
+    const fileInput =
+        document.getElementById(
+            "emailFile"
+        );
+
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+
+    const result =
+        document.getElementById(
+            "result"
+        );
+
+
+    if (!fileInput.files.length) {
+
+        status.textContent =
+            "Please select an .eml email file before analyzing.";
+
+        return;
+
+    }
+
+
+    const file =
+        fileInput.files[0];
+
+
+    if (
+        !file.name
+            .toLowerCase()
+            .endsWith(".eml")
+    ) {
+
+        status.textContent =
+            "Please select a valid .eml email file.";
+
+        return;
+
+    }
+
+
+    status.textContent =
+        "🔍 Analyzing email... Please wait.";
+
+
+    result.style.display =
+        "none";
+
+
+    try {
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "file",
+            file
+        );
+
+
+        const response =
+            await fetch(
+                API_URL +
+                "/analyze-email",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+
+        let data;
+
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch (error) {
+
+            throw new Error(
+                "The server returned an invalid response."
+            );
+
+        }
+
+
+        console.log(
+            "AEGIS Email Analysis:",
+            data
+        );
+
+
+        if (!response.ok) {
+
+            let message =
+                "Email analysis failed.";
+
+
+            if (
+                data &&
+                data.detail
+            ) {
+
+                if (
+                    typeof data.detail ===
+                    "string"
+                ) {
+
+                    message =
+                        data.detail;
+
+                } else {
+
+                    message =
+                        JSON.stringify(
+                            data.detail
+                        );
+
+                }
+
+            }
+
+
+            throw new Error(
+                message
+            );
+
+        }
+
+
+        displayResult(
+            data
+        );
+
+
+        status.textContent =
+            "✅ Email analysis completed successfully.";
+
+
+        result.style.display =
+            "block";
+
+
+    } catch (error) {
+
+
+        console.error(
+            "Email analysis error:",
+            error
+        );
+
+
+        status.textContent =
+            "❌ Error: " +
+            error.message;
+
+    }
+
+}
+
+
+function displayResult(data) {
+
+
+    const urlAnalysis =
+        Array.isArray(
+            data.url_analysis
+        )
+            ? data.url_analysis
+            : [];
+
+
+    let riskLevel =
+        "Unknown";
+
+
+    let riskScore =
+        0;
+
+
+    let confidence =
+        "Unknown";
+
+
+    if (
+        urlAnalysis.length >
+        0
+    ) {
+
+
+        const scores =
+            urlAnalysis
+                .map(
+                    function (item) {
+
+                        return Number(
+                            item.risk_score
+                        );
+
+                    }
+                )
+                .filter(
+                    function (score) {
+
+                        return !isNaN(
+                            score
+                        );
+
+                    }
+                );
+
+
+        if (
+            scores.length >
+            0
+        ) {
+
+            riskScore =
+                Math.max(
+                    ...scores
+                );
+
+        }
+
+
+        const priority = {
+            critical: 5,
+            high: 4,
+            medium: 3,
+            low: 2,
+            minimal: 1
+        };
+
+
+        let highestItem =
+            null;
+
+
+        let highestPriority =
+            0;
+
+
+        urlAnalysis.forEach(
+            function (item) {
+
+
+                const level =
+                    String(
+                        item.risk_level ||
+                        ""
+                    ).toLowerCase();
+
+
+                const currentPriority =
+                    priority[level] ||
+                    0;
+
+
+                if (
+                    currentPriority >
+                    highestPriority
+                ) {
+
+                    highestPriority =
+                        currentPriority;
+
+
+                    highestItem =
+                        item;
+
+                }
+
+            }
+        );
+
+
+        if (highestItem) {
+
+            riskLevel =
+                highestItem.risk_level ||
+                "Unknown";
+
+
+            confidence =
+                highestItem.confidence ||
+                "Unknown";
+
+        }
+
+    }
+
+
+    document.getElementById(
+        "sender"
+    ).textContent =
+        data.sender ||
+        "-";
+
+
+    document.getElementById(
+        "replyTo"
+    ).textContent =
+        data.reply_to ||
+        "-";
+
+
+    document.getElementById(
+        "subject"
+    ).textContent =
+        data.subject ||
+        "-";
+
+
+    document.getElementById(
+        "emailDate"
+    ).textContent =
+        data.date ||
+        "-";
+
+
+    document.getElementById(
+        "riskLevel"
+    ).textContent =
+        riskLevel;
+
+
+    document.getElementById(
+        "riskScore"
+    ).textContent =
+        "Risk Score: " +
+        riskScore;
+
+
+    document.getElementById(
+        "confidence"
+    ).textContent =
+        "Confidence: " +
+        confidence;
+
+
+    const riskElement =
+        document.getElementById(
+            "riskLevel"
+        );
+
+
+    riskElement.className =
+        "risk-level " +
+        String(
+            riskLevel
+        )
+        .toLowerCase()
+        .replace(
+            /\s+/g,
+            "-"
+        );
+
+
+    const urlCount =
+        Number(
+            data.urls_found ??
+            data.urls?.length ??
+            0
+        );
+
+
+    document.getElementById(
+        "urlCount"
+    ).textContent =
+        urlCount;
+
+
+    document.getElementById(
+        "analyzedCount"
+    ).textContent =
+        urlAnalysis.length;
+
+
+    let highRiskCount =
+        0;
+
+
+    urlAnalysis.forEach(
+        function (item) {
+
+            const level =
+                String(
+                    item.risk_level ||
+                    ""
+                ).toLowerCase();
+
+
+            if (
+                level === "high" ||
+                level === "critical"
+            ) {
+
+                highRiskCount++;
+
+            }
+
+        }
+    );
+
+
+    document.getElementById(
+        "highRiskCount"
+    ).textContent =
+        highRiskCount;
+
+
+    document.getElementById(
+        "analysisStatus"
+    ).textContent =
+        data.success === false
+            ? "Failed"
+            : "Completed";
+
+
+    const urlResults =
+        document.getElementById(
+            "urlResults"
+        );
+
+
+    urlResults.innerHTML =
+        "";
+
+
+    if (
+        urlAnalysis.length >
+        0
+    ) {
+
+
+        urlAnalysis.forEach(
+            function (item) {
+
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "url-card";
+
+
+                const url =
+                    item.url ||
+                    "Unknown URL";
+
+
+                const domain =
+                    item.domain ||
+                    "Unknown";
+
+
+                const protocol =
+                    item.protocol ||
+                    "Unknown";
+
+
+                const level =
+                    item.risk_level ||
+                    "Unknown";
+
+
+                const score =
+                    item.risk_score ??
+                    0;
+
+
+                const itemConfidence =
+                    item.confidence ||
+                    "Unknown";
+
+
+                const levelClass =
+                    String(
+                        level
+                    )
+                    .toLowerCase()
+                    .replace(
+                        /\s+/g,
+                        "-"
+                    );
+
+
+                card.innerHTML = `
+
+                    <div class="url-address">
+                        🔗 ${escapeHtml(url)}
+                    </div>
+
+                    <div class="url-details">
+
+                        <span class="badge">
+                            Domain: ${escapeHtml(domain)}
+                        </span>
+
+                        <span class="badge">
+                            Protocol: ${escapeHtml(protocol)}
+                        </span>
+
+                        <span class="badge ${levelClass}">
+                            Risk: ${escapeHtml(level)}
+                        </span>
+
+                        <span class="badge">
+                            Score: ${escapeHtml(String(score))}
+                        </span>
+
+                        <span class="badge">
+                            Confidence: ${escapeHtml(itemConfidence)}
+                        </span>
+
+                    </div>
+
+                `;
+
+
+                urlResults.appendChild(
+                    card
+                );
+
+            }
+        );
+
+
+    } else {
+
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+
+        div.className =
+            "indicator";
+
+
+        div.textContent =
+            "No URLs were found in this email.";
+
+
+        urlResults.appendChild(
+            div
+        );
+
+    }
+
+
+    const indicatorContainer =
+        document.getElementById(
+            "indicators"
+        );
+
+
+    indicatorContainer.innerHTML =
+        "";
+
+
+    let allIndicators =
+        [];
+
+
+    urlAnalysis.forEach(
+        function (item) {
+
+
+            if (
+                Array.isArray(
+                    item.indicators
+                )
+            ) {
+
+                item.indicators.forEach(
+                    function (indicator) {
+
+                        allIndicators.push(
+                            indicator
+                        );
+
+                    }
+                );
+
+            }
+
+        }
+    );
+
+
+    allIndicators =
+        [
+            ...new Set(
+                allIndicators
+            )
+        ];
+
+
+    if (
+        allIndicators.length >
+        0
+    ) {
+
+
+        allIndicators.forEach(
+            function (indicatorText) {
+
+
+                const div =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                div.className =
+                    "indicator";
+
+
+                div.textContent =
+                    String(
+                        indicatorText
+                    );
+
+
+                indicatorContainer.appendChild(
+                    div
+                );
+
+            }
+        );
+
+
+    } else {
+
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+
+        div.className =
+            "indicator";
+
+
+        div.textContent =
+            "No additional security indicators were returned.";
+
+
+        indicatorContainer.appendChild(
+            div
+        );
+
+    }
+
+
+    let recommendation =
+        "Review the email carefully before interacting with links or attachments.";
+
+
+    if (
+        urlAnalysis.length >
+        0
+    ) {
+
+
+        const priority = {
+            critical: 5,
+            high: 4,
+            medium: 3,
+            low: 2,
+            minimal: 1
+        };
+
+
+        let recommendationItem =
+            urlAnalysis[0];
+
+
+        let highestPriority =
+            0;
+
+
+        urlAnalysis.forEach(
+            function (item) {
+
+
+                const level =
+                    String(
+                        item.risk_level ||
+                        ""
+                    ).toLowerCase();
+
+
+                const currentPriority =
+                    priority[level] ||
+                    0;
+
+
+                if (
+                    currentPriority >
+                    highestPriority
+                ) {
+
+                    highestPriority =
+                        currentPriority;
+
+
+                    recommendationItem =
+                        item;
+
+                }
+
+            }
+        );
+
+
+        recommendation =
+            recommendationItem
+                .recommendation ||
+            recommendation;
+
+    }
+
+
+    document.getElementById(
+        "recommendationText"
+    ).textContent =
+        recommendation;
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+function clearEmail() {
+
+
+    document.getElementById(
+        "emailFile"
+    ).value =
+        "";
+
+
+    document.getElementById(
+        "fileName"
+    ).textContent =
+        "No email file selected";
+
+
+    document.getElementById(
+        "status"
+    ).textContent =
+        "";
+
+
+    document.getElementById(
+        "result"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "riskLevel"
+    ).textContent =
+        "-";
+
+
+    document.getElementById(
+        "riskLevel"
+    ).className =
+        "risk-level";
+
+
+    document.getElementById(
+        "riskScore"
+    ).textContent =
+        "Risk Score: -";
+
+
+    document.getElementById(
+        "confidence"
+    ).textContent =
+        "Confidence: -";
+
+
+    document.getElementById(
+        "sender"
+    ).textContent =
+        "-";
+
+
+    document.getElementById(
+        "replyTo"
+    ).textContent =
+        "-";
+
+
+    document.getElementById(
+        "subject"
+    ).textContent =
+        "-";
+
+
+    document.getElementById(
+        "emailDate"
+    ).textContent =
+        "-";
+
+
+    document.getElementById(
+        "urlCount"
+    ).textContent =
+        "0";
+
+
+    document.getElementById(
+        "analyzedCount"
+    ).textContent =
+        "0";
+
+
+    document.getElementById(
+        "highRiskCount"
+    ).textContent =
+        "0";
+
+
+    document.getElementById(
+        "analysisStatus"
+    ).textContent =
+        "-";
+
+
+    document.getElementById(
+        "urlResults"
+    ).innerHTML =
+        "";
+
+
+    document.getElementById(
+        "indicators"
+    ).innerHTML =
+        "";
+
+
+    document.getElementById(
+        "recommendationText"
+    ).textContent =
+        "-";
+
+}
+
+</script>
+
+
+</body>
+
+</html>
