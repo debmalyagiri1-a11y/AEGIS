@@ -288,313 +288,128 @@ def register(
 
 ):
 
-    email = str(
-        data.email
-    ).strip().lower()
+    try:
 
+        email = str(
+            data.email
+        ).strip().lower()
 
-    if not data.name.strip():
 
-        raise HTTPException(
+        if not data.name.strip():
 
-            status_code=400,
+            raise HTTPException(
 
-            detail="Name cannot be empty"
+                status_code=400,
 
-        )
-
-
-    if len(data.password) < 6:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail="Password must contain at least 6 characters"
-
-        )
-
-
-    existing_user = db.query(
-        User
-    ).filter(
-        User.email == email
-    ).first()
-
-
-    if existing_user:
-
-        raise HTTPException(
-
-            status_code=400,
-
-            detail="Email already registered"
-
-        )
-
-
-    hashed_password = hash_password(
-        data.password
-    )
-
-
-    user = User(
-
-        name=data.name.strip(),
-
-        email=email,
-
-        password=hashed_password,
-
-        role="student"
-
-    )
-
-
-    db.add(user)
-
-    db.commit()
-
-    db.refresh(user)
-
-
-    audit = AuditLog(
-
-        user_id=user.id,
-
-        action="USER_REGISTERED",
-
-        details=
-            f"New account registered: {email}",
-
-        ip_address=
-            client_ip(request)
-
-    )
-
-
-    db.add(audit)
-
-    db.commit()
-
-
-    return {
-
-        "message":
-            "Registration successful",
-
-        **user_dict(user)
-
-    }
-
-
-# ============================================================
-# USER LOGIN
-# ============================================================
-
-@app.post("/login")
-def login(
-
-    data: UserLogin,
-
-    request: Request,
-
-    db: Session = Depends(get_db)
-
-):
-
-    email = str(
-        data.email
-    ).strip().lower()
-
-
-    ip = client_ip(
-        request
-    )
-
-
-    user_agent = request.headers.get(
-        "User-Agent",
-        "Unknown"
-    )
-
-
-    existing_user = db.query(
-        User
-    ).filter(
-        User.email == email
-    ).first()
-
-
-    # --------------------------------------------------------
-    # UNKNOWN EMAIL
-    # --------------------------------------------------------
-
-    if not existing_user:
-
-        db.add(
-
-            LoginEvent(
-
-                user_id=None,
-
-                email=email,
-
-                success=0,
-
-                ip_address=ip,
-
-                user_agent=user_agent,
-
-                risk_level="Medium",
-
-                anomaly_reason=
-                    "Unknown email login attempt"
+                detail="Name cannot be empty"
 
             )
 
-        )
 
+        if len(data.password) < 6:
 
-        db.commit()
+            raise HTTPException(
 
+                status_code=400,
 
-        raise HTTPException(
-
-            status_code=401,
-
-            detail="Invalid email or password"
-
-        )
-
-
-    # --------------------------------------------------------
-    # FAILED LOGIN COUNT
-    # --------------------------------------------------------
-
-    since = get_failed_attempt_window(
-        15
-    )
-
-
-    failed_attempts = db.query(
-        LoginEvent
-    ).filter(
-
-        LoginEvent.email == email,
-
-        LoginEvent.success == 0,
-
-        LoginEvent.created_at >= since
-
-    ).count()
-
-
-    # --------------------------------------------------------
-    # PASSWORD VERIFICATION
-    # --------------------------------------------------------
-
-    if not verify_password(
-        data.password,
-        existing_user.password
-    ):
-
-        failed_attempts += 1
-
-
-        anomaly = analyze_login_anomaly(
-
-            failed_attempts,
-
-            False
-
-        )
-
-
-        db.add(
-
-            LoginEvent(
-
-                user_id=
-                    existing_user.id,
-
-                email=
-                    existing_user.email,
-
-                success=0,
-
-                ip_address=ip,
-
-                user_agent=user_agent,
-
-                risk_level=
-                    anomaly["risk_level"],
-
-                anomaly_reason=
-                    anomaly["reason"]
+                detail="Password must contain at least 6 characters"
 
             )
 
-        )
+
+        existing_user = db.query(
+            User
+        ).filter(
+            User.email == email
+        ).first()
 
 
-        db.add(
+        if existing_user:
 
-            AuditLog(
+            raise HTTPException(
 
-                user_id=
-                    existing_user.id,
+                status_code=400,
 
-                action="LOGIN_FAILED",
-
-                details=
-                    "Incorrect password",
-
-                ip_address=ip
+                detail="Email already registered"
 
             )
 
-        )
 
-
-        db.commit()
-
-
-        raise HTTPException(
-
-            status_code=401,
-
-            detail="Invalid email or password"
-
-        )
-
-
-    # --------------------------------------------------------
-    # UPGRADE OLD PASSWORD FORMAT IF NEEDED
-    # --------------------------------------------------------
-
-    if not existing_user.password.startswith(
-        ("$2a$", "$2b$", "$2y$")
-    ):
-
-        existing_user.password = hash_password(
+        hashed_password = hash_password(
             data.password
         )
 
 
-    # --------------------------------------------------------
-    # LOGIN ANOMALY ANALYSIS
-    # --------------------------------------------------------
+        user = User(
 
-    anomaly = analyze_login_anomaly(
+            name=data.name.strip(),
 
-        failed_attempts,
+            email=email,
 
-        True
+            password=hashed_password,
 
-    )
+            role="student"
+
+        )
 
 
+        db.add(user)
+
+        db.commit()
+
+        db.refresh(user)
+
+
+        audit = AuditLog(
+
+            user_id=user.id,
+
+            action="USER_REGISTERED",
+
+            details=f"New account registered: {email}",
+
+            ip_address=client_ip(request)
+
+        )
+
+
+        db.add(audit)
+
+        db.commit()
+
+
+        return {
+
+            "message": "Registration successful",
+
+            **user_dict(user)
+
+        }
+
+
+    except HTTPException:
+
+        raise
+
+
+    except Exception as error:
+
+        db.rollback()
+
+        print(
+            "REGISTER ERROR:",
+            repr(error)
+        )
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=
+                f"Registration failed: "
+                f"{type(error).__name__}: {error}"
+
+        )
     # --------------------------------------------------------
     # LOGIN EVENT
     # --------------------------------------------------------
