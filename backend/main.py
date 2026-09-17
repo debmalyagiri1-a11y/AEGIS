@@ -1,9 +1,25 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import (
+    FastAPI,
+    Depends,
+    HTTPException,
+    Request,
+    File,
+    UploadFile
+)
+
 from fastapi.middleware.cors import CORSMiddleware
+
 from sqlalchemy.orm import Session
+
 from passlib.context import CryptContext
+
 from datetime import datetime, timedelta
+
 import random
+import os
+import tempfile
+
+from backend.email_analyzer import analyze_eml_file
 
 from backend.database import Base, engine, SessionLocal
 
@@ -1713,6 +1729,94 @@ def get_user(
 
 
     return user_dict(user)
+    # ============================================================
+# PHISHING EMAIL ANALYZER
+# ============================================================
+
+@app.post("/analyze-email")
+async def analyze_email(
+    file: UploadFile = File(...)
+):
+
+    if not file.filename:
+
+        raise HTTPException(
+            status_code=400,
+            detail="No email file was provided."
+        )
+
+    if not file.filename.lower().endswith(".eml"):
+
+        raise HTTPException(
+            status_code=400,
+            detail="Only .eml email files are supported."
+        )
+
+    temp_path = None
+
+    try:
+
+        file_content = await file.read()
+
+        if not file_content:
+
+            raise HTTPException(
+                status_code=400,
+                detail="The email file is empty."
+            )
+
+        if len(file_content) > 10 * 1024 * 1024:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Email file is larger than the 10 MB limit."
+            )
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=".eml"
+        ) as temp_file:
+
+            temp_file.write(
+                file_content
+            )
+
+            temp_path = temp_file.name
+
+        analysis = analyze_eml_file(
+            temp_path
+        )
+
+        analysis["filename"] = file.filename
+
+        return analysis
+
+    except HTTPException:
+
+        raise
+
+    except Exception as error:
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Email analysis failed: {error}"
+        )
+
+    finally:
+
+        if temp_path and os.path.exists(
+            temp_path
+        ):
+
+            try:
+
+                os.remove(
+                    temp_path
+                )
+
+            except Exception:
+
+                pass
 
 
 # ============================================================

@@ -1,6 +1,9 @@
 import ipaddress
+import os
+import requests
 import math
 import re
+import socket
 from collections import Counter
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -593,6 +596,305 @@ def _detect_suspicious_characters(raw_url: str):
 # Main detection function
 # ============================================================
 
+def _analyze_dns(hostname):
+    """
+    Perform basic DNS intelligence on a hostname.
+
+    This function only performs DNS resolution.
+    It does NOT open or download the website.
+    """
+
+    result = {
+        "resolved": False,
+        "ip_addresses": [],
+        "count": 0,
+        "private_addresses": [],
+        "public_addresses": [],
+        "error": None
+    }
+
+    if not hostname:
+        result["error"] = "No hostname available."
+        return result
+
+    try:
+        addresses = socket.getaddrinfo(
+            hostname,
+            None,
+            socket.AF_UNSPEC,
+            socket.SOCK_STREAM
+        )
+
+        ip_addresses = sorted(
+            {
+                item[4][0]
+                for item in addresses
+                if item and item[4]
+            }
+        )
+
+        result["ip_addresses"] = ip_addresses
+        result["count"] = len(ip_addresses)
+        result["resolved"] = len(ip_addresses) > 0
+
+        for address in ip_addresses:
+            try:
+                ip_obj = ipaddress.ip_address(address)
+
+                if (
+                    ip_obj.is_private
+                    or ip_obj.is_loopback
+                    or ip_obj.is_link_local
+                ):
+                    result["private_addresses"].append(address)
+                else:
+                    result["public_addresses"].append(address)
+
+            except ValueError:
+                continue
+
+    except socket.gaierror:
+        result["error"] = "Hostname could not be resolved."
+
+    except socket.timeout:
+        result["error"] = "DNS resolution timed out."
+
+    except Exception:
+        result["error"] = "DNS analysis failed."
+
+    return result
+def _analyze_rdap(domain):
+    """
+    Retrieve basic domain registration intelligence using RDAP.
+
+    This function does not open the target website.
+    It only queries the domain's RDAP registration service.
+    """
+
+    result = {
+        "available": False,
+        "registered": False,
+        "domain": domain,
+        "created_at": None,
+        "updated_at": None,
+        "expires_at": None,
+        "registrar": None,
+        "age_days": None,
+        "error": None
+    }
+
+    if not domain:
+        result["error"] = "No domain available."
+        return result
+
+    try:
+        # ----------------------------------------------------
+        # Determine the top-level domain
+        # ----------------------------------------------------
+
+        parts = domain.lower().strip(".").split(".")
+
+        if len(parts) < 2:
+            result["error"] = "Domain does not contain a valid TLD."
+            return result
+
+        tld = parts[-1]
+
+        # ----------------------------------------------------
+        # IANA RDAP bootstrap registry
+        # ----------------------------------------------------
+
+        bootstrap_url = (
+            "https://data.iana.org/rdap/dns.json"
+        )
+
+        bootstrap_response = requests.get(
+            bootstrap_url,
+            timeout=8
+        )
+
+        if bootstrap_response.status_code != 200:
+            result["error"] = (
+                "RDAP bootstrap service unavailable."
+            )
+            return result
+
+        bootstrap_data = bootstrap_response.json()
+
+        rdap_base_url = None
+
+        # ----------------------------------------------------
+        # Find RDAP server for the TLD
+        # ----------------------------------------------------
+
+        for service in bootstrap_data.get("services", []):
+
+            if len(service) != 2:
+                continue
+
+            tlds, servers = service
+
+            if tld in [str(item).lower() for item in tlds]:
+
+                if servers:
+                    rdap_base_url = servers[0]
+                    break
+
+        if not rdap_base_url:
+            result["error"] = (
+                f"No RDAP server found for .{tld}."
+            )
+            return result
+
+        # ----------------------------------------------------
+        # Query the RDAP domain endpoint
+        # ----------------------------------------------------
+
+        rdap_url = (
+            rdap_base_url.rstrip("/")
+            + "/domain/"
+            + domain
+        )
+
+        response = requests.get(
+            rdap_url,
+            headers={
+                "Accept": "application/rdap+json"
+            },
+            timeout=8
+        )
+
+        if response.status_code == 404:
+            result["available"] = True
+            result["registered"] = False
+            result["error"] = "Domain was not found in RDAP."
+            return result
+
+        if response.status_code != 200:
+            result["error"] = (
+                f"RDAP server returned HTTP {response.status_code}."
+            )
+            return result
+
+        data = response.json()
+
+        result["available"] = True
+        result["registered"] = True
+
+        # ----------------------------------------------------
+        # Extract registration events
+        # ----------------------------------------------------
+
+        events = data.get("events", [])
+
+        for event in events:
+
+            action = event.get("eventAction")
+            date_value = event.get("eventDate")
+
+            if not date_value:
+                continue
+
+            if action == "registration":
+                result["created_at"] = date_value
+
+            elif action == "last changed":
+                result["updated_at"] = date_value
+
+            elif action == "expiration":
+                result["expires_at"] = date_value
+
+        # ----------------------------------------------------
+        # Calculate domain age
+        # ----------------------------------------------------
+
+        if result["created_at"]:
+
+            try:
+                from datetime import datetime, timezone
+
+                created = datetime.fromisoformat(
+                    result["created_at"].replace(
+                        "Z",
+                        "+00:00"
+                    )
+                )
+
+                now = datetime.now(timezone.utc)
+
+                age = now - created
+
+                result["age_days"] = max(
+                    age.days,
+                    0
+                )
+
+            except Exception:
+                result["age_days"] = None
+
+        # ----------------------------------------------------
+        # Extract registrar information
+        # ----------------------------------------------------
+
+        entities = data.get("entities", [])
+
+        for entity in entities:
+
+            roles = entity.get("roles", [])
+
+            if "registrar" not in roles:
+                continue
+
+            vcard_array = entity.get(
+                "vcardArray",
+                []
+            )
+
+            if (
+                len(vcard_array) >= 2
+                and isinstance(vcard_array[1], list)
+            ):
+
+                for field in vcard_array[1]:
+
+                    if (
+                        isinstance(field, list)
+                        and len(field) >= 4
+                    ):
+
+                        if field[0] == "fn":
+                            result["registrar"] = field[3]
+                            break
+
+            if result["registrar"]:
+                break
+
+        return result
+
+    except requests.exceptions.Timeout:
+
+        result["error"] = (
+            "RDAP request timed out."
+        )
+
+        return result
+
+    except requests.exceptions.RequestException:
+
+        result["error"] = (
+            "RDAP network request failed."
+        )
+
+        return result
+
+    except Exception:
+
+        result["error"] = (
+            "RDAP analysis failed."
+        )
+
+        return result
+
 def detect_threat(url: str):
     """
     Analyze a URL using multiple static threat indicators.
@@ -659,6 +961,270 @@ def detect_threat(url: str):
 
     indicators = []
     score = 0
+         # --------------------------------------------------------
+    # RDAP domain registration intelligence
+    # --------------------------------------------------------
+
+    rdap_result = _analyze_rdap(hostname)
+
+    result["rdap_intelligence"] = rdap_result
+
+    if rdap_result["available"] and rdap_result["registered"]:
+
+        age_days = rdap_result.get("age_days")
+
+        if age_days is not None:
+
+            if age_days <= 7:
+                score += 20
+
+                indicators.append(
+                    f"Domain was registered only {age_days} days ago."
+                )
+
+            elif age_days <= 30:
+                score += 12
+
+                indicators.append(
+                    f"Domain is very recently registered ({age_days} days old)."
+                )
+
+            elif age_days <= 90:
+                score += 6
+
+                indicators.append(
+                    f"Domain is relatively new ({age_days} days old)."
+                )
+
+    # --------------------------------------------------------
+    # DNS intelligence
+    # --------------------------------------------------------
+
+    dns_result = _analyze_dns(hostname)
+
+    result["dns_intelligence"] = dns_result
+
+    if dns_result["resolved"]:
+
+        indicators.append(
+            f"Hostname resolved to {dns_result['count']} IP address(es)."
+        )
+
+        if dns_result["private_addresses"]:
+
+            indicators.append(
+                "Hostname resolves to a private, loopback, or link-local IP address."
+            )
+
+    else:
+
+        indicators.append(
+            "Hostname could not be resolved through DNS."
+        )
+
+    # --------------------------------------------------------
+    # DNS-based risk signals
+    # --------------------------------------------------------
+
+    if dns_result["resolved"]:
+
+        if (
+            dns_result["private_addresses"]
+            and not dns_result["public_addresses"]
+        ):
+
+            score += 15
+
+            indicators.append(
+                "Hostname resolves only to private, loopback, or link-local addresses."
+            )
+
+        if dns_result["count"] >= 20:
+
+            score += 3
+
+            indicators.append(
+                "Hostname resolves to an unusually large number of IP addresses."
+            )
+
+    else:
+
+        if score >= 25:
+
+            score += 5
+
+            indicators.append(
+                "Suspicious URL could not be resolved through DNS."
+            )
+
+    # --------------------------------------------------------
+    # 1. Protocol analysis
+    # --------------------------------------------------------
+
+    if protocol == "http":
+
+        score += 12
+
+        indicators.append(
+            "HTTP is used instead of HTTPS."
+        )
+
+    elif protocol not in {"http", "https"}:
+
+        score += 35
+
+        indicators.append(
+            f"Unusual URL scheme detected: {protocol}."
+        )
+
+    # --------------------------------------------------------
+    # 2. Raw IP address
+    # --------------------------------------------------------
+
+    if _is_ip_address(hostname):
+
+        score += 28
+
+        indicators.append(
+            "The hostname is a raw IP address instead of a normal domain."
+        )
+
+        if _is_private_ip(hostname):
+
+            indicators.append(
+                "The IP address belongs to a private, loopback, or link-local range."
+            )
+
+    # --------------------------------------------------------
+    # 3. Obfuscated IP
+    # --------------------------------------------------------
+
+    ip_obfuscation = _detect_ip_obfuscation(
+        hostname
+    )
+
+    if ip_obfuscation:
+
+        score += min(
+            len(ip_obfuscation) * 15,
+            30,
+        )
+
+        indicators.extend(
+            ip_obfuscation
+        )
+
+    # --------------------------------------------------------
+    # 4. @ manipulation
+    # --------------------------------------------------------
+
+    if "@" in normalized_url:
+
+        score += 35
+
+        indicators.append(
+            "The URL contains '@', which can hide the actual destination hostname."
+        )
+
+    # --------------------------------------------------------
+    # 5. Punycode / Unicode
+    # --------------------------------------------------------
+
+    homograph_findings = _detect_homograph(
+        hostname
+    )
+
+    if homograph_findings:
+
+        score += min(
+            len(homograph_findings) * 20,
+            35,
+        )
+
+        indicators.extend(
+            homograph_findings
+        )
+
+    # --------------------------------------------------------
+    # 6. URL length
+    # --------------------------------------------------------
+
+    url_length = len(normalized_url)
+
+    if url_length > 300:
+
+        score += 22
+
+        indicators.append(
+            f"Extremely long URL detected ({url_length} characters)."
+        )
+
+    elif url_length > 200:
+
+        score += 15
+
+        indicators.append(
+            f"Very long URL detected ({url_length} characters)."
+        )
+
+    elif url_length > 150:
+
+        score += 8
+
+        indicators.append(
+            f"Long URL detected ({url_length} characters)."
+        )
+
+    # --------------------------------------------------------
+    # 7. Hostname complexity
+    # --------------------------------------------------------
+
+    hostname_parts = _extract_hostname_parts(
+        hostname
+    )
+
+    subdomain_count = max(
+        len(hostname_parts) - 2,
+        0,
+    )
+
+    if subdomain_count >= 5:
+
+        score += 25
+
+        indicators.append(
+            f"Excessive subdomain depth detected ({subdomain_count} subdomains)."
+        )
+
+    elif subdomain_count >= 3:
+
+        score += 12
+
+        indicators.append(
+            f"Multiple subdomains detected ({subdomain_count})."
+        )
+
+    # --------------------------------------------------------
+    # 8. Hyphen analysis
+    # --------------------------------------------------------
+
+    hyphen_count = hostname.count("-")
+
+    if hyphen_count >= 5:
+
+        score += 25
+
+        indicators.append(
+            "Hostname contains a very high number of hyphens."
+        )
+
+    elif hyphen_count >= 3:
+
+        score += 15
+
+        indicators.append(
+            "Hostname contains multiple hyphens."
+        )
 
     # --------------------------------------------------------
     # 1. Protocol analysis
@@ -1707,7 +2273,7 @@ def detect_threat(url: str):
             "No significant suspicious structural indicators detected."
         )
 
-    # --------------------------------------------------------
+       # --------------------------------------------------------
     # Final result
     # --------------------------------------------------------
 
@@ -1722,9 +2288,142 @@ def detect_threat(url: str):
     )
 
     return result
+def check_malpedia_api():
+    """
+    Validate the Malpedia API token configured in the environment.
+    """
+
+    api_key = os.getenv("MALPEDIA_API_KEY")
+
+    if not api_key:
+        return {
+            "available": False,
+            "valid": False,
+            "message": "Malpedia API key is not configured."
+        }
+
+    try:
+        response = requests.get(
+            "https://malpedia.caad.fkie.fraunhofer.de/api/check/apikey",
+            headers={
+                "Authorization": f"apitoken {api_key}"
+            },
+            timeout=8
+        )
+
+        if response.status_code == 200:
+            return {
+                "available": True,
+                "valid": True,
+                "message": "Malpedia API authentication successful."
+            }
+
+        return {
+            "available": True,
+            "valid": False,
+            "message": "Malpedia API authentication failed."
+        }
+
+    except Exception:
+        return {
+            "available": False,
+            "valid": False,
+            "message": "Malpedia API is currently unavailable."
+        }
+
+
 def scan_url(url: str):
     """
-    Compatibility wrapper for the FastAPI /scan-url endpoint.
-    Uses the advanced detect_threat() engine.
+    Advanced URL scanner.
+
+    Runs local static analysis first, then checks URLhaus
+    threat intelligence. The submitted URL is sent to URLhaus
+    only for reputation lookup.
     """
-    return detect_threat(url)
+
+    result = detect_threat(url)
+
+    if not result.get("valid"):
+        return result
+
+    intelligence = check_urlhaus(url)
+
+    result["threat_intelligence"] = {
+        "source": "URLhaus",
+        "available": intelligence.get("available", False),
+        "found": intelligence.get("found", False),
+        "message": intelligence.get("message", "")
+    }
+
+    if intelligence.get("found"):
+
+        result["risk_score"] = 100
+        result["risk_level"] = "Critical"
+        result["confidence"] = "Very High"
+
+        indicator = (
+            "URL matched URLhaus malware URL intelligence."
+        )
+
+        if indicator not in result["indicators"]:
+            result["indicators"].append(indicator)
+
+        result["recommendation"] = (
+            "Do not open this URL. Threat intelligence identified "
+            "the URL as associated with malicious activity. Do not "
+            "enter credentials, payment information, OTPs, or "
+            "personal data."
+        )
+
+    elif not intelligence.get("available"):
+
+        indicator = (
+            "External URLhaus threat-intelligence check was unavailable; "
+            "static analysis was used."
+        )
+
+        if indicator not in result["indicators"]:
+            result["indicators"].append(indicator)
+
+    return result
+
+def check_urlhaus(url: str):
+    """
+    Check a URL against URLhaus malware URL intelligence.
+    """
+
+    try:
+        response = requests.post(
+            "https://urlhaus-api.abuse.ch/v1/url/",
+            data={"url": url},
+            timeout=8
+        )
+
+        if response.status_code != 200:
+            return {
+                "found": False,
+                "available": False,
+                "message": "URLhaus service returned an unexpected response."
+            }
+
+        data = response.json()
+
+        if data.get("query_status") == "ok":
+            return {
+                "found": True,
+                "available": True,
+                "message": "URL found in URLhaus malware intelligence."
+            }
+
+        return {
+            "found": False,
+            "available": True,
+            "message": "URL was not found in URLhaus malware intelligence."
+        }
+
+    except Exception:
+        return {
+            "found": False,
+            "available": False,
+            "message": "URLhaus intelligence check unavailable."
+        }
