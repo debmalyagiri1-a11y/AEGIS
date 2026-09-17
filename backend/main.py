@@ -279,13 +279,9 @@ def health():
 
 @app.post("/register")
 def register(
-
     data: UserCreate,
-
     request: Request,
-
     db: Session = Depends(get_db)
-
 ):
 
     try:
@@ -298,22 +294,24 @@ def register(
         if not data.name.strip():
 
             raise HTTPException(
-
                 status_code=400,
-
                 detail="Name cannot be empty"
-
             )
 
 
         if len(data.password) < 6:
 
             raise HTTPException(
-
                 status_code=400,
-
                 detail="Password must contain at least 6 characters"
+            )
 
+
+        if len(data.password.encode("utf-8")) > 72:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Password must be 6-72 bytes long"
             )
 
 
@@ -327,11 +325,8 @@ def register(
         if existing_user:
 
             raise HTTPException(
-
                 status_code=400,
-
                 detail="Email already registered"
-
             )
 
 
@@ -341,15 +336,10 @@ def register(
 
 
         user = User(
-
             name=data.name.strip(),
-
             email=email,
-
             password=hashed_password,
-
             role="student"
-
         )
 
 
@@ -361,15 +351,10 @@ def register(
 
 
         audit = AuditLog(
-
             user_id=user.id,
-
             action="USER_REGISTERED",
-
             details=f"New account registered: {email}",
-
             ip_address=client_ip(request)
-
         )
 
 
@@ -379,11 +364,8 @@ def register(
 
 
         return {
-
             "message": "Registration successful",
-
             **user_dict(user)
-
         }
 
 
@@ -402,13 +384,11 @@ def register(
         )
 
         raise HTTPException(
-
             status_code=500,
-
-            detail=
+            detail=(
                 f"Registration failed: "
                 f"{type(error).__name__}: {error}"
-
+            )
         )
     # --------------------------------------------------------
     # LOGIN EVENT
