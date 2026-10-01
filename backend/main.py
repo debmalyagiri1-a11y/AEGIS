@@ -88,23 +88,17 @@ Base.metadata.create_all(
 # ============================================================
 
 pwd_context = CryptContext(
-    schemes=["bcrypt"],
+    schemes=["pbkdf2_sha256", "bcrypt"],
     deprecated="auto"
 )
 
 
 def hash_password(password: str):
-    print("AEGIS DEBUG - password byte length:", len(password.encode("utf-8")))
+    # PBKDF2-SHA256 is used for new accounts.
+    # bcrypt remains enabled so existing bcrypt password hashes
+    # continue to work during migration.
     return pwd_context.hash(password)
-    password_bytes = password.encode("utf-8")
 
-    if len(password_bytes) > 72:
-        password = password_bytes[:72].decode(
-            "utf-8",
-            errors="ignore"
-        )
-
-    return pwd_context.hash(password)
 
 def verify_password(
     password: str,
@@ -112,24 +106,16 @@ def verify_password(
 ):
 
     if not stored_password:
-
         return False
 
     try:
+        return pwd_context.verify(
+            password,
+            stored_password
+        )
 
-        if stored_password.startswith(
-            ("$2a$", "$2b$", "$2y$")
-        ):
-
-            return pwd_context.verify(
-                password,
-                stored_password
-            )
-
-        return password == stored_password
-
-    except Exception:
-
+    except Exception as error:
+        print("AEGIS LOGIN PASSWORD VERIFY ERROR:", repr(error))
         return False
 
 
