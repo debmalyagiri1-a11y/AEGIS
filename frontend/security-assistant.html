@@ -1,1310 +1,1655 @@
-<!DOCTYPE html>
 
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
 
-```
-<title>AEGIS Cybersecurity Assistant</title>
+  <title>AEGIS — Security Assistant</title>
 
-<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
 
-<style>
-    .assistant-container {
-        max-width: 900px;
-        margin: 30px auto;
+  <style>
+    /* ================================
+       AEGIS SECURITY ASSISTANT
+       Advanced UI
+       ================================ */
+
+    .assistant-layout {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+    }
+
+    .assistant-card {
+      padding: 0;
+      overflow: hidden;
     }
 
     .assistant-header {
-        text-align: center;
-        margin-bottom: 25px;
+      padding: 20px 22px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .assistant-icon {
-        width: 75px;
-        height: 75px;
-        margin: 0 auto 15px;
-
-        border-radius: 50%;
-
-        background: #0284c7;
-        color: white;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        font-size: 34px;
+    .assistant-title {
+      display: flex;
+      align-items: center;
+      gap: 13px;
     }
 
-    .chat-card {
-        padding: 20px;
+    .ai-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(50,220,150,.12);
+      border: 1px solid rgba(50,220,150,.25);
+      font-size: 21px;
     }
 
-    .chat-box {
-        min-height: 350px;
-        max-height: 500px;
-
-        overflow-y: auto;
-
-        padding: 20px;
-
-        background: #f8fafc;
-
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
+    .assistant-title h3 {
+      margin: 0;
+      font-size: 17px;
     }
 
-    .message {
-        max-width: 80%;
-
-        padding: 13px 16px;
-
-        margin-bottom: 12px;
-
-        border-radius: 12px;
-
-        line-height: 1.6;
+    .assistant-title p {
+      margin: 3px 0 0;
+      font-size: 12px;
+      color: var(--muted);
     }
 
-    .bot-message {
-        margin-right: auto;
-
-        background: #eff6ff;
-
-        color: #111827;
+    .online-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      color: var(--green);
     }
 
-    .user-message {
-        margin-left: auto;
-
-        background: #0284c7;
-
-        color: white;
+    .online-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
     }
 
-    .quick-title {
-        margin-top: 20px;
-        margin-bottom: 10px;
-
-        font-weight: 600;
+    .chatbox {
+      height: 510px;
+      overflow-y: auto;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(50,220,150,.035), transparent 30%),
+        radial-gradient(circle at 80% 80%, rgba(50,150,255,.035), transparent 30%);
     }
 
-    .quick-options {
-        display: flex;
-        flex-wrap: wrap;
-
-        gap: 10px;
-
-        margin-bottom: 20px;
+    .msg-row {
+      display: flex;
+      margin-bottom: 18px;
+      gap: 10px;
     }
 
-    .quick-options button {
-        padding: 10px 14px;
-
-        border: 1px solid #bae6fd;
-        border-radius: 8px;
-
-        background: white;
-        color: #0369a1;
-
-        cursor: pointer;
-
-        font-size: 14px;
+    .msg-row.user-row {
+      justify-content: flex-end;
     }
 
-    .quick-options button:hover {
-        background: #eff6ff;
+    .chat-avatar {
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      background: rgba(50,220,150,.10);
+      border: 1px solid rgba(50,220,150,.20);
     }
 
-    .input-area {
-        display: flex;
-        gap: 10px;
+    .user-avatar {
+      background: rgba(100,130,255,.10);
+      border-color: rgba(100,130,255,.20);
     }
 
-    .input-area input {
-        flex: 1;
+    .message-content {
+      max-width: 78%;
     }
 
-    .security-note {
-        margin-top: 20px;
-
-        padding: 16px;
-
-        border-left: 4px solid #0284c7;
-
-        background: #f8fafc;
-
-        border-radius: 8px;
+    .msg {
+      padding: 13px 16px;
+      border-radius: 13px;
+      line-height: 1.55;
+      font-size: 13px;
     }
+
+    .msg.bot {
+      background: rgba(255,255,255,.035);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+
+    .msg.user {
+      background: rgba(50,220,150,.10);
+      border: 1px solid rgba(50,220,150,.18);
+    }
+
+    .message-time {
+      margin-top: 5px;
+      font-size: 9px;
+      color: var(--muted);
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 22px 16px;
+    }
+
+    .quick-btn {
+      border: 1px solid rgba(255,255,255,.09);
+      background: rgba(255,255,255,.025);
+      color: inherit;
+      border-radius: 9px;
+      padding: 8px 11px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: .2s;
+    }
+
+    .quick-btn:hover {
+      border-color: rgba(50,220,150,.35);
+      background: rgba(50,220,150,.07);
+      transform: translateY(-1px);
+    }
+
+    .chat-input-area {
+      padding: 15px 20px 18px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .send-btn {
+      min-width: 78px;
+    }
+
+    .input-hint {
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .typing {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 4px 2px;
+    }
+
+    .typing span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: .5;
+      animation: typing 1s infinite;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: .15s;
+    }
+
+    .typing span:nth-child(3) {
+      animation-delay: .3s;
+    }
+
+    @keyframes typing {
+      0%,100% {
+        transform: translateY(0);
+        opacity: .3;
+      }
+
+      50% {
+        transform: translateY(-4px);
+        opacity: 1;
+      }
+    }
+
+    /* ================================
+       SIDE SECURITY PANEL
+       ================================ */
+
+    .security-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .security-card {
+      padding: 18px;
+    }
+
+    .security-card h3 {
+      margin: 0 0 13px;
+      font-size: 14px;
+    }
+
+    .security-score {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .score-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 5px solid rgba(50,220,150,.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .score-circle strong {
+      font-size: 19px;
+    }
+
+    .score-circle span {
+      font-size: 8px;
+      color: var(--muted);
+    }
+
+    .score-info strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .score-info span {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .feature {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .feature-icon {
+      width: 25px;
+      height: 25px;
+      border-radius: 7px;
+      background: rgba(255,255,255,.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .clear-btn {
+      width: 100%;
+      margin-top: 3px;
+    }
+
+    /* ================================
+       URL RESULT
+       ================================ */
 
     .scan-result {
-        margin-top: 10px;
+      margin-top: 10px;
+      padding: 13px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.08);
+    }
 
+    .risk-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .risk-score {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .recommendation {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ================================
+       MOBILE
+       ================================ */
+
+    @media (max-width: 1000px) {
+      .assistant-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .security-panel {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 650px) {
+      .security-panel {
+        display: flex;
+      }
+
+      .chatbox {
+        height: 450px;
+        padding: 15px;
+      }
+
+      .message-content {
+        max-width: 88%;
+      }
+
+      .assistant-header {
         padding: 16px;
+      }
 
-        background: white;
+      .quick-actions {
+        padding-left: 15px;
+        padding-right: 15px;
+      }
 
-        border: 1px solid #e2e8f0;
-
-        border-radius: 10px;
+      .chat-input-area {
+        padding: 12px;
+      }
     }
-
-    .risk-critical {
-        border-left: 5px solid #dc2626;
-    }
-
-    .risk-high {
-        border-left: 5px solid #ea580c;
-    }
-
-    .risk-medium {
-        border-left: 5px solid #d97706;
-    }
-
-    .risk-low {
-        border-left: 5px solid #16a34a;
-    }
-
-    .loading {
-        font-style: italic;
-        color: #64748b;
-    }
-
-    @media (max-width: 600px) {
-
-        .input-area {
-            flex-direction: column;
-        }
-
-        .message {
-            max-width: 90%;
-        }
-
-    }
-</style>
-```
-
+  </style>
 </head>
+
 
 <body>
 
-```
-<!-- NAVIGATION -->
+  <!-- ================================
+       TOP BAR
+       ================================ -->
 
-<nav class="navbar">
+  <header class="topbar">
 
-    <div class="nav-brand">
-        <strong>AEGIS</strong>
-    </div>
+    <div class="container topbar-inner">
 
-    <div class="nav-links">
+      <button class="icon-btn mobile-menu" aria-label="Menu">
+        ☰
+      </button>
 
-        <a href="dashboard.html">
-            Dashboard
-        </a>
+      <a class="brand" href="dashboard.html">
 
-        <a href="url-scanner.html">
-            URL Scanner
-        </a>
+        <span class="brand-mark">A</span>
 
-        <a href="report-threat.html">
-            Report Threat
-        </a>
+        <span class="brand-copy">
+          AEGIS
+          <small>DETECT • ANALYZE • PROTECT</small>
+        </span>
 
-        <a href="alerts.html">
-            Alerts
-        </a>
-
-        <a href="security-assistant.html">
-            Assistant
-        </a>
-
-        <a href="#" onclick="logout()">
-            Logout
-        </a>
-
-    </div>
-
-</nav>
+      </a>
 
 
-<!-- MAIN CONTENT -->
+      <div class="top-search">
 
-<main class="container">
+        <span>⌕</span>
 
-    <div class="assistant-container">
+        <input
+          id="globalSearch"
+          placeholder="Search threats, URLs, emails, reports…">
+
+      </div>
 
 
-        <!-- HEADER -->
+      <div class="top-actions">
 
-        <div class="assistant-header">
+        <button
+          class="icon-btn"
+          title="Settings"
+          onclick="location.href='settings.html'">
+          ⚙
+        </button>
 
-            <div class="assistant-icon">
-                🛡️
+        <button
+          class="icon-btn"
+          title="Alerts"
+          onclick="location.href='alerts.html'">
+          ♧
+        </button>
+
+
+        <div class="profile">
+
+          <div class="avatar" data-avatar>
+            U
+          </div>
+
+          <div class="profile-info">
+
+            <div class="profile-name" data-name>
+              User
             </div>
 
-            <h1>
-                AEGIS Cybersecurity Assistant
-            </h1>
+            <div class="profile-role" data-role>
+              User
+            </div>
 
-            <p>
-                Your smart campus cybersecurity guidance assistant
-            </p>
+          </div>
 
         </div>
 
+      </div>
 
-        <!-- CHAT CARD -->
+    </div>
 
-        <div class="card chat-card">
+  </header>
 
 
-            <!-- CHAT -->
+  <!-- ================================
+       PAGE SHELL
+       ================================ -->
 
-            <div
-                id="chatBox"
-                class="chat-box"
-            >
+  <div class="page-shell">
 
-                <div class="message bot-message">
 
-                    👋 <strong>Hello!</strong>
+    <!-- SIDEBAR -->
 
-                    <br><br>
+    <aside class="sidebar">
 
-                    I am the
-                    <strong>AEGIS Cybersecurity Assistant</strong>.
+      <div class="side-brand">
 
-                    <br><br>
+        <a class="brand" href="dashboard.html">
 
-                    I can help you with:
+          <span class="brand-mark">
+            A
+          </span>
 
-                    <ul>
+          <span class="brand-copy">
+            AEGIS
+            <small>DETECT • ANALYZE • PROTECT</small>
+          </span>
 
-                        <li>
-                            🎣 Phishing
-                        </li>
+        </a>
 
-                        <li>
-                            🔗 Suspicious URLs
-                        </li>
+      </div>
 
-                        <li>
-                            🔐 Account security
-                        </li>
 
-                        <li>
-                            🔑 Multi-Factor Authentication
-                        </li>
+      <nav class="side-nav">
 
-                        <li>
-                            🚨 Suspicious login activity
-                        </li>
+        <a data-page="dashboard.html" href="dashboard.html">
+          <span class="side-icon">⌂</span>
+          Dashboard
+        </a>
 
-                    </ul>
+        <a data-page="url-scanner.html" href="url-scanner.html">
+          <span class="side-icon">⌁</span>
+          URL Scanner
+        </a>
 
-                    You can also paste a complete URL
-                    and I will analyze it using the
-                    AEGIS URL security system.
+        <a data-page="email-analyzer.html" href="email-analyzer.html">
+          <span class="side-icon">✉</span>
+          Email Analyzer
+        </a>
+
+        <a data-page="report-threat.html" href="report-threat.html">
+          <span class="side-icon">▣</span>
+          Incident Reports
+        </a>
+
+        <a data-page="alerts.html" href="alerts.html">
+          <span class="side-icon">♧</span>
+          Alerts
+        </a>
+
+        <a data-page="security-monitor.html" href="security-monitor.html">
+          <span class="side-icon">⌁</span>
+          Security Monitoring
+        </a>
+
+        <a
+          data-page="security-assistant.html"
+          href="security-assistant.html">
+          <span class="side-icon">✦</span>
+          Security Assistant
+        </a>
+
+        <a data-page="settings.html" href="settings.html">
+          <span class="side-icon">⚙</span>
+          Settings
+        </a>
+
+      </nav>
+
+
+      <div class="side-bottom">
+
+        <div class="side-status">
+
+          <span class="dot"></span>
+
+          <strong style="font-size:11px">
+            System Online
+          </strong>
+
+          <div
+            class="small muted"
+            style="margin-top:5px">
+            AEGIS services operational
+          </div>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+
+    <!-- ================================
+         MAIN CONTENT
+         ================================ -->
+
+    <main class="main">
+
+
+      <div class="page-head">
+
+        <div>
+
+          <div class="eyebrow">
+            AI security layer
+          </div>
+
+          <h1>
+            Security Assistant
+          </h1>
+
+          <p>
+            Your intelligent cybersecurity companion for threat analysis,
+            phishing detection, account protection and security guidance.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="assistant-layout">
+
+
+        <!-- ================================
+             CHAT
+             ================================ -->
+
+        <section class="card assistant-card">
+
+
+          <div class="assistant-header">
+
+            <div class="assistant-title">
+
+              <div class="ai-icon">
+                ✦
+              </div>
+
+              <div>
+
+                <h3>
+                  AEGIS Security Copilot
+                </h3>
+
+                <p>
+                  AI-assisted security guidance
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="online-status">
+
+              <span class="online-dot"></span>
+
+              Online
+
+            </div>
+
+          </div>
+
+
+          <div
+            id="chat"
+            class="chatbox">
+
+
+            <!-- INITIAL MESSAGE -->
+
+            <div class="msg-row">
+
+              <div class="chat-avatar">
+                ✦
+              </div>
+
+              <div class="message-content">
+
+                <div class="msg bot">
+
+                  <strong>Hello! I'm AEGIS Security Copilot.</strong>
+
+                  <br><br>
+
+                  I can help you understand suspicious activity,
+                  phishing attempts, suspicious URLs, MFA,
+                  passwords and account security.
+
+                  <br><br>
+
+                  You can also paste a complete URL and I will send it
+                  to the AEGIS threat-analysis engine.
 
                 </div>
 
-            </div>
-
-
-            <!-- QUICK QUESTIONS -->
-
-            <div class="quick-title">
-                Quick Questions
-            </div>
-
-
-            <div class="quick-options">
-
-                <button
-                    onclick="askQuestion('What is phishing?')"
-                >
-                    🎣 What is phishing?
-                </button>
-
-
-                <button
-                    onclick="askQuestion('How can I identify a suspicious link?')"
-                >
-                    🔗 Suspicious Link
-                </button>
-
-
-                <button
-                    onclick="askQuestion('What should I do if my account is compromised?')"
-                >
-                    🔐 Account Compromised
-                </button>
-
-
-                <button
-                    onclick="askQuestion('What is MFA?')"
-                >
-                    🔑 MFA
-                </button>
-
-
-                <button
-                    onclick="askQuestion('What should I do about a suspicious login?')"
-                >
-                    🚨 Suspicious Login
-                </button>
-
-            </div>
-
-
-            <!-- INPUT -->
-
-            <div class="input-area">
-
-                <input
-                    type="text"
-                    id="userInput"
-                    class="form-control"
-                    placeholder="Ask a cybersecurity question or paste a URL..."
-                    autocomplete="off"
-                >
-
-
-                <button
-                    class="btn btn-primary"
-                    onclick="sendMessage()"
-                >
-                    Send
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <!-- SECURITY NOTE -->
-
-        <div class="security-note">
-
-            <strong>
-                ⚠️ Security Reminder
-            </strong>
-
-            <br><br>
-
-            Never share your password, OTP,
-            recovery code, or other confidential
-            information with anyone.
-
-            <br><br>
-
-            If you believe your account has been
-            compromised, report the incident through
-            the AEGIS Threat Reporting system.
-
-        </div>
-
-    </div>
-
-</main>
-
-
-<!-- FOOTER -->
-
-<footer class="footer">
-
-    <p>
-        AEGIS — AI-Powered Smart Campus Cybersecurity System
-    </p>
-
-</footer>
-
-
-<!-- JAVASCRIPT -->
-
-<script>
-
-
-    /* =========================================
-       AEGIS BACKEND
-    ========================================= */
-
-    const API_URL =
-        "https://aegis-4lcw.onrender.com";
-
-
-    /* =========================================
-       CHAT MESSAGE FUNCTION
-    ========================================= */
-
-    function addMessage(text, type) {
-
-        const chatBox =
-            document.getElementById("chatBox");
-
-
-        const message =
-            document.createElement("div");
-
-
-        message.className =
-            "message " + type;
-
-
-        message.innerHTML =
-            text;
-
-
-        chatBox.appendChild(message);
-
-
-        chatBox.scrollTop =
-            chatBox.scrollHeight;
-
-    }
-
-
-    /* =========================================
-       ESCAPE HTML
-    ========================================= */
-
-    function escapeHTML(value) {
-
-        return String(value)
-
-            .replace(/&/g, "&amp;")
-
-            .replace(/</g, "&lt;")
-
-            .replace(/>/g, "&gt;")
-
-            .replace(/"/g, "&quot;")
-
-            .replace(/'/g, "&#039;");
-
-    }
-
-
-    /* =========================================
-       CHECK WHETHER INPUT IS URL
-    ========================================= */
-
-    function isURL(text) {
-
-        const value =
-            text.trim().toLowerCase();
-
-
-        return (
-
-            value.startsWith("http://") ||
-
-            value.startsWith("https://") ||
-
-            value.startsWith("www.")
-
-        );
-
-    }
-
-
-    /* =========================================
-       GET USER ID
-    ========================================= */
-
-    function getUserId() {
-
-        const userData =
-            localStorage.getItem("aegisUser");
-
-
-        if (!userData) {
-
-            return null;
-
-        }
-
-
-        try {
-
-            const user =
-                JSON.parse(userData);
-
-
-            return (
-
-                user.id ??
-
-                user.user_id ??
-
-                user.userId
-
-            );
-
-        }
-
-        catch (error) {
-
-            console.error(
-                "Invalid user data",
-                error
-            );
-
-            return null;
-
-        }
-
-    }
-
-
-    /* =========================================
-       URL ANALYSIS
-    ========================================= */
-
-    async function analyzeURL(url) {
-
-
-        const userId =
-            getUserId();
-
-
-        if (!userId) {
-
-            addMessage(
-
-                "⚠️ Please log in again before scanning a URL.",
-
-                "bot-message"
-
-            );
-
-            return;
-
-        }
-
-
-        addMessage(
-
-            "<span class='loading'>🔍 AEGIS is analyzing the URL...</span>",
-
-            "bot-message"
-
-        );
-
-
-        try {
-
-
-            const response =
-                await fetch(
-
-                    `${API_URL}/scan-url`,
-
-                    {
-
-                        method: "POST",
-
-                        headers: {
-
-                            "Content-Type":
-                                "application/json"
-
-                        },
-
-                        body: JSON.stringify({
-
-                            url: url,
-
-                            user_id:
-                                Number(userId)
-
-                        })
-
-                    }
-
-                );
-
-
-            const data =
-                await response.json();
-
-
-            if (!response.ok) {
-
-                addMessage(
-
-                    "❌ URL analysis failed. Please check the URL and try again.",
-
-                    "bot-message"
-
-                );
-
-                return;
-
-            }
-
-
-            let indicatorsHTML =
-                "";
-
-
-            if (
-                Array.isArray(data.indicators)
-            ) {
-
-
-                data.indicators.forEach(
-                    function(indicator) {
-
-                        indicatorsHTML +=
-                            `<li>${escapeHTML(indicator)}</li>`;
-
-                    }
-                );
-
-            }
-
-
-            if (
-                indicatorsHTML === ""
-            ) {
-
-                indicatorsHTML =
-                    "<li>No major indicators returned.</li>";
-
-            }
-
-
-            const riskLevel =
-                data.risk_level || "Unknown";
-
-
-            const riskClass =
-                "risk-" +
-                String(riskLevel)
-                    .toLowerCase();
-
-
-            const resultHTML = `
-
-                <div class="scan-result ${riskClass}">
-
-                    <strong>
-                        🛡️ AEGIS URL Analysis
-                    </strong>
-
-                    <br><br>
-
-                    <strong>
-                        URL:
-                    </strong>
-
-                    ${escapeHTML(
-                        data.url || url
-                    )}
-
-                    <br><br>
-
-                    <strong>
-                        Domain:
-                    </strong>
-
-                    ${escapeHTML(
-                        data.domain || "Unknown"
-                    )}
-
-                    <br><br>
-
-                    <strong>
-                        Protocol:
-                    </strong>
-
-                    ${escapeHTML(
-                        data.protocol || "Unknown"
-                    )}
-
-                    <br><br>
-
-                    <strong>
-                        Risk Level:
-                    </strong>
-
-                    ${escapeHTML(
-                        riskLevel
-                    )}
-
-                    <br><br>
-
-                    <strong>
-                        Risk Score:
-                    </strong>
-
-                    ${escapeHTML(
-                        String(
-                            data.risk_score ??
-                            "N/A"
-                        )
-                    )}
-
-                    /100
-
-                    <br><br>
-
-                    <strong>
-                        Security Indicators:
-                    </strong>
-
-                    <ul>
-                        ${indicatorsHTML}
-                    </ul>
-
-                    <strong>
-                        Recommendation:
-                    </strong>
-
-                    <br><br>
-
-                    ${escapeHTML(
-                        data.recommendation ||
-                        "Use caution with this URL."
-                    )}
-
+                <div class="message-time">
+                  AEGIS Assistant
                 </div>
 
-            `;
+              </div>
+
+            </div>
 
 
-            addMessage(
-
-                resultHTML,
-
-                "bot-message"
-
-            );
+          </div>
 
 
-        }
+          <!-- QUICK QUESTIONS -->
 
-        catch (error) {
+          <div class="quick-actions">
+
+            <button
+              class="quick-btn"
+              data-question="How can I identify a phishing attack?">
+              🎣 Phishing
+            </button>
+
+            <button
+              class="quick-btn"
+              data-question="How can I secure my account?">
+              🔐 Account security
+            </button>
+
+            <button
+              class="quick-btn"
+              data-question="Why is MFA important?">
+              🛡️ MFA
+            </button>
+
+            <button
+              class="quick-btn"
+              data-question="How do I create a strong password?">
+              🔑 Passwords
+            </button>
+
+            <button
+              class="quick-btn"
+              data-question="What should I do if I clicked a suspicious link?">
+              ⚠️ Suspicious link
+            </button>
+
+          </div>
 
 
-            console.error(
-                "URL analysis error:",
-                error
-            );
+          <!-- INPUT -->
+
+          <div class="chat-input-area">
+
+            <form
+              id="chatForm"
+              class="chat-input">
+
+              <input
+                id="question"
+                type="text"
+                autocomplete="off"
+                placeholder="Ask a security question or paste a URL…">
+
+              <button
+                class="btn send-btn"
+                type="submit">
+                Send
+              </button>
+
+            </form>
+
+            <div class="input-hint">
+              Press Enter to send • URLs beginning with http:// or https://
+              are automatically analyzed.
+            </div>
+
+          </div>
 
 
-            addMessage(
+        </section>
 
-                "❌ Cannot connect to the AEGIS backend. Please make sure the FastAPI server is running.",
 
-                "bot-message"
+        <!-- ================================
+             SECURITY PANEL
+             ================================ -->
 
-            );
+        <aside class="security-panel">
 
-        }
+
+          <!-- SECURITY SCORE -->
+
+          <section class="card security-card">
+
+            <h3>
+              Security Overview
+            </h3>
+
+            <div class="security-score">
+
+              <div class="score-circle">
+
+                <strong>85</strong>
+
+                <span>/ 100</span>
+
+              </div>
+
+
+              <div class="score-info">
+
+                <strong>
+                  Good protection
+                </strong>
+
+                <span>
+                  Continue following recommended
+                  security practices.
+                </span>
+
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <!-- CAPABILITIES -->
+
+          <section class="card security-card">
+
+            <h3>
+              Assistant capabilities
+            </h3>
+
+
+            <div class="feature-list">
+
+              <div class="feature">
+
+                <div class="feature-icon">
+                  🔗
+                </div>
+
+                <span>
+                  URL threat analysis
+                </span>
+
+              </div>
+
+
+              <div class="feature">
+
+                <div class="feature-icon">
+                  🎣
+                </div>
+
+                <span>
+                  Phishing guidance
+                </span>
+
+              </div>
+
+
+              <div class="feature">
+
+                <div class="feature-icon">
+                  🔐
+                </div>
+
+                <span>
+                  Account protection
+                </span>
+
+              </div>
+
+
+              <div class="feature">
+
+                <div class="feature-icon">
+                  🛡️
+                </div>
+
+                <span>
+                  MFA & password advice
+                </span>
+
+              </div>
+
+
+              <div class="feature">
+
+                <div class="feature-icon">
+                  🚨
+                </div>
+
+                <span>
+                  Incident guidance
+                </span>
+
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <!-- CLEAR CHAT -->
+
+          <section class="card security-card">
+
+            <h3>
+              Conversation
+            </h3>
+
+            <button
+              id="clearChat"
+              class="btn clear-btn"
+              type="button">
+              Clear conversation
+            </button>
+
+          </section>
+
+
+        </aside>
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+  <!-- ================================
+       MAIN AEGIS JS
+       ================================ -->
+
+  <script src="app.js"></script>
+
+
+  <!-- ================================
+       SECURITY ASSISTANT JS
+       ================================ -->
+
+  <script>
+
+    requireAuth();
+    initShell();
+
+
+    const chat =
+      document.getElementById("chat");
+
+    const chatForm =
+      document.getElementById("chatForm");
+
+    const questionInput =
+      document.getElementById("question");
+
+    const clearChatButton =
+      document.getElementById("clearChat");
+
+
+    /* =================================
+       CURRENT TIME
+       ================================= */
+
+    function getTime() {
+
+      return new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
 
     }
 
 
-    /* =========================================
-       CYBERSECURITY ANSWERS
-    ========================================= */
+    /* =================================
+       ADD USER MESSAGE
+       ================================= */
 
-    function getResponse(question) {
+    function addUserMessage(text) {
 
+      const row =
+        document.createElement("div");
 
-        const q =
-            question.toLowerCase();
+      row.className =
+        "msg-row user-row";
 
 
-        /* PHISHING */
+      const avatar =
+        document.createElement("div");
 
-        if (
+      avatar.className =
+        "chat-avatar user-avatar";
 
-            q.includes("phishing") ||
+      avatar.textContent =
+        "U";
 
-            q.includes("fake email") ||
 
-            q.includes("scam")
+      const content =
+        document.createElement("div");
 
-        ) {
+      content.className =
+        "message-content";
 
 
-            return `
+      const message =
+        document.createElement("div");
 
-                <strong>
-                    🎣 Phishing
-                </strong>
+      message.className =
+        "msg user";
 
-                <br><br>
+      message.innerHTML =
+        esc(text);
 
-                Phishing is a cyberattack where an attacker
-                attempts to trick a user into providing
-                sensitive information.
 
-                <br><br>
+      const time =
+        document.createElement("div");
 
-                <strong>
-                    Common warning signs:
-                </strong>
+      time.className =
+        "message-time";
 
-                <ul>
+      time.textContent =
+        getTime();
 
-                    <li>
-                        Unexpected messages
-                    </li>
 
-                    <li>
-                        Urgent requests
-                    </li>
+      content.appendChild(message);
+      content.appendChild(time);
 
-                    <li>
-                        Suspicious links
-                    </li>
+      row.appendChild(content);
+      row.appendChild(avatar);
 
-                    <li>
-                        Spelling or grammar mistakes
-                    </li>
+      chat.appendChild(row);
 
-                    <li>
-                        Requests for passwords or OTPs
-                    </li>
+      scrollChat();
 
-                </ul>
+    }
 
-                <strong>
-                    Safety tip:
-                </strong>
 
-                Never share your password or OTP.
+    /* =================================
+       ADD BOT MESSAGE
+       ================================= */
 
-            `;
+    function addBotMessage(text) {
 
-        }
+      const row =
+        document.createElement("div");
 
+      row.className =
+        "msg-row";
 
-        /* SUSPICIOUS URL */
 
-        if (
+      const avatar =
+        document.createElement("div");
 
-            q.includes("link") ||
+      avatar.className =
+        "chat-avatar";
 
-            q.includes("url") ||
+      avatar.textContent =
+        "✦";
 
-            q.includes("website")
 
-        ) {
+      const content =
+        document.createElement("div");
 
+      content.className =
+        "message-content";
 
-            return `
 
-                <strong>
-                    🔗 Suspicious Link
-                </strong>
+      const message =
+        document.createElement("div");
 
-                <br><br>
+      message.className =
+        "msg bot";
 
-                Before opening a suspicious link:
+      message.innerHTML =
+        text;
 
-                <ol>
 
-                    <li>
-                        Check the domain name.
-                    </li>
+      const time =
+        document.createElement("div");
 
-                    <li>
-                        Look for spelling mistakes.
-                    </li>
+      time.className =
+        "message-time";
 
-                    <li>
-                        Be careful with shortened URLs.
-                    </li>
+      time.textContent =
+        getTime();
 
-                    <li>
-                        Do not enter your credentials.
-                    </li>
 
-                    <li>
-                        Use the AEGIS URL Scanner.
-                    </li>
+      content.appendChild(message);
+      content.appendChild(time);
 
-                </ol>
+      row.appendChild(avatar);
+      row.appendChild(content);
 
-                You can paste the complete URL
-                into this chat for AEGIS analysis.
+      chat.appendChild(row);
 
-            `;
+      scrollChat();
 
-        }
+    }
 
 
-        /* ACCOUNT COMPROMISED */
+    /* =================================
+       SCROLL CHAT
+       ================================= */
 
-        if (
+    function scrollChat() {
 
-            q.includes("compromised") ||
+      chat.scrollTop =
+        chat.scrollHeight;
 
-            q.includes("hacked") ||
+    }
 
-            q.includes("account")
 
-        ) {
+    /* =================================
+       TYPING INDICATOR
+       ================================= */
 
+    function showTyping() {
 
-            return `
+      const row =
+        document.createElement("div");
 
-                <strong>
-                    🔐 Account Security
-                </strong>
+      row.className =
+        "msg-row";
 
-                <br><br>
+      row.id =
+        "typingRow";
 
-                If you believe your account
-                has been compromised:
 
-                <ol>
+      const avatar =
+        document.createElement("div");
 
-                    <li>
-                        Change your password immediately.
-                    </li>
+      avatar.className =
+        "chat-avatar";
 
-                    <li>
-                        Use a unique password.
-                    </li>
+      avatar.textContent =
+        "✦";
 
-                    <li>
-                        Enable MFA.
-                    </li>
 
-                    <li>
-                        Review recent login activity.
-                    </li>
+      const content =
+        document.createElement("div");
 
-                    <li>
-                        Report the incident.
-                    </li>
+      content.className =
+        "message-content";
 
-                </ol>
 
-                Never reuse the same password
-                across multiple services.
+      const message =
+        document.createElement("div");
 
-            `;
+      message.className =
+        "msg bot";
 
-        }
 
+      message.innerHTML = `
+        <div class="typing">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      `;
 
-        /* MFA */
 
-        if (
+      content.appendChild(message);
 
-            q.includes("mfa") ||
+      row.appendChild(avatar);
+      row.appendChild(content);
 
-            q.includes("2fa") ||
+      chat.appendChild(row);
 
-            q.includes("two factor")
+      scrollChat();
 
-        ) {
+    }
 
 
-            return `
+    /* =================================
+       REMOVE TYPING
+       ================================= */
 
-                <strong>
-                    🔑 Multi-Factor Authentication
-                </strong>
+    function hideTyping() {
 
-                <br><br>
+      const typing =
+        document.getElementById("typingRow");
 
-                MFA adds an additional verification
-                step to protect an account.
+      if (typing) {
+        typing.remove();
+      }
 
-                <br><br>
+    }
 
-                Examples include:
 
-                <ul>
+    /* =================================
+       RULE-BASED SECURITY KNOWLEDGE
+       ================================= */
 
-                    <li>
-                        Authentication applications
-                    </li>
+    function securityAnswer(question) {
 
-                    <li>
-                        One-time verification codes
-                    </li>
+      const q =
+        question.toLowerCase();
 
-                    <li>
-                        Security keys
-                    </li>
 
-                </ul>
-
-                <strong>
-                    Important:
-                </strong>
-
-                Never share an MFA verification code
-                with another person.
-
-            `;
-
-        }
-
-
-        /* LOGIN */
-
-        if (
-
-            q.includes("login") ||
-
-            q.includes("sign in") ||
-
-            q.includes("logged")
-
-        ) {
-
-
-            return `
-
-                <strong>
-                    🚨 Suspicious Login Activity
-                </strong>
-
-                <br><br>
-
-                If you notice an unfamiliar login:
-
-                <ol>
-
-                    <li>
-                        Change your password.
-                    </li>
-
-                    <li>
-                        Enable MFA.
-                    </li>
-
-                    <li>
-                        Review your login activity.
-                    </li>
-
-                    <li>
-                        Sign out unknown sessions.
-                    </li>
-
-                    <li>
-                        Report the suspicious activity.
-                    </li>
-
-                </ol>
-
-                AEGIS records login events
-                for security monitoring.
-
-            `;
-
-        }
-
-
-        /* DEFAULT */
+      if (
+        q.includes("phishing") ||
+        q.includes("scam") ||
+        q.includes("fake email")
+      ) {
 
         return `
+          <strong>🎣 Phishing Detection</strong>
 
-            <strong>
-                🛡️ AEGIS Cybersecurity Assistant
-            </strong>
+          <br><br>
 
-            <br><br>
+          Look for these warning signs:
 
-            I can currently help you with:
+          <br><br>
 
-            <ul>
+          • Unexpected urgency or threats<br>
+          • Suspicious or look-alike domains<br>
+          • Requests for passwords or verification codes<br>
+          • Unexpected attachments<br>
+          • Links whose destination does not match the claimed service<br>
+          • Requests for sensitive personal information
 
-                <li>
-                    🎣 Phishing
-                </li>
+          <br><br>
 
-                <li>
-                    🔗 Suspicious URLs
-                </li>
+          <strong>AEGIS recommendation:</strong>
+          Do not open suspicious links. You can paste the URL here
+          for AEGIS analysis.
+        `;
 
-                <li>
-                    🔐 Account security
-                </li>
+      }
 
-                <li>
-                    🔑 MFA
-                </li>
 
-                <li>
-                    🚨 Suspicious login activity
-                </li>
+      if (
+        q.includes("mfa") ||
+        q.includes("2fa") ||
+        q.includes("multi factor")
+      ) {
 
-            </ul>
+        return `
+          <strong>🛡️ Multi-Factor Authentication</strong>
 
-            You can also paste a complete URL
-            to perform AEGIS URL risk analysis.
+          <br><br>
+
+          MFA provides an additional verification step beyond
+          your password.
+
+          <br><br>
+
+          Keep MFA enabled wherever possible and never share
+          authentication codes with another person.
+        `;
+
+      }
+
+
+      if (
+        q.includes("password") ||
+        q.includes("pass word")
+      ) {
+
+        return `
+          <strong>🔑 Password Security</strong>
+
+          <br><br>
+
+          Use a unique password for each important account.
+
+          <br><br>
+
+          Good practices include:
+
+          <br><br>
+
+          • Avoid reusing passwords<br>
+          • Use long, difficult-to-guess passwords<br>
+          • Enable MFA<br>
+          • Never share passwords<br>
+          • Change compromised credentials promptly
+        `;
+
+      }
+
+
+      if (
+        q.includes("account") ||
+        q.includes("secure my account") ||
+        q.includes("protect my account")
+      ) {
+
+        return `
+          <strong>🔐 Account Protection</strong>
+
+          <br><br>
+
+          Recommended steps:
+
+          <br><br>
+
+          1. Enable MFA.<br>
+          2. Use a unique password.<br>
+          3. Review recent login activity.<br>
+          4. Remove unfamiliar sessions or devices.<br>
+          5. Keep recovery information updated.<br>
+          6. Report suspicious activity.
+        `;
+
+      }
+
+
+      if (
+        q.includes("clicked") ||
+        q.includes("suspicious link")
+      ) {
+
+        return `
+          <strong>⚠️ Suspicious Link Guidance</strong>
+
+          <br><br>
+
+          If you interacted with an unfamiliar link, avoid entering
+          additional information and review the account or service
+          involved.
+
+          <br><br>
+
+          If credentials were entered, secure the affected account
+          using its official recovery/security process.
+
+          <br><br>
+
+          You can also paste the original URL here so AEGIS can
+          analyze it.
+        `;
+
+      }
+
+
+      if (
+        q.includes("malware") ||
+        q.includes("virus")
+      ) {
+
+        return `
+          <strong>🦠 Malware</strong>
+
+          <br><br>
+
+          Malware is software designed to perform unwanted or
+          harmful actions.
+
+          <br><br>
+
+          Avoid unknown downloads, keep software updated,
+          use reputable security tools and investigate unexpected
+          system behavior.
+        `;
+
+      }
+
+
+      if (
+        q.includes("incident") ||
+        q.includes("report")
+      ) {
+
+        return `
+          <strong>🚨 Incident Reporting</strong>
+
+          <br><br>
+
+          If you notice suspicious activity in the campus environment,
+          record useful information such as what happened, when it
+          happened and any relevant indicators.
+
+          <br><br>
+
+          You can submit it through the
+          <strong>Incident Reports</strong> section of AEGIS.
+        `;
+
+      }
+
+
+      return `
+        <strong>AEGIS Security Copilot</strong>
+
+        <br><br>
+
+        I can help you with:
+
+        <br><br>
+
+        🔗 Suspicious URLs<br>
+        🎣 Phishing & scams<br>
+        🔐 Account protection<br>
+        🛡️ MFA<br>
+        🔑 Password security<br>
+        🦠 Malware awareness<br>
+        🚨 Security incidents
+
+        <br><br>
+
+        Try asking:
+        <em>"How can I identify a phishing attack?"</em>
+      `;
+
+    }
+
+
+    /* =================================
+       URL SCANNER
+       ================================= */
+
+    async function scanURL(url) {
+
+      showTyping();
+
+
+      try {
+
+        const response =
+          await fetch(
+            API_URL + "/scan-url",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body: JSON.stringify({
+                url: url,
+                user_id: getUID()
+              })
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.detail ||
+            "URL scan failed"
+          );
+
+        }
+
+
+        hideTyping();
+
+
+        const result =
+          data.result || data;
+
+
+        const risk =
+          result.risk_level ||
+          "Unknown";
+
+
+        const score =
+          Number(
+            result.risk_score || 0
+          );
+
+
+        const recommendation =
+          result.recommendation ||
+          "Review the available indicators carefully.";
+
+
+        addBotMessage(`
+
+          <strong>🔍 URL Analysis Complete</strong>
+
+          <div class="scan-result">
+
+            <div class="risk-line">
+
+              <strong>
+                Risk Level
+              </strong>
+
+              <span class="risk-score">
+                ${esc(risk)} · ${score}/100
+              </span>
+
+            </div>
+
+            <div class="recommendation">
+
+              ${esc(recommendation)}
+
+            </div>
+
+          </div>
+
+        `);
+
+      }
+
+
+      catch (error) {
+
+        hideTyping();
+
+
+        addBotMessage(`
+          <strong>⚠️ URL Analysis Failed</strong>
+
+          <br><br>
+
+          ${esc(
+            error.message ||
+            "Unable to analyze this URL."
+          )}
+
+          <br><br>
+
+          Please verify that the AEGIS backend
+          is running and try again.
+        `);
+
+      }
+
+    }
+
+
+    /* =================================
+       SEND MESSAGE
+       ================================= */
+
+    async function sendMessage(text) {
+
+      text =
+        text.trim();
+
+
+      if (!text) {
+        return;
+      }
+
+
+      addUserMessage(text);
+
+      questionInput.value = "";
+
+
+      /* URL DETECTION */
+
+      if (
+        /^https?:\/\//i.test(text)
+      ) {
+
+        await scanURL(text);
+
+        return;
+
+      }
+
+
+      /* NORMAL SECURITY QUESTION */
+
+      showTyping();
+
+
+      setTimeout(function () {
+
+        hideTyping();
+
+        addBotMessage(
+          securityAnswer(text)
+        );
+
+      }, 550);
+
+    }
+
+
+    /* =================================
+       CHAT FORM
+       ================================= */
+
+    chatForm.addEventListener(
+      "submit",
+      function(event) {
+
+        event.preventDefault();
+
+        sendMessage(
+          questionInput.value
+        );
+
+      }
+    );
+
+
+    /* =================================
+       QUICK ACTIONS
+       ================================= */
+
+    document
+      .querySelectorAll(".quick-btn")
+      .forEach(function(button) {
+
+        button.addEventListener(
+          "click",
+          function() {
+
+            const question =
+              button.dataset.question;
+
+            sendMessage(question);
+
+          }
+        );
+
+      });
+
+
+    /* =================================
+       CLEAR CONVERSATION
+       ================================= */
+
+    clearChatButton.addEventListener(
+      "click",
+      function() {
+
+        chat.innerHTML = `
+
+          <div class="msg-row">
+
+            <div class="chat-avatar">
+              ✦
+            </div>
+
+            <div class="message-content">
+
+              <div class="msg bot">
+
+                <strong>
+                  Conversation cleared.
+                </strong>
+
+                <br><br>
+
+                I'm ready to help with your
+                cybersecurity questions.
+
+              </div>
+
+              <div class="message-time">
+                AEGIS Assistant
+              </div>
+
+            </div>
+
+          </div>
 
         `;
 
-    }
+        questionInput.focus();
 
+      }
+    );
 
-    /* =========================================
-       QUICK QUESTION
-    ========================================= */
 
-    function askQuestion(question) {
-
-
-        addMessage(
-
-            escapeHTML(question),
-
-            "user-message"
-
-        );
-
-
-        setTimeout(
-
-            function() {
-
-                addMessage(
-
-                    getResponse(question),
-
-                    "bot-message"
-
-                );
-
-            },
-
-            300
-
-        );
-
-    }
-
-
-    /* =========================================
-       SEND MESSAGE
-    ========================================= */
-
-    function sendMessage() {
-
-
-        const input =
-            document.getElementById(
-                "userInput"
-            );
-
-
-        const question =
-            input.value.trim();
-
-
-        if (question === "") {
-
-            return;
-
-        }
-
-
-        addMessage(
-
-            escapeHTML(question),
-
-            "user-message"
-
-        );
-
-
-        input.value = "";
-
-
-        if (isURL(question)) {
-
-            analyzeURL(question);
-
-            return;
-
-        }
-
-
-        setTimeout(
-
-            function() {
-
-                addMessage(
-
-                    getResponse(question),
-
-                    "bot-message"
-
-                );
-
-            },
-
-            300
-
-        );
-
-    }
-
-
-    /* =========================================
-       ENTER KEY
-    ========================================= */
-
-    document
-        .getElementById("userInput")
-        .addEventListener(
-
-            "keydown",
-
-            function(event) {
-
-                if (
-                    event.key === "Enter"
-                ) {
-
-                    sendMessage();
-
-                }
-
-            }
-
-        );
-
-
-    /* =========================================
-       LOGOUT
-    ========================================= */
-
-    function logout() {
-
-
-        localStorage.removeItem(
-            "aegisUser"
-        );
-
-
-        localStorage.removeItem(
-            "aegisUserId"
-        );
-
-
-        window.location.href =
-            "login.html";
-
-    }
-
-</script>
-```
+  </script>
 
 </body>
 </html>

@@ -1,687 +1,629 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
 
-    <title>Security Monitor | AEGIS</title>
+  <title>AEGIS — Security Monitoring</title>
 
-    <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- ===================================================== -->
-<!-- NAVBAR -->
-<!-- ===================================================== -->
+  <header class="topbar">
+    <div class="container topbar-inner">
 
-<nav class="navbar">
+      <button class="icon-btn mobile-menu" aria-label="Menu">
+        ☰
+      </button>
 
-    <div class="nav-brand">
-        🛡️ AEGIS
+      <a class="brand" href="dashboard.html">
+        <span class="brand-mark">A</span>
+        <span class="brand-copy">
+          AEGIS
+          <small>DETECT • ANALYZE • PROTECT</small>
+        </span>
+      </a>
+
+      <div class="top-search">
+        <span>⌕</span>
+        <input
+          id="globalSearch"
+          placeholder="Search threats, URLs, emails, reports…">
+      </div>
+
+      <div class="top-actions">
+
+        <button
+          class="icon-btn"
+          title="Settings"
+          onclick="location.href='settings.html'">
+          ⚙
+        </button>
+
+        <button
+          class="icon-btn"
+          title="Alerts"
+          onclick="location.href='alerts.html'">
+          ♧
+        </button>
+
+        <div class="profile">
+
+          <div class="avatar" data-avatar>
+            U
+          </div>
+
+          <div class="profile-info">
+
+            <div class="profile-name" data-name>
+              User
+            </div>
+
+            <div class="profile-role" data-role>
+              User
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
+  </header>
 
-    <div class="nav-links">
 
-        <a href="admin.html">
-            Admin Dashboard
+  <div class="page-shell">
+
+    <aside class="sidebar">
+
+      <div class="side-brand">
+
+        <a class="brand" href="dashboard.html">
+
+          <span class="brand-mark">
+            A
+          </span>
+
+          <span class="brand-copy">
+            AEGIS
+            <small>DETECT • ANALYZE • PROTECT</small>
+          </span>
+
         </a>
 
-        <a href="security-monitor.html" class="active">
-            Security Monitor
+      </div>
+
+
+      <nav class="side-nav">
+
+        <a
+          data-page="dashboard.html"
+          href="dashboard.html">
+          <span class="side-icon">⌂</span>
+          Dashboard
         </a>
 
-        <a href="alerts.html">
-            Alerts
+        <a
+          data-page="url-scanner.html"
+          href="url-scanner.html">
+          <span class="side-icon">⌁</span>
+          URL Scanner
         </a>
 
-        <a href="#" onclick="logout()">
-            Logout
+        <a
+          data-page="email-analyzer.html"
+          href="email-analyzer.html">
+          <span class="side-icon">✉</span>
+          Email Analyzer
         </a>
 
-    </div>
+        <a
+          data-page="report-threat.html"
+          href="report-threat.html">
+          <span class="side-icon">▣</span>
+          Incident Reports
+        </a>
 
-</nav>
+        <a
+          data-page="alerts.html"
+          href="alerts.html">
+          <span class="side-icon">♧</span>
+          Alerts
+        </a>
+
+        <a
+          data-page="security-monitor.html"
+          href="security-monitor.html">
+          <span class="side-icon">⌁</span>
+          Security Monitoring
+        </a>
+
+        <a
+          data-page="security-assistant.html"
+          href="security-assistant.html">
+          <span class="side-icon">✦</span>
+          Security Assistant
+        </a>
+
+        <a
+          data-page="settings.html"
+          href="settings.html">
+          <span class="side-icon">⚙</span>
+          Settings
+        </a>
+
+        <a
+          data-page="admin.html"
+          href="admin.html">
+          <span class="side-icon">◆</span>
+          Administrator
+        </a>
+
+      </nav>
 
 
-<!-- ===================================================== -->
-<!-- MAIN -->
-<!-- ===================================================== -->
+      <div class="side-bottom">
 
-<main class="container">
+        <div class="side-status">
 
-    <div class="page-header">
+          <span class="dot"></span>
+
+          <strong style="font-size:11px">
+            System Online
+          </strong>
+
+          <div
+            class="small muted"
+            style="margin-top:5px">
+            AEGIS services operational
+          </div>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+
+    <main class="main">
+
+      <div class="page-head">
 
         <div>
 
-            <p class="eyebrow">
-                SECURITY OPERATIONS
-            </p>
+          <div class="eyebrow">
+            Security telemetry
+          </div>
 
-            <h1>
-                Security Monitoring
-            </h1>
+          <h1>
+            Security Monitoring
+          </h1>
 
-            <p class="subtitle">
-                Monitor login activity, suspicious authentication
-                attempts and system audit events.
-            </p>
+          <p>
+            Authentication events and audit activity.
+          </p>
 
         </div>
+
 
         <button
-            class="btn btn-primary"
-            onclick="loadSecurityData()"
-        >
-            🔄 Refresh
+          class="btn secondary small"
+          id="refreshMonitor">
+          Refresh
         </button>
 
-    </div>
+      </div>
 
 
-    <!-- ================================================= -->
-    <!-- STATISTICS -->
-    <!-- ================================================= -->
+      <!-- KPI CARDS -->
 
-    <section class="stats-grid">
+      <div
+        class="kpi-grid"
+        id="monitorKpis">
+      </div>
 
-        <div class="stat-card">
 
-            <div class="stat-icon">
-                👤
-            </div>
+      <!-- AUTHENTICATION EVENTS -->
 
-            <div>
+      <section
+        class="card"
+        style="margin-top:14px">
 
-                <div
-                    class="stat-value"
-                    id="totalLogins"
-                >
-                    0
-                </div>
+        <div class="section-title">
 
-                <div class="stat-label">
-                    Total Login Events
-                </div>
+          <h2>
+            Authentication Events
+          </h2>
 
-            </div>
+        </div>
+
+        <div id="logins"></div>
+
+      </section>
+
+
+      <!-- AUDIT TRAIL -->
+
+      <section
+        class="card"
+        style="margin-top:14px">
+
+        <div class="section-title">
+
+          <h2>
+            Audit Trail
+          </h2>
 
         </div>
 
 
-        <div class="stat-card">
+        <div class="table-wrap">
 
-            <div class="stat-icon">
-                ✅
-            </div>
+          <table class="threat-table">
 
-            <div>
+            <thead>
 
-                <div
-                    class="stat-value"
-                    id="successfulLogins"
-                >
-                    0
-                </div>
+              <tr>
+                <th>Action</th>
+                <th>Details</th>
+                <th>IP</th>
+                <th>Time</th>
+              </tr>
 
-                <div class="stat-label">
-                    Successful Logins
-                </div>
-
-            </div>
-
-        </div>
+            </thead>
 
 
-        <div class="stat-card">
+            <tbody id="audit">
 
-            <div class="stat-icon">
-                ❌
-            </div>
+            </tbody>
 
-            <div>
-
-                <div
-                    class="stat-value"
-                    id="failedLogins"
-                >
-                    0
-                </div>
-
-                <div class="stat-label">
-                    Failed Logins
-                </div>
-
-            </div>
+          </table>
 
         </div>
 
+      </section>
 
-        <div class="stat-card">
+    </main>
 
-            <div class="stat-icon">
-                ⚠️
-            </div>
-
-            <div>
-
-                <div
-                    class="stat-value"
-                    id="highRiskLogins"
-                >
-                    0
-                </div>
-
-                <div class="stat-label">
-                    High-Risk Events
-                </div>
-
-            </div>
-
-        </div>
-
-    </section>
+  </div>
 
 
-    <!-- ================================================= -->
-    <!-- LOGIN EVENTS -->
-    <!-- ================================================= -->
+  <!-- MAIN AEGIS JAVASCRIPT -->
 
-    <section class="card">
-
-        <div class="section-heading">
-
-            <div>
-
-                <p class="eyebrow">
-                    AUTHENTICATION
-                </p>
-
-                <h2>
-                    Login Activity
-                </h2>
-
-            </div>
-
-        </div>
+  <script src="app.js"></script>
 
 
-        <div id="loginEvents">
+  <!-- PAGE JAVASCRIPT -->
 
-            <div class="empty-state">
-                Loading login activity...
-            </div>
+  <script>
 
-        </div>
-
-    </section>
+    requireAuth();
+    initShell();
 
 
-    <!-- ================================================= -->
-    <!-- AUDIT LOG -->
-    <!-- ================================================= -->
+    /* =====================================
+       ADMIN ACCESS CHECK
+       ===================================== */
 
-    <section class="card">
+    const currentUser =
+      getUser();
 
-        <div class="section-heading">
+    if (
+      String(currentUser?.role).toLowerCase() !== "admin"
+    ) {
 
-            <div>
+      location.href =
+        "dashboard.html";
 
-                <p class="eyebrow">
-                    SYSTEM SECURITY
-                </p>
-
-                <h2>
-                    Audit Logs
-                </h2>
-
-            </div>
-
-        </div>
-
-
-        <div id="auditLogs">
-
-            <div class="empty-state">
-                Loading audit logs...
-            </div>
-
-        </div>
-
-    </section>
-
-</main>
-
-
-<!-- ===================================================== -->
-<!-- JAVASCRIPT -->
-<!-- ===================================================== -->
-
-<script>
-
-const API = "https://aegis-4lcw.onrender.com";
-
-
-// =======================================================
-// SECURITY CHECK
-// =======================================================
-
-const currentUser =
-    JSON.parse(
-        localStorage.getItem("aegisUser")
-    );
-
-
-if (
-    !currentUser ||
-    currentUser.role !== "admin"
-) {
-
-    alert(
-        "Administrator access required."
-    );
-
-    window.location.href =
-        "login.html";
-}
-
-
-// =======================================================
-// ESCAPE HTML
-// =======================================================
-
-function escapeHTML(value) {
-
-    if (value === null || value === undefined) {
-        return "";
     }
 
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
 
+    /* =====================================
+       ELEMENT REFERENCES
+       ===================================== */
 
-// =======================================================
-// LOAD SECURITY DATA
-// =======================================================
+    const monitorKpis =
+      document.getElementById("monitorKpis");
 
-async function loadSecurityData() {
+    const audit =
+      document.getElementById("audit");
 
-    await Promise.all([
-        loadLoginEvents(),
-        loadAuditLogs()
-    ]);
+    const logins =
+      document.getElementById("logins");
 
-}
+    const refreshMonitor =
+      document.getElementById("refreshMonitor");
 
 
-// =======================================================
-// LOAD LOGIN EVENTS
-// =======================================================
+    /* =====================================
+       LOAD MONITORING DATA
+       ===================================== */
 
-async function loadLoginEvents() {
+    async function load() {
 
-    const container =
-        document.getElementById(
-            "loginEvents"
-        );
+      refreshMonitor.disabled =
+        true;
 
-    try {
+      refreshMonitor.textContent =
+        "Refreshing…";
 
-        const response =
-            await fetch(
-                `${API}/login-events`
-            );
 
+      try {
 
-        if (!response.ok) {
+        const [
+          auditResponse,
+          loginResponse
+        ] = await Promise.all([
 
-            throw new Error(
-                "Unable to load login events"
-            );
+          fetch(
+            API_URL + "/audit-logs"
+          ),
 
-        }
+          fetch(
+            API_URL + "/login-events"
+          )
 
+        ]);
 
-        const events =
-            await response.json();
 
+        const auditData =
+          await auditResponse.json();
 
-        // -----------------------------------------------
-        // Statistics
-        // -----------------------------------------------
+        const loginData =
+          await loginResponse.json();
 
-        const total =
-            events.length;
 
+        const auditEvents =
+          Array.isArray(auditData)
+            ? auditData
+            : [];
 
-        const successful =
-            events.filter(
-                event => event.success
-            ).length;
 
+        const loginEvents =
+          Array.isArray(loginData)
+            ? loginData
+            : [];
 
-        const failed =
-            events.filter(
-                event => !event.success
-            ).length;
 
+        /* =================================
+           KPI DATA
+           ================================= */
 
-        const highRisk =
-            events.filter(
-                event =>
-                    event.risk_level === "High"
-            ).length;
+        const failedLogins =
+          loginEvents.filter(
+            function (event) {
+              return !event.success;
+            }
+          ).length;
 
 
-        document.getElementById(
-            "totalLogins"
-        ).textContent = total;
+        monitorKpis.innerHTML = [
 
+          [
+            "Audit events",
+            auditEvents.length
+          ],
 
-        document.getElementById(
-            "successfulLogins"
-        ).textContent = successful;
+          [
+            "Login events",
+            loginEvents.length
+          ],
 
+          [
+            "Failed logins",
+            failedLogins
+          ]
 
-        document.getElementById(
-            "failedLogins"
-        ).textContent = failed;
+        ]
 
+        .map(function (item) {
 
-        document.getElementById(
-            "highRiskLogins"
-        ).textContent = highRisk;
+          return `
 
+            <div class="kpi">
 
-        // -----------------------------------------------
-        // Empty state
-        // -----------------------------------------------
+              <div class="label">
+                ${esc(item[0])}
+              </div>
 
-        if (events.length === 0) {
+              <div class="value">
+                ${item[1]}
+              </div>
 
-            container.innerHTML = `
-                <div class="empty-state">
-                    No login events recorded yet.
-                </div>
-            `;
+            </div>
 
-            return;
+          `;
 
-        }
+        })
 
+        .join("");
 
-        // -----------------------------------------------
-        // Display events
-        // -----------------------------------------------
 
-        container.innerHTML =
-            events.map(event => {
+        /* =================================
+           AUDIT TABLE
+           ================================= */
 
-                const success =
-                    event.success;
+        audit.innerHTML =
 
+          auditEvents
+            .slice(0, 30)
+            .map(function (event) {
 
-                const risk =
-                    event.risk_level ||
-                    "Low";
+              return `
 
+                <tr>
 
-                let riskClass =
-                    risk.toLowerCase();
+                  <td>
+                    ${esc(event.action)}
+                  </td>
 
+                  <td>
+                    ${esc(event.details)}
+                  </td>
 
-                return `
+                  <td>
+                    ${esc(event.ip_address)}
+                  </td>
 
-                    <div class="alert-item">
+                  <td>
+                    ${esc(event.created_at)}
+                  </td>
 
-                        <div>
+                </tr>
 
-                            <strong>
-                                ${success
-                                    ? "✅ Successful Login"
-                                    : "❌ Failed Login"
-                                }
-                            </strong>
+              `;
 
-                            <p>
-                                ${escapeHTML(
-                                    event.email
-                                )}
-                            </p>
+            })
 
-                            <small>
+            .join("")
 
-                                IP:
-                                ${escapeHTML(
-                                    event.ip_address ||
-                                    "Unknown"
-                                )}
+          ||
 
-                                <br>
+          `
+            <tr>
+              <td
+                colspan="4"
+                class="empty">
+                No audit events.
+              </td>
+            </tr>
+          `;
 
-                                ${escapeHTML(
-                                    event.created_at
-                                )}
 
-                            </small>
+        /* =================================
+           LOGIN EVENTS
+           ================================= */
 
-                        </div>
+        logins.innerHTML =
 
+          loginEvents
+            .slice(0, 15)
+            .map(function (event) {
 
-                        <div>
+              const successful =
+                Boolean(event.success);
 
-                            <span
-                                class="severity ${riskClass}"
-                            >
-                                ${escapeHTML(risk)}
-                            </span>
 
+              return `
 
-                            <p>
+                <div class="activity">
 
-                                ${escapeHTML(
-                                    event.anomaly_reason ||
-                                    "No anomaly detected."
-                                )}
+                  <div class="activity-icon">
 
-                            </p>
+                    ${successful ? "✓" : "!"}
 
-                        </div>
+                  </div>
+
+
+                  <div class="activity-main">
+
+                    <div class="activity-title">
+
+                      ${successful
+                        ? "Successful"
+                        : "Failed"
+                      }
+
+                      login ·
+
+                      ${esc(
+                        event.email || "Unknown user"
+                      )}
 
                     </div>
 
-                `;
 
-            }).join("");
+                    <div class="activity-meta">
 
-    }
+                      ${esc(
+                        event.risk_level || "Unknown"
+                      )}
 
-    catch (error) {
+                      ·
 
-        console.error(error);
+                      ${esc(
+                        event.created_at || ""
+                      )}
 
-        container.innerHTML = `
+                      ·
 
-            <div class="message error">
-
-                Unable to load login activity.
-
-                <br><br>
-
-                Make sure the AEGIS backend is running.
-
-            </div>
-
-        `;
-
-    }
-
-}
-
-
-// =======================================================
-// LOAD AUDIT LOGS
-// =======================================================
-
-async function loadAuditLogs() {
-
-    const container =
-        document.getElementById(
-            "auditLogs"
-        );
-
-    try {
-
-        const response =
-            await fetch(
-                `${API}/audit-logs`
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Unable to load audit logs"
-            );
-
-        }
-
-
-        const logs =
-            await response.json();
-
-
-        if (logs.length === 0) {
-
-            container.innerHTML = `
-
-                <div class="empty-state">
-
-                    No audit logs recorded yet.
-
-                </div>
-
-            `;
-
-            return;
-
-        }
-
-
-        container.innerHTML =
-            logs.map(log => {
-
-                return `
-
-                    <div class="alert-item">
-
-                        <div>
-
-                            <strong>
-                                📝 ${escapeHTML(
-                                    log.action
-                                )}
-                            </strong>
-
-                            <p>
-
-                                ${escapeHTML(
-                                    log.details ||
-                                    "No additional details."
-                                )}
-
-                            </p>
-
-                        </div>
-
-
-                        <div>
-
-                            <small>
-
-                                User ID:
-                                ${escapeHTML(
-                                    log.user_id ??
-                                    "System"
-                                )}
-
-                                <br>
-
-                                IP:
-                                ${escapeHTML(
-                                    log.ip_address ||
-                                    "Unknown"
-                                )}
-
-                                <br>
-
-                                ${escapeHTML(
-                                    log.created_at
-                                )}
-
-                            </small>
-
-                        </div>
+                      ${esc(
+                        event.anomaly_reason || ""
+                      )}
 
                     </div>
 
-                `;
+                  </div>
 
-            }).join("");
+                </div>
 
-    }
+              `;
 
-    catch (error) {
+            })
 
-        console.error(error);
+            .join("")
 
-        container.innerHTML = `
+          ||
 
-            <div class="message error">
-
-                Unable to load audit logs.
-
-                <br><br>
-
-                Make sure the AEGIS backend is running.
-
+          `
+            <div class="empty">
+              No login events.
             </div>
+          `;
 
-        `;
+      }
+
+
+      catch (error) {
+
+        console.error(
+          "Monitoring error:",
+          error
+        );
+
+        notify(
+          "Monitoring data unavailable.",
+          "error"
+        );
+
+      }
+
+
+      finally {
+
+        refreshMonitor.disabled =
+          false;
+
+        refreshMonitor.textContent =
+          "Refresh";
+
+      }
 
     }
 
-}
 
+    /* =====================================
+       REFRESH BUTTON
+       ===================================== */
 
-// =======================================================
-// LOGOUT
-// =======================================================
-
-function logout() {
-
-    localStorage.removeItem(
-        "aegisUser"
+    refreshMonitor.addEventListener(
+      "click",
+      load
     );
 
-    window.location.href =
-        "login.html";
 
-}
+    /* =====================================
+       INITIAL LOAD
+       ===================================== */
 
+    load();
 
-// =======================================================
-// INITIAL LOAD
-// =======================================================
-
-loadSecurityData();
-
-</script>
+  </script>
 
 </body>
 </html>

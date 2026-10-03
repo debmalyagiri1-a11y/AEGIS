@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AEGIS — Administrator</title><link rel="stylesheet" href="style.css"></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AEGIS — Settings</title><link rel="stylesheet" href="style.css"></head><body>
     <header class="topbar"><div class="container topbar-inner">
       <button class="icon-btn mobile-menu" aria-label="Menu">☰</button>
       <a class="brand" href="dashboard.html"><span class="brand-mark">A</span><span class="brand-copy">AEGIS<small>DETECT • ANALYZE • PROTECT</small></span></a>
@@ -20,11 +20,14 @@
         <a data-page="security-monitor.html" href="security-monitor.html"><span class="side-icon">⌁</span>Security Monitoring</a>
         <a data-page="security-assistant.html" href="security-assistant.html"><span class="side-icon">✦</span>Security Assistant</a>
         <a data-page="settings.html" href="settings.html"><span class="side-icon">⚙</span>Settings</a>
-        <a data-page="admin.html" href="admin.html"><span class="side-icon">◆</span>Administrator</a>
+        
       </nav>
       <div class="side-bottom"><div class="side-status"><span class="dot"></span><strong style="font-size:11px">System Online</strong><div class="small muted" style="margin-top:5px">AEGIS services operational</div></div></div>
     </aside><main class="main">
-<div class="page-head"><div><div class="eyebrow">Administrator workspace</div><h1>Administrator</h1><p>Review system-wide reports and update incident status.</p></div><button class="btn secondary small" onclick="load()">Refresh</button></div>
-<div class="kpi-grid" id="adminStats"></div>
-<section class="card" style="margin-top:14px"><div class="section-title"><h2>Incident Queue</h2><span class="small muted">Status changes are sent to the backend</span></div><div class="table-wrap"><table class="threat-table"><thead><tr><th>ID</th><th>Type</th><th>Severity</th><th>Status</th><th>Update</th></tr></thead><tbody id="reports"></tbody></table></div></section>
-</main></div><script src="app.js"></script>
+<div class="page-head"><div><div class="eyebrow">Account control</div><h1>Settings</h1><p>Manage your AEGIS account and session.</p></div></div>
+<div class="content-grid">
+<section class="card"><div class="section-title"><h2>Account</h2></div><div class="kpi-grid" style="grid-template-columns:1fr 1fr"><div class="kpi"><div class="label">Name</div><div class="value" style="font-size:15px" data-name>User</div></div><div class="kpi"><div class="label">Role</div><div class="value" style="font-size:15px" data-role>User</div></div></div><div class="field" style="margin-top:15px"><label>Email</label><input data-email readonly></div></section>
+<section class="card"><div class="section-title"><h2>Session & Access</h2></div><div class="quick-list"><a class="quick" href="login.html"><span class="quick-left"><span class="quick-icon">↪</span>Sign in page</span><span>›</span></a><button class="quick" style="color:var(--critical);text-align:left" onclick="logout()"><span class="quick-left"><span style="color:var(--critical)">⎋</span>Log out of AEGIS</span><span>›</span></button></div><div class="notice show" style="margin-top:14px;background:rgba(0,230,168,.035);border:1px solid rgba(0,230,168,.10);color:var(--muted)">MFA is part of the current login flow. Password changes require a backend password-management endpoint; no unsupported action is exposed here.</div></section>
+</div>
+<section class="card" style="margin-top:14px"><div class="section-title"><h2>Security Preferences</h2></div><div class="progress-row"><div class="progress-head"><span>Authenticated session</span><strong style="color:var(--green)">Active</strong></div><div class="progress-track"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div><div class="progress-row"><div class="progress-head"><span>Multi-factor verification</span><strong style="color:var(--green)">Enabled in login flow</strong></div><div class="progress-track"><div class="progress-fill" style="width:100%;background:var(--green)"></div></div></div></section>
+</main></div><script src="app.js"></script>requireAuth();initShell();</body></html>

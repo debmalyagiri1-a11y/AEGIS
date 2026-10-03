@@ -1,905 +1,258 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
 
-<head>
-
-```
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
-
-<title>AEGIS - Report Threat</title>
-
-<link
-    rel="stylesheet"
-    href="style.css"
->
-
-<style>
-
-    .report-container {
-        max-width: 800px;
-        margin: 30px auto;
-    }
-
-    .report-header {
-        text-align: center;
-        margin-bottom: 25px;
-    }
-
-    .report-icon {
-        width: 70px;
-        height: 70px;
-
-        margin: 0 auto 15px;
-
-        border-radius: 50%;
-
-        background: #0284c7;
-        color: white;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        font-size: 32px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-group label {
-        display: block;
-
-        margin-bottom: 8px;
-
-        font-weight: 600;
-    }
-
-    .form-group select,
-    .form-group textarea {
-        width: 100%;
-    }
-
-    .form-group textarea {
-        min-height: 150px;
-        resize: vertical;
-    }
-
-    .severity-info {
-        margin-top: 8px;
-
-        font-size: 13px;
-
-        color: #64748b;
-    }
-
-    .submit-area {
-        margin-top: 25px;
-
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .success-message {
-        margin-top: 20px;
-
-        padding: 16px;
-
-        border-radius: 10px;
-
-        background: #f0fdf4;
-
-        border-left: 5px solid #16a34a;
-
-        color: #166534;
-    }
-
-    .error-message {
-        margin-top: 20px;
-
-        padding: 16px;
-
-        border-radius: 10px;
-
-        background: #fef2f2;
-
-        border-left: 5px solid #dc2626;
-
-        color: #991b1b;
-    }
-
-    .report-info {
-        margin-top: 20px;
-
-        padding: 16px;
-
-        border-radius: 10px;
-
-        background: #f8fafc;
-
-        border: 1px solid #e2e8f0;
-    }
-
-    .report-info ul {
-        margin-bottom: 0;
-    }
-
-    @media (max-width: 600px) {
-
-        .submit-area {
-            flex-direction: column;
-        }
-
-    }
-
-</style>
-```
-
-</head>
+<head> <meta charset="utf-8"> <meta name="viewport" content="width=device-width,initial-scale=1"> <title>AEGIS — Incident Report</title> <link rel="stylesheet" href="style.css"> </head>
 
 <body>
 
-```
-<!-- NAVIGATION -->
+<header class="topbar"> <div class="container topbar-inner">
 
-<nav class="navbar">
+<button class="icon-btn mobile-menu" aria-label="Menu">☰</button>
 
-    <div class="nav-brand">
+<a class="brand" href="dashboard.html">
+  <span class="brand-mark">A</span>
+  <span class="brand-copy">
+    AEGIS
+    <small>DETECT • ANALYZE • PROTECT</small>
+  </span>
+</a>
 
-        <strong>AEGIS</strong>
+<div class="top-search">
+  <span>⌕</span>
+  <input
+    id="globalSearch"
+    placeholder="Search threats, URLs, emails, reports…"
+  >
+</div>
 
+<div class="top-actions">
+
+  <button
+    class="icon-btn"
+    title="Settings"
+    onclick="location.href='settings.html'"
+  >
+    ⚙
+  </button>
+
+  <button
+    class="icon-btn"
+    title="Alerts"
+    onclick="location.href='alerts.html'"
+  >
+    ♧
+  </button>
+
+  <div class="profile">
+    <div class="avatar" data-avatar>U</div>
+
+    <div class="profile-info">
+      <div class="profile-name" data-name>User</div>
+      <div class="profile-role" data-role>User</div>
     </div>
+  </div>
+
+</div>
+
+</div> </header>
+
+<div class="page-shell">
+
+<aside class="sidebar">
+
+<div class="side-brand">
+  <a class="brand" href="dashboard.html">
+    <span class="brand-mark">A</span>
+    <span class="brand-copy">
+      AEGIS
+      <small>DETECT • ANALYZE • PROTECT</small>
+    </span>
+  </a>
+</div>
 
 
-    <div class="nav-links">
+<nav class="side-nav">
 
-        <a href="dashboard.html">
-            Dashboard
-        </a>
+  <a data-page="dashboard.html" href="dashboard.html">
+    <span class="side-icon">⌂</span>
+    Dashboard
+  </a>
 
-        <a href="url-scanner.html">
-            URL Scanner
-        </a>
+  <a data-page="url-scanner.html" href="url-scanner.html">
+    <span class="side-icon">⌁</span>
+    URL Scanner
+  </a>
 
-        <a
-            href="report-threat.html"
-        >
-            Report Threat
-        </a>
+  <a data-page="email-analyzer.html" href="email-analyzer.html">
+    <span class="side-icon">✉</span>
+    Email Analyzer
+  </a>
 
-        <a href="alerts.html">
-            Alerts
-        </a>
+  <a data-page="report-threat.html" href="report-threat.html">
+    <span class="side-icon">▣</span>
+    Incident Reports
+  </a>
 
-        <a href="security-assistant.html">
-            Assistant
-        </a>
+  <a data-page="alerts.html" href="alerts.html">
+    <span class="side-icon">♧</span>
+    Alerts
+  </a>
 
-        <a
-            href="#"
-            onclick="logout()"
-        >
-            Logout
-        </a>
+  <a data-page="security-monitor.html" href="security-monitor.html">
+    <span class="side-icon">⌁</span>
+    Security Monitoring
+  </a>
 
-    </div>
+  <a data-page="security-assistant.html" href="security-assistant.html">
+    <span class="side-icon">✦</span>
+    Security Assistant
+  </a>
+
+  <a data-page="settings.html" href="settings.html">
+    <span class="side-icon">⚙</span>
+    Settings
+  </a>
 
 </nav>
 
 
-<!-- MAIN -->
+<div class="side-bottom">
 
-<main class="container">
+  <div class="side-status">
+    <span class="dot"></span>
 
-    <div class="report-container">
+    <strong style="font-size:11px">
+      System Online
+    </strong>
 
+    <div
+      class="small muted"
+      style="margin-top:5px"
+    >
+      AEGIS services operational
+    </div>
 
-        <!-- HEADER -->
+  </div>
 
-        <div class="report-header">
+</div>
 
-            <div class="report-icon">
-                🚨
-            </div>
+</aside>
 
-            <h1>
-                Report a Security Threat
-            </h1>
+<main class="main">
 
-            <p>
-                Report suspicious cybersecurity incidents
-                to the AEGIS campus security system.
-            </p>
+<div class="page-head">
 
-        </div>
+  <div>
 
+    <div class="eyebrow">
+      Incident response
+    </div>
 
-        <!-- FORM CARD -->
+    <h1>
+      Report an Incident
+    </h1>
 
-        <div class="card">
+    <p>
+      Record suspicious activity for review and tracking.
+    </p>
 
-            <form
-                id="threatForm"
-            >
+  </div>
 
+</div>
 
-                <!-- THREAT TYPE -->
 
-                <div class="form-group">
+<section class="card">
 
-                    <label for="threatType">
-                        Threat Type
-                    </label>
+  <form id="reportForm">
 
+    <div class="form-grid">
 
-                    <select
-                        id="threatType"
-                        class="form-control"
-                        required
-                    >
 
-                        <option value="">
-                            Select threat type
-                        </option>
+      <div class="field">
 
-                        <option value="Phishing">
-                            Phishing
-                        </option>
+        <label for="threatType">
+          Threat type
+        </label>
 
-                        <option value="Suspicious URL">
-                            Suspicious URL
-                        </option>
+        <select id="threatType">
 
-                        <option value="Malware">
-                            Malware
-                        </option>
+          <option>Phishing</option>
+          <option>Suspicious URL</option>
+          <option>Account compromise</option>
+          <option>Malware</option>
+          <option>Social engineering</option>
+          <option>Other</option>
 
-                        <option value="Account Compromise">
-                            Account Compromise
-                        </option>
+        </select>
 
-                        <option value="Suspicious Login">
-                            Suspicious Login
-                        </option>
+      </div>
 
-                        <option value="Data Breach">
-                            Data Breach
-                        </option>
 
-                        <option value="Social Engineering">
-                            Social Engineering
-                        </option>
+      <div class="field">
 
-                        <option value="Other">
-                            Other
-                        </option>
+        <label for="severity">
+          Severity
+        </label>
 
-                    </select>
+        <select id="severity">
 
-                </div>
+          <option>Low</option>
 
+          <option selected>
+            Medium
+          </option>
 
-                <!-- DESCRIPTION -->
+          <option>High</option>
 
-                <div class="form-group">
+          <option>Critical</option>
 
-                    <label for="description">
-                        Incident Description
-                    </label>
+        </select>
 
+      </div>
 
-                    <textarea
-                        id="description"
-                        class="form-control"
-                        placeholder="Describe what happened. Include relevant details, but do not enter passwords, OTPs, or other confidential information."
-                        required
-                    ></textarea>
 
+      <div class="field span2">
 
-                    <div class="severity-info">
+        <label for="description">
+          Description
+        </label>
 
-                        Please provide enough information
-                        for the administrator to investigate
-                        the incident.
+        <textarea
+          id="description"
+          required
+          placeholder="Describe what happened, what you observed, and any relevant indicators."
+        ></textarea>
 
-                    </div>
-
-                </div>
-
-
-                <!-- SEVERITY -->
-
-                <div class="form-group">
-
-                    <label for="severity">
-                        Severity
-                    </label>
-
-
-                    <select
-                        id="severity"
-                        class="form-control"
-                        required
-                    >
-
-                        <option value="Low">
-                            Low - Minor concern
-                        </option>
-
-                        <option value="Medium" selected>
-                            Medium - Potential security issue
-                        </option>
-
-                        <option value="High">
-                            High - Serious security threat
-                        </option>
-
-                        <option value="Critical">
-                            Critical - Immediate attention required
-                        </option>
-
-                    </select>
-
-
-                    <div class="severity-info">
-
-                        <strong>Low:</strong>
-                        Minor or informational issue.
-
-                        <br>
-
-                        <strong>Medium:</strong>
-                        Possible security risk.
-
-                        <br>
-
-                        <strong>High:</strong>
-                        Significant security threat.
-
-                        <br>
-
-                        <strong>Critical:</strong>
-                        Immediate security attention may be required.
-
-                    </div>
-
-                </div>
-
-
-                <!-- SUBMIT -->
-
-                <div class="submit-area">
-
-                    <button
-                        type="submit"
-                        class="btn btn-primary"
-                        id="submitButton"
-                    >
-                        🚨 Submit Threat Report
-                    </button>
-
-
-                    <a
-                        href="dashboard.html"
-                        class="btn"
-                    >
-                        Cancel
-                    </a>
-
-                </div>
-
-
-                <!-- MESSAGE -->
-
-                <div
-                    id="message"
-                    style="display:none;"
-                ></div>
-
-
-            </form>
-
-        </div>
-
-
-        <!-- INFORMATION -->
-
-        <div class="card report-info">
-
-            <h2>
-                🛡️ Before You Submit
-            </h2>
-
-            <ul>
-
-                <li>
-                    Do not include passwords or OTPs.
-                </li>
-
-                <li>
-                    Do not share confidential personal information.
-                </li>
-
-                <li>
-                    Describe the suspicious activity clearly.
-                </li>
-
-                <li>
-                    Select the severity that best describes
-                    the incident.
-                </li>
-
-                <li>
-                    The administrator can investigate and
-                    update the report status.
-                </li>
-
-            </ul>
-
-        </div>
-
+      </div>
 
     </div>
 
+
+    <button
+      class="btn"
+      id="reportBtn"
+      type="submit"
+      style="margin-top:16px"
+    >
+      Submit incident
+    </button>
+
+
+    <div
+      id="notice"
+      class="notice"
+    ></div>
+
+  </form>
+
+</section>
+
 </main>
 
+</div>
 
-<!-- FOOTER -->
+<script src="app.js"></script>
 
-<footer class="footer">
+<script> requireAuth(); initShell(); document .getElementById("reportForm") .addEventListener("submit", async function (e) { e.preventDefault(); const reportBtn = document.getElementById("reportBtn"); const threatType = document.getElementById("threatType"); const severity = document.getElementById("severity"); const description = document.getElementById("description"); reportBtn.disabled = true; reportBtn.textContent = "Submitting…"; try { const response = await fetch( API_URL + "/threat-report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: getUID(), threat_type: threatType.value, description: description.value.trim(), severity: severity.value }) } ); const data = await response.json(); if (!response.ok) { throw new Error( data.detail || "Report failed" ); } notify( `Incident #${data.report_id} submitted successfully.`, "success" ); e.target.reset(); } catch (error) { notify( error.message || "Report failed", "error" ); } finally { reportBtn.disabled = false; reportBtn.textContent = "Submit incident"; } }); </script>
 
-    <p>
-        AEGIS — AI-Powered Smart Campus Cybersecurity System
-    </p>
-
-</footer>
-
-
-<!-- JAVASCRIPT -->
-
-<script>
-
-
-    /* =========================================
-       BACKEND URL
-    ========================================= */
-
-    const API_URL =
-        "https://aegis-4lcw.onrender.com";
-
-
-    /* =========================================
-       CHECK LOGIN
-    ========================================= */
-
-    const storedUser =
-        localStorage.getItem("aegisUser");
-
-
-    if (!storedUser) {
-
-        window.location.href =
-            "login.html";
-
-    }
-
-
-    /* =========================================
-       GET USER
-    ========================================= */
-
-    function getCurrentUser() {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem("aegisUser")
-            );
-
-        }
-
-        catch (error) {
-
-            return null;
-
-        }
-
-    }
-
-
-    /* =========================================
-       GET USER ID
-    ========================================= */
-
-    function getUserId() {
-
-        const user =
-            getCurrentUser();
-
-
-        if (!user) {
-
-            return null;
-
-        }
-
-
-        return (
-
-            user.id ??
-
-            user.user_id ??
-
-            user.userId
-
-        );
-
-    }
-
-
-    /* =========================================
-       SHOW MESSAGE
-    ========================================= */
-
-    function showMessage(
-        text,
-        type
-    ) {
-
-        const message =
-            document.getElementById(
-                "message"
-            );
-
-
-        message.style.display =
-            "block";
-
-
-        message.className =
-            type === "success"
-                ? "success-message"
-                : "error-message";
-
-
-        message.innerHTML =
-            text;
-
-    }
-
-
-    /* =========================================
-       SUBMIT THREAT REPORT
-    ========================================= */
-
-    document
-        .getElementById("threatForm")
-        .addEventListener(
-            "submit",
-            async function(event) {
-
-                event.preventDefault();
-
-
-                const userId =
-                    getUserId();
-
-
-                if (!userId) {
-
-                    showMessage(
-                        "⚠️ Your login session could not be found. Please log in again.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                const threatType =
-                    document
-                        .getElementById(
-                            "threatType"
-                        )
-                        .value;
-
-
-                const description =
-                    document
-                        .getElementById(
-                            "description"
-                        )
-                        .value
-                        .trim();
-
-
-                const severity =
-                    document
-                        .getElementById(
-                            "severity"
-                        )
-                        .value;
-
-
-                if (
-                    !threatType ||
-                    !description ||
-                    !severity
-                ) {
-
-                    showMessage(
-                        "⚠️ Please complete all required fields.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                if (
-                    description.length < 10
-                ) {
-
-                    showMessage(
-                        "⚠️ Please provide a little more information about the incident.",
-                        "error"
-                    );
-
-                    return;
-
-                }
-
-
-                const submitButton =
-                    document.getElementById(
-                        "submitButton"
-                    );
-
-
-                submitButton.disabled =
-                    true;
-
-
-                submitButton.textContent =
-                    "⏳ Submitting...";
-
-
-                try {
-
-
-                    const response =
-                        await fetch(
-                            `${API_URL}/threat-report`,
-                            {
-                                method: "POST",
-
-                                headers: {
-                                    "Content-Type":
-                                        "application/json"
-                                },
-
-                                body:
-                                    JSON.stringify({
-
-                                        user_id:
-                                            Number(userId),
-
-                                        threat_type:
-                                            threatType,
-
-                                        description:
-                                            description,
-
-                                        severity:
-                                            severity
-
-                                    })
-
-                            }
-                        );
-
-
-                    const data =
-                        await response.json();
-
-
-                    if (!response.ok) {
-
-                        throw new Error(
-                            data.detail ||
-                            "Failed to submit threat report."
-                        );
-
-                    }
-
-
-                    const reportId =
-                        data.id ??
-                        data.report_id ??
-                        "N/A";
-
-
-                    showMessage(
-
-                        `
-
-                        <strong>
-                            ✅ Threat Report Submitted Successfully
-                        </strong>
-
-                        <br><br>
-
-                        Your report has been recorded
-                        in the AEGIS incident management system.
-
-                        <br><br>
-
-                        <strong>
-                            Report ID:
-                        </strong>
-
-                        ${escapeHTML(
-                            String(reportId)
-                        )}
-
-                        <br>
-
-                        <strong>
-                            Status:
-                        </strong>
-
-                        Pending
-
-                        <br><br>
-
-                        The campus administrator can now
-                        review and update this incident.
-
-                        `,
-
-                        "success"
-
-                    );
-
-
-                    document
-                        .getElementById(
-                            "threatForm"
-                        )
-                        .reset();
-
-
-                    document
-                        .getElementById(
-                            "severity"
-                        )
-                        .value =
-                        "Medium";
-
-
-                }
-
-                catch (error) {
-
-                    console.error(
-                        "Threat report error:",
-                        error
-                    );
-
-
-                    showMessage(
-
-                        `
-
-                        <strong>
-                            ❌ Report Submission Failed
-                        </strong>
-
-                        <br><br>
-
-                        ${
-                            escapeHTML(
-                                error.message
-                            )
-                        }
-
-                        <br><br>
-
-                        Please make sure the
-                        AEGIS backend is running.
-
-                        `,
-
-                        "error"
-
-                    );
-
-                }
-
-                finally {
-
-                    submitButton.disabled =
-                        false;
-
-
-                    submitButton.textContent =
-                        "🚨 Submit Threat Report";
-
-                }
-
-            }
-        );
-
-
-    /* =========================================
-       ESCAPE HTML
-    ========================================= */
-
-    function escapeHTML(value) {
-
-        return String(value)
-
-            .replace(
-                /&/g,
-                "&amp;"
-            )
-
-            .replace(
-                /</g,
-                "&lt;"
-            )
-
-            .replace(
-                />/g,
-                "&gt;"
-            )
-
-            .replace(
-                /"/g,
-                "&quot;"
-            )
-
-            .replace(
-                /'/g,
-                "&#039;"
-            );
-
-    }
-
-
-    /* =========================================
-       LOGOUT
-    ========================================= */
-
-    function logout() {
-
-        localStorage.removeItem(
-            "aegisUser"
-        );
-
-
-        localStorage.removeItem(
-            "aegisUserId"
-        );
-
-
-        window.location.href =
-            "login.html";
-
-    }
-
-</script>
-```
-
-</body>
-
-</html>
+</body> </html>

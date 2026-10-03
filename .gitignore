@@ -1,6 +1,8 @@
-venv/
+﻿venv/
+venv_32bit/
 __pycache__/
 *.pyc
+frontend.zip
+backend/test_phishing.eml
+
 aegis.db
-.env
-.vscode/
