@@ -1,8 +1,11 @@
 
-const API_URL = "http://127.0.0.1:8000";
+const isLocal =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1";
 
-alert("AEGIS API = " + API_URL);
-
+const API_URL = isLocal
+  ? "http://127.0.0.1:8000"
+  : "https://aegis-4lcw.onrender.com";
 function getUser(){
   try { return JSON.parse(localStorage.getItem("aegisUser") || "null"); }
   catch(e){ return null; }
