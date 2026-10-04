@@ -1,69 +1,1476 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AEGIS — Security Dashboard</title><link rel="stylesheet" href="style.css"></head><body>
-    <header class="topbar"><div class="container topbar-inner">
-      <button class="icon-btn mobile-menu" aria-label="Menu">☰</button>
-      <a class="brand" href="dashboard.html"><span class="brand-mark">A</span><span class="brand-copy">AEGIS<small>DETECT • ANALYZE • PROTECT</small></span></a>
-      <div class="top-search"><span>⌕</span><input id="globalSearch" placeholder="Search threats, URLs, emails, reports…"></div>
-      <div class="top-actions">
-        <button class="icon-btn" title="Settings" onclick="location.href='settings.html'">⚙</button>
-        <button class="icon-btn" title="Alerts" onclick="location.href='alerts.html'">♧</button>
-        <div class="profile"><div class="avatar" data-avatar>U</div><div class="profile-info"><div class="profile-name" data-name>User</div><div class="profile-role" data-role>User</div></div></div>
-      </div>
-    </div></header><div class="page-shell">
-    <aside class="sidebar">
-      <div class="side-brand"><a class="brand" href="dashboard.html"><span class="brand-mark">A</span><span class="brand-copy">AEGIS<small>DETECT • ANALYZE • PROTECT</small></span></a></div>
-      <nav class="side-nav">
-        <a data-page="dashboard.html" href="dashboard.html"><span class="side-icon">⌂</span>Dashboard</a>
-        <a data-page="url-scanner.html" href="url-scanner.html"><span class="side-icon">⌁</span>URL Scanner</a>
-        <a data-page="email-analyzer.html" href="email-analyzer.html"><span class="side-icon">✉</span>Email Analyzer</a>
-        <a data-page="report-threat.html" href="report-threat.html"><span class="side-icon">▣</span>Incident Reports</a>
-        <a data-page="alerts.html" href="alerts.html"><span class="side-icon">♧</span>Alerts</a>
-        <a data-page="security-monitor.html" href="security-monitor.html"><span class="side-icon">⌁</span>Security Monitoring</a>
-        <a data-page="security-assistant.html" href="security-assistant.html"><span class="side-icon">✦</span>Security Assistant</a>
-        <a data-page="settings.html" href="settings.html"><span class="side-icon">⚙</span>Settings</a>
-        
-      </nav>
-      <div class="side-bottom"><div class="side-status"><span class="dot"></span><strong style="font-size:11px">System Online</strong><div class="small muted" style="margin-top:5px">AEGIS services operational</div></div></div>
-    </aside><main class="main">
-<div class="dashboard-grid">
-  <section class="hero">
-    <div class="hero-content">
-      <div class="eyebrow">AI-powered cybersecurity & threat intelligence</div>
-      <h1>Good day, <span class="gradient" id="heroName">User</span></h1>
-      <p>Stay vigilant. Analyze suspicious activity, respond to incidents and keep your security posture under control.</p>
-      <div class="hero-meta">
-        <div class="meta-pill">◷ <span id="dateText">—</span></div>
-        <div class="meta-pill"><span class="dot"></span>Security status: <strong id="heroStatus" style="color:var(--green)">Loading</strong></div>
-      </div>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AEGIS — Security Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="topbar">
+  <div class="container topbar-inner">
+
+    <button class="icon-btn mobile-menu" aria-label="Menu">☰</button>
+
+    <a class="brand" href="dashboard.html">
+      <span class="brand-mark">A</span>
+      <span class="brand-copy">
+        AEGIS
+        <small>DETECT • ANALYZE • PROTECT</small>
+      </span>
+    </a>
+
+    <div class="top-search">
+      <span>⌕</span>
+      <input
+        id="globalSearch"
+        placeholder="Search threats, URLs, emails, reports…"
+      >
     </div>
-  </section>
-  <aside class="score-card card">
-    <div class="score-head"><strong style="font:700 15px Manrope">Security Score</strong><span class="green">›</span></div>
-    <div class="score-ring" id="scoreRing" style="--score:0"><div><div class="score-number" id="scoreNumber">0%</div><div class="score-status" id="scoreStatus">Loading</div></div></div>
-    <div class="small muted" id="scoreNote">Calculated from current AEGIS activity</div>
+
+    <div class="top-actions">
+
+      <button
+        class="icon-btn"
+        title="Settings"
+        onclick="location.href='settings.html'"
+      >
+        ⚙
+      </button>
+
+      <button
+        class="icon-btn"
+        title="Alerts"
+        onclick="location.href='alerts.html'"
+      >
+        ♧
+      </button>
+
+      <div class="profile">
+        <div class="avatar" data-avatar>U</div>
+
+        <div class="profile-info">
+          <div class="profile-name" data-name>User</div>
+          <div class="profile-role" data-role>User</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</header>
+
+
+<div class="page-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="side-brand">
+
+      <a class="brand" href="dashboard.html">
+
+        <span class="brand-mark">A</span>
+
+        <span class="brand-copy">
+          AEGIS
+          <small>DETECT • ANALYZE • PROTECT</small>
+        </span>
+
+      </a>
+
+    </div>
+
+
+    <nav class="side-nav">
+
+      <a
+        data-page="dashboard.html"
+        href="dashboard.html"
+      >
+        <span class="side-icon">⌂</span>
+        Dashboard
+      </a>
+
+      <a
+        data-page="url-scanner.html"
+        href="url-scanner.html"
+      >
+        <span class="side-icon">⌁</span>
+        URL Scanner
+      </a>
+
+      <a
+        data-page="email-analyzer.html"
+        href="email-analyzer.html"
+      >
+        <span class="side-icon">✉</span>
+        Email Analyzer
+      </a>
+
+      <a
+        data-page="report-threat.html"
+        href="report-threat.html"
+      >
+        <span class="side-icon">▣</span>
+        Incident Reports
+      </a>
+
+      <a
+        data-page="alerts.html"
+        href="alerts.html"
+      >
+        <span class="side-icon">♧</span>
+        Alerts
+      </a>
+
+      <a
+        data-page="security-monitor.html"
+        href="security-monitor.html"
+      >
+        <span class="side-icon">⌁</span>
+        Security Monitoring
+      </a>
+
+      <a
+        data-page="security-assistant.html"
+        href="security-assistant.html"
+      >
+        <span class="side-icon">✦</span>
+        Security Assistant
+      </a>
+
+      <a
+        data-page="settings.html"
+        href="settings.html"
+      >
+        <span class="side-icon">⚙</span>
+        Settings
+      </a>
+
+    </nav>
+
+
+    <div class="side-bottom">
+
+      <div class="side-status">
+
+        <span class="dot"></span>
+
+        <strong style="font-size:11px">
+          System Online
+        </strong>
+
+        <div
+          class="small muted"
+          style="margin-top:5px"
+        >
+          AEGIS services operational
+        </div>
+
+      </div>
+
+    </div>
+
   </aside>
+
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="dashboard-grid">
+
+      <section class="hero">
+
+        <div class="hero-content">
+
+          <div class="eyebrow">
+            AI-powered cybersecurity & threat intelligence
+          </div>
+
+          <h1>
+            Good day,
+            <span
+              class="gradient"
+              id="heroName"
+            >
+              User
+            </span>
+          </h1>
+
+          <p>
+            Stay vigilant. Analyze suspicious activity,
+            respond to incidents and keep your security
+            posture under control.
+          </p>
+
+          <div class="hero-meta">
+
+            <div class="meta-pill">
+              ◷
+              <span id="dateText">—</span>
+            </div>
+
+            <div class="meta-pill">
+
+              <span class="dot"></span>
+
+              Security status:
+
+              <strong
+                id="heroStatus"
+                style="color:var(--green)"
+              >
+                Loading
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- SECURITY SCORE -->
+      <aside class="score-card card">
+
+        <div class="score-head">
+
+          <strong
+            style="font:700 15px Manrope"
+          >
+            Security Score
+          </strong>
+
+          <span class="green">›</span>
+
+        </div>
+
+
+        <div
+          class="score-ring"
+          id="scoreRing"
+          style="--score:0"
+        >
+
+          <div>
+
+            <div
+              class="score-number"
+              id="scoreNumber"
+            >
+              0%
+            </div>
+
+            <div
+              class="score-status"
+              id="scoreStatus"
+            >
+              Loading
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="small muted"
+          id="scoreNote"
+        >
+          Calculated from current AEGIS activity
+        </div>
+
+      </aside>
+
+    </div>
+
+
+    <!-- STATISTICS -->
+    <section class="stat-grid">
+
+      <div class="stat card">
+
+        <div class="stat-top">
+
+          <span class="stat-label">
+            Total Threats Detected
+          </span>
+
+          <div class="stat-icon">
+            ◈
+          </div>
+
+        </div>
+
+        <div
+          class="stat-value"
+          id="totalThreats"
+        >
+          0
+        </div>
+
+        <div class="stat-note">
+          URL scans + incident reports
+        </div>
+
+      </div>
+
+
+      <div class="stat card">
+
+        <div class="stat-top">
+
+          <span class="stat-label">
+            High Risk URLs
+          </span>
+
+          <div
+            class="stat-icon"
+            style="color:var(--critical)"
+          >
+            △
+          </div>
+
+        </div>
+
+        <div
+          class="stat-value"
+          id="highRisk"
+        >
+          0
+        </div>
+
+        <div class="stat-note">
+          High + Critical URL results
+        </div>
+
+      </div>
+
+
+      <div class="stat card">
+
+        <div class="stat-top">
+
+          <span class="stat-label">
+            Safe URLs
+          </span>
+
+          <div class="stat-icon">
+            ⌁
+          </div>
+
+        </div>
+
+        <div
+          class="stat-value"
+          id="safeUrls"
+        >
+          0
+        </div>
+
+        <div class="stat-note">
+          Low + Minimal results
+        </div>
+
+      </div>
+
+
+      <div class="stat card">
+
+        <div class="stat-top">
+
+          <span class="stat-label">
+            Failed Logins
+          </span>
+
+          <div
+            class="stat-icon"
+            style="color:var(--high)"
+          >
+            !
+          </div>
+
+        </div>
+
+        <div
+          class="stat-value"
+          id="failedLogins"
+        >
+          0
+        </div>
+
+        <div class="stat-note">
+          Recorded authentication failures
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- THREAT DISTRIBUTION + ALERTS -->
+    <div class="content-grid">
+
+      <section class="card chart">
+
+        <div class="section-title">
+
+          <h2>
+            Threat Distribution
+          </h2>
+
+          <span class="small muted">
+            Actual database counts
+          </span>
+
+        </div>
+
+
+        <div class="distribution">
+
+          <div
+            class="donut"
+            id="donut"
+          >
+
+            <div class="donut-center">
+
+              <div
+                class="donut-total"
+                id="donutTotal"
+              >
+                0
+              </div>
+
+              <div class="donut-label">
+                URL scans
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="legend"
+            id="legend"
+          ></div>
+
+        </div>
+
+      </section>
+
+
+      <!-- SECURITY ALERTS -->
+      <section class="card">
+
+        <div class="section-title">
+
+          <h2>
+            Security Alerts
+          </h2>
+
+          <a href="alerts.html">
+            View all →
+          </a>
+
+        </div>
+
+        <div
+          class="alert-list"
+          id="alerts"
+        ></div>
+
+      </section>
+
+    </div>
+
+
+    <!-- CURRENT THREAT ACTIVITY -->
+    <div class="content-grid">
+
+      <section class="card">
+
+        <div class="section-title">
+
+          <h2>
+            Current Threat Activity
+          </h2>
+
+          <span class="small muted">
+            Live totals by risk level
+          </span>
+
+        </div>
+
+
+        <div
+          class="bars"
+          id="bars"
+        ></div>
+
+      </section>
+
+
+      <!-- QUICK ACTIONS -->
+      <section class="card">
+
+        <div class="section-title">
+
+          <h2>
+            Quick Actions
+          </h2>
+
+        </div>
+
+
+        <div class="quick-list">
+
+          <a
+            class="quick"
+            href="url-scanner.html"
+          >
+
+            <span class="quick-left">
+
+              <span class="quick-icon">
+                ⌁
+              </span>
+
+              Scan a URL
+
+            </span>
+
+            <span>›</span>
+
+          </a>
+
+
+          <a
+            class="quick"
+            href="email-analyzer.html"
+          >
+
+            <span class="quick-left">
+
+              <span class="quick-icon">
+                ✉
+              </span>
+
+              Analyze Email
+
+            </span>
+
+            <span>›</span>
+
+          </a>
+
+
+          <a
+            class="quick"
+            href="report-threat.html"
+          >
+
+            <span class="quick-left">
+
+              <span class="quick-icon">
+                ▣
+              </span>
+
+              Report Incident
+
+            </span>
+
+            <span>›</span>
+
+          </a>
+
+
+          <a
+            class="quick"
+            href="security-assistant.html"
+          >
+
+            <span class="quick-left">
+
+              <span class="quick-icon">
+                ✦
+              </span>
+
+              Security Assistant
+
+            </span>
+
+            <span>›</span>
+
+          </a>
+
+        </div>
+
+      </section>
+
+    </div>
+
+
+    <!-- RECENT THREATS + ACTIVITY -->
+    <div class="content-grid">
+
+      <section class="card">
+
+        <div class="section-title">
+
+          <h2>
+            Recent Threats
+          </h2>
+
+          <span
+            class="small muted"
+            id="threatCountLabel"
+          >
+            0 records
+          </span>
+
+        </div>
+
+
+        <div class="table-wrap">
+
+          <table class="threat-table">
+
+            <thead>
+
+              <tr>
+
+                <th>ID</th>
+                <th>Type</th>
+                <th>Target</th>
+                <th>Severity</th>
+                <th>Status</th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody id="threatRows"></tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+
+      <!-- RECENT ACTIVITY -->
+      <section class="card">
+
+        <div class="section-title">
+
+          <h2>
+            Recent Activity
+          </h2>
+
+          <span class="small muted">
+            Audit trail
+          </span>
+
+        </div>
+
+
+        <div
+          class="activity-list"
+          id="activity"
+        ></div>
+
+      </section>
+
+    </div>
+
+
+    <!-- FOOTER QUOTE -->
+    <section
+      class="card quote"
+      style="margin-top:14px"
+    >
+
+      <div>
+
+        <p>
+          Smarter security.<br>
+          <span class="gradient">
+            Stronger protection.
+          </span>
+        </p>
+
+        <small>
+          AEGIS • DETECT • ANALYZE • PROTECT
+        </small>
+
+      </div>
+
+    </section>
+
+  </main>
+
 </div>
-<section class="stat-grid">
-  <div class="stat card"><div class="stat-top"><span class="stat-label">Total Threats Detected</span><div class="stat-icon">◈</div></div><div class="stat-value" id="totalThreats">0</div><div class="stat-note">URL scans + incident reports</div></div>
-  <div class="stat card"><div class="stat-top"><span class="stat-label">High Risk URLs</span><div class="stat-icon" style="color:var(--critical)">△</div></div><div class="stat-value" id="highRisk">0</div><div class="stat-note">High + Critical URL results</div></div>
-  <div class="stat card"><div class="stat-top"><span class="stat-label">Safe URLs</span><div class="stat-icon">⌁</div></div><div class="stat-value" id="safeUrls">0</div><div class="stat-note">Low + Minimal results</div></div>
-  <div class="stat card"><div class="stat-top"><span class="stat-label">Failed Logins</span><div class="stat-icon" style="color:var(--high)">!</div></div><div class="stat-value" id="failedLogins">0</div><div class="stat-note">Recorded authentication failures</div></div>
-</section>
-<div class="content-grid">
-  <section class="card chart"><div class="section-title"><h2>Threat Distribution</h2><span class="small muted">Actual database counts</span></div><div class="distribution"><div class="donut" id="donut"><div class="donut-center"><div class="donut-total" id="donutTotal">0</div><div class="donut-label">URL scans</div></div></div><div class="legend" id="legend"></div></div></section>
-  <section class="card"><div class="section-title"><h2>Security Alerts</h2><a href="alerts.html">View all →</a></div><div class="alert-list" id="alerts"></div></section>
-</div>
-<div class="content-grid">
-  <section class="card"><div class="section-title"><h2>Current Threat Activity</h2><span class="small muted">Live totals by risk level</span></div><div class="bars" id="bars"></div></section>
-  <section class="card"><div class="section-title"><h2>Quick Actions</h2></div><div class="quick-list">
-    <a class="quick" href="url-scanner.html"><span class="quick-left"><span class="quick-icon">⌁</span>Scan a URL</span><span>›</span></a>
-    <a class="quick" href="email-analyzer.html"><span class="quick-left"><span class="quick-icon">✉</span>Analyze Email</span><span>›</span></a>
-    <a class="quick" href="report-threat.html"><span class="quick-left"><span class="quick-icon">▣</span>Report Incident</span><span>›</span></a>
-    <a class="quick" href="security-assistant.html"><span class="quick-left"><span class="quick-icon">✦</span>Security Assistant</span><span>›</span></a>
-  </div></section>
-</div>
-<div class="content-grid">
-  <section class="card"><div class="section-title"><h2>Recent Threats</h2><span class="small muted" id="threatCountLabel">0 records</span></div><div class="table-wrap"><table class="threat-table"><thead><tr><th>ID</th><th>Type</th><th>Target</th><th>Severity</th><th>Status</th></tr></thead><tbody id="threatRows"></tbody></table></div></section>
-  <section class="card"><div class="section-title"><h2>Recent Activity</h2><span class="small muted">Audit trail</span></div><div class="activity-list" id="activity"></div></section>
-</div>
-<section class="card quote" style="margin-top:14px"><div><p>Smarter security.<br><span class="gradient">Stronger protection.</span></p><small>AEGIS • DETECT • ANALYZE • PROTECT</small></div></section>
-</main></div><script src="app.js"></script>
+
+
+<!-- COMMON AEGIS JAVASCRIPT -->
+<script src="app.js"></script>
+
+
+<!-- DASHBOARD JAVASCRIPT -->
+<script>
+
+requireAuth();
+initShell();
+
+
+/* USER NAME */
+const currentUser = getUser();
+
+document.getElementById("heroName").textContent =
+  currentUser?.name || "User";
+
+
+/* CURRENT DATE */
+document.getElementById("dateText").textContent =
+  new Date().toLocaleDateString(
+    "en-IN",
+    {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }
+  );
+
+
+/* RISK COLORS */
+function riskColor(level){
+
+  const colors = {
+    Critical: "#ff4d5d",
+    High: "#ff9f43",
+    Medium: "#ffc857",
+    Low: "#8b5cf6",
+    Minimal: "#00e6a8"
+  };
+
+  return colors[level] || "#00e6a8";
+}
+
+
+/* ================================
+   THREAT DISTRIBUTION DONUT
+================================ */
+
+function renderDonut(dist){
+
+  const levels = [
+    "Critical",
+    "High",
+    "Medium",
+    "Low",
+    "Minimal"
+  ];
+
+  const values = levels.map(
+    level => Number(dist?.[level] || 0)
+  );
+
+  const total = values.reduce(
+    (sum, value) => sum + value,
+    0
+  );
+
+
+  document.getElementById(
+    "donutTotal"
+  ).textContent = total;
+
+
+  if(total === 0){
+
+    document.getElementById(
+      "donut"
+    ).style.background = "#103d34";
+
+
+    document.getElementById(
+      "legend"
+    ).innerHTML =
+      '<div class="empty">No URL scans yet.</div>';
+
+    return;
+  }
+
+
+  let start = 0;
+
+  const parts = [];
+
+
+  levels.forEach(
+    (level, index) => {
+
+      const percentage =
+        values[index] / total * 100;
+
+      parts.push(
+        `${riskColor(level)} ${start}% ${start + percentage}%`
+      );
+
+      start += percentage;
+
+    }
+  );
+
+
+  document.getElementById(
+    "donut"
+  ).style.background =
+    `conic-gradient(${parts.join(",")})`;
+
+
+  document.getElementById(
+    "legend"
+  ).innerHTML = levels.map(
+    (level, index) => {
+
+      const label =
+        level === "Minimal"
+          ? "Safe"
+          : level;
+
+      return `
+        <div class="legend-row">
+
+          <i
+            class="legend-dot"
+            style="background:${riskColor(level)}"
+          ></i>
+
+          <span>${label}</span>
+
+          <span>${values[index]}</span>
+
+        </div>
+      `;
+
+    }
+  ).join("");
+
+}
+
+
+/* ================================
+   CURRENT THREAT ACTIVITY
+================================ */
+
+function renderBars(dist){
+
+  const box =
+    document.getElementById("bars");
+
+  if(!box){
+    return;
+  }
+
+
+  const levels = [
+    {
+      key: "Critical",
+      label: "Critical"
+    },
+    {
+      key: "High",
+      label: "High"
+    },
+    {
+      key: "Medium",
+      label: "Medium"
+    },
+    {
+      key: "Low",
+      label: "Low"
+    },
+    {
+      key: "Minimal",
+      label: "Safe"
+    }
+  ];
+
+
+  const values = levels.map(
+    item => Number(
+      dist?.[item.key] || 0
+    )
+  );
+
+
+  const max =
+    Math.max(
+      1,
+      ...values
+    );
+
+
+  box.innerHTML =
+    levels.map(
+      (item, index) => {
+
+        const value =
+          values[index];
+
+
+        /*
+          Make the bar visible even when
+          the value is zero.
+        */
+
+        const height =
+          value > 0
+            ? Math.max(
+                12,
+                Math.round(
+                  (value / max) * 170
+                )
+              )
+            : 3;
+
+
+        return `
+          <div
+            class="bar-col"
+            title="${item.label}: ${value}"
+          >
+
+            <div
+              class="bar-value"
+              style="
+                font-size:11px;
+                font-weight:700;
+                color:#f4fffc;
+                min-height:16px;
+              "
+            >
+              ${value}
+            </div>
+
+
+            <div
+              class="bar-stack"
+              style="
+                height:180px;
+                width:100%;
+                display:flex;
+                align-items:flex-end;
+                justify-content:flex-end;
+              "
+            >
+
+              <div
+                class="bar-seg"
+                style="
+                  width:100%;
+                  height:${height}px;
+                  min-height:${height}px;
+                  background:${riskColor(item.key)};
+                  border-radius:6px 6px 2px 2px;
+                  box-shadow:0 0 14px ${riskColor(item.key)}55;
+                  transition:height .5s ease;
+                "
+              ></div>
+
+            </div>
+
+
+            <div
+              class="bar-label"
+              style="
+                font-size:10px;
+                color:#9ab8b2;
+                text-align:center;
+              "
+            >
+              ${item.label}
+            </div>
+
+          </div>
+        `;
+
+      }
+    ).join("");
+
+}
+
+
+/* ================================
+   SECURITY ALERTS
+================================ */
+
+function renderAlerts(items){
+
+  const alerts =
+    Array.isArray(items)
+      ? items
+      : [];
+
+
+  document.getElementById(
+    "alerts"
+  ).innerHTML =
+
+    alerts
+      .slice(0, 5)
+      .map(item => {
+
+        const color =
+          riskColor(
+            item.severity
+          );
+
+
+        return `
+          <div class="alert">
+
+            <div
+              class="alert-icon"
+              style="
+                color:${color};
+                background:${color}18
+              "
+            >
+              !
+            </div>
+
+
+            <div>
+
+              <div class="alert-title">
+                ${esc(
+                  item.title ||
+                  item.type ||
+                  "Security alert"
+                )}
+              </div>
+
+
+              <div class="alert-desc">
+                ${esc(
+                  item.description ||
+                  "Review the event in AEGIS."
+                )}
+              </div>
+
+            </div>
+
+
+            <span
+              style="
+                font-size:9px;
+                color:${color}
+              "
+            >
+              ${esc(
+                item.severity ||
+                "Info"
+              )}
+            </span>
+
+          </div>
+        `;
+
+      })
+      .join("")
+
+    ||
+
+    '<div class="empty">No active alerts.</div>';
+
+}
+
+
+/* ================================
+   RECENT THREATS
+================================ */
+
+function renderThreats(items){
+
+  const threats =
+    Array.isArray(items)
+      ? items
+      : [];
+
+
+  document.getElementById(
+    "threatCountLabel"
+  ).textContent =
+    `${threats.length} records`;
+
+
+  document.getElementById(
+    "threatRows"
+  ).innerHTML =
+
+    threats
+      .slice(0, 10)
+      .map(item => {
+
+        return `
+          <tr>
+
+            <td>
+              #${esc(item.id)}
+            </td>
+
+
+            <td>
+              ${esc(
+                item.type ||
+                "Threat"
+              )}
+            </td>
+
+
+            <td
+              title="${esc(
+                item.url ||
+                item.description ||
+                ""
+              )}"
+            >
+              ${esc(
+                item.domain ||
+                item.url ||
+                item.description ||
+                "—"
+              ).slice(0, 34)}
+            </td>
+
+
+            <td>
+              ${severityBadge(
+                item.severity
+              )}
+            </td>
+
+
+            <td>
+              ${esc(
+                item.status ||
+                "—"
+              )}
+            </td>
+
+          </tr>
+        `;
+
+      })
+      .join("")
+
+    ||
+
+    `
+      <tr>
+        <td
+          colspan="5"
+          class="empty"
+        >
+          No threat records yet.
+        </td>
+      </tr>
+    `;
+
+}
+
+
+/* ================================
+   RECENT ACTIVITY
+================================ */
+
+function renderActivity(items){
+
+  const activities =
+    Array.isArray(items)
+      ? items
+      : [];
+
+
+  document.getElementById(
+    "activity"
+  ).innerHTML =
+
+    activities
+      .slice(0, 7)
+      .map(item => {
+
+        return `
+          <div class="activity">
+
+            <div class="activity-icon">
+              •
+            </div>
+
+
+            <div class="activity-main">
+
+              <div class="activity-title">
+                ${esc(
+                  item.action ||
+                  "Activity"
+                )}
+              </div>
+
+
+              <div class="activity-meta">
+
+                ${esc(
+                  item.details ||
+                  ""
+                )}
+
+                ${
+                  item.created_at
+                    ? " · " +
+                      new Date(
+                        item.created_at
+                      ).toLocaleString(
+                        "en-IN"
+                      )
+                    : ""
+                }
+
+              </div>
+
+            </div>
+
+          </div>
+        `;
+
+      })
+      .join("")
+
+    ||
+
+    '<div class="empty">No audit activity yet.</div>';
+
+}
+
+
+/* ================================
+   LOAD DASHBOARD
+================================ */
+
+async function loadDashboard(){
+
+  try{
+
+    const response =
+      await fetch(
+        API_URL +
+        "/dashboard/overview"
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if(!response.ok){
+
+      throw new Error(
+        data.detail ||
+        "Dashboard data unavailable"
+      );
+
+    }
+
+
+    const stats =
+      data.statistics || {};
+
+
+    /* TOTAL THREATS */
+
+    const totalThreats =
+      Number(
+        stats.high_risk_urls || 0
+      ) +
+      Number(
+        stats.total_threat_reports || 0
+      );
+
+
+    document.getElementById(
+      "totalThreats"
+    ).textContent =
+      totalThreats;
+
+
+    /* HIGH RISK URLS */
+
+    document.getElementById(
+      "highRisk"
+    ).textContent =
+      Number(
+        stats.high_risk_urls || 0
+      );
+
+
+    /* SAFE URLS */
+
+    document.getElementById(
+      "safeUrls"
+    ).textContent =
+      Number(
+        stats.safe_urls || 0
+      );
+
+
+    /* FAILED LOGINS */
+
+    document.getElementById(
+      "failedLogins"
+    ).textContent =
+      Number(
+        stats.failed_logins || 0
+      );
+
+
+    /* SECURITY SCORE */
+
+    const score =
+      Number(
+        data.security_score || 0
+      );
+
+
+    document.getElementById(
+      "scoreNumber"
+    ).textContent =
+      score + "%";
+
+
+    document.getElementById(
+      "scoreStatus"
+    ).textContent =
+      data.security_status ||
+      "Unknown";
+
+
+    document.getElementById(
+      "heroStatus"
+    ).textContent =
+      data.security_status ||
+      "Unknown";
+
+
+    document.getElementById(
+      "scoreRing"
+    ).style.setProperty(
+      "--score",
+      score
+    );
+
+
+    /* CHARTS */
+
+    renderDonut(
+      data.threat_distribution
+    );
+
+
+    renderBars(
+      data.threat_distribution
+    );
+
+
+    /* ALERTS */
+
+    renderAlerts(
+      data.alerts
+    );
+
+
+    /* RECENT THREATS */
+
+    renderThreats(
+      data.recent_threats
+    );
+
+
+    /* RECENT ACTIVITY */
+
+    renderActivity(
+      data.recent_activity
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "AEGIS dashboard error:",
+      error
+    );
+
+
+    document.getElementById(
+      "heroStatus"
+    ).textContent =
+      "Data unavailable";
+
+
+    document.getElementById(
+      "scoreStatus"
+    ).textContent =
+      "Offline";
+
+
+    document.getElementById(
+      "alerts"
+    ).innerHTML =
+      `
+        <div class="empty">
+          Could not load live dashboard data.
+          Check the backend connection.
+        </div>
+      `;
+
+
+    document.getElementById(
+      "bars"
+    ).innerHTML =
+      `
+        <div
+          class="empty"
+          style="
+            width:100%;
+            padding:30px;
+            text-align:center;
+          "
+        >
+          Threat activity unavailable.
+        </div>
+      `;
+
+  }
+
+}
+
+
+/* START DASHBOARD */
+
+loadDashboard();
+
+</script>
+
+</body>
+</html>
