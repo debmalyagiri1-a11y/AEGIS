@@ -1,31 +1,2532 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AEGIS — Email Analyzer</title><link rel="stylesheet" href="style.css"></head><body>
-    <header class="topbar"><div class="container topbar-inner">
-      <button class="icon-btn mobile-menu" aria-label="Menu">☰</button>
-      <a class="brand" href="dashboard.html"><span class="brand-mark">A</span><span class="brand-copy">AEGIS<small>DETECT • ANALYZE • PROTECT</small></span></a>
-      <div class="top-search"><span>⌕</span><input id="globalSearch" placeholder="Search threats, URLs, emails, reports…"></div>
-      <div class="top-actions">
-        <button class="icon-btn" title="Settings" onclick="location.href='settings.html'">⚙</button>
-        <button class="icon-btn" title="Alerts" onclick="location.href='alerts.html'">♧</button>
-        <div class="profile"><div class="avatar" data-avatar>U</div><div class="profile-info"><div class="profile-name" data-name>User</div><div class="profile-role" data-role>User</div></div></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AEGIS — Email Analyzer</title>
+
+  <style>
+    :root{
+      --bg:#031513;
+      --bg2:#061d1a;
+      --panel:#06231f;
+      --panel2:#082a25;
+      --line:#0b5a4d;
+      --line-soft:rgba(0,230,168,.16);
+
+      --green:#00e6a8;
+      --green2:#19f5c1;
+      --text:#f4fffc;
+      --muted:#9ab8b2;
+      --dim:#6f918a;
+
+      --critical:#ff4d5d;
+      --high:#ff9f43;
+      --medium:#ffc857;
+      --low:#8b5cf6;
+      --safe:#00e6a8;
+
+      --sidebar:245px;
+      --topbar:66px;
+      --radius:18px;
+      --shadow:0 24px 70px rgba(0,0,0,.34);
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html,
+    body{
+      margin:0;
+      padding:0;
+      min-height:100%;
+      background:
+        radial-gradient(circle at 80% 0%, rgba(0,230,168,.08), transparent 28%),
+        radial-gradient(circle at 20% 100%, rgba(0,230,168,.04), transparent 30%),
+        var(--bg);
+      color:var(--text);
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+    }
+
+    a{
+      color:inherit;
+      text-decoration:none;
+    }
+
+    button,
+    input{
+      font:inherit;
+    }
+
+    /* =========================
+       SIDEBAR
+       ========================= */
+
+    .sidebar{
+      position:fixed;
+      left:0;
+      top:0;
+      bottom:0;
+      width:var(--sidebar);
+      background:rgba(3,21,19,.97);
+      border-right:1px solid rgba(0,230,168,.14);
+      z-index:50;
+      display:flex;
+      flex-direction:column;
+      padding:18px 14px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:11px;
+      padding:2px 7px 18px;
+      border-bottom:1px solid rgba(0,230,168,.12);
+      margin-bottom:15px;
+    }
+
+    .brand-logo{
+      width:38px;
+      height:38px;
+      border-radius:11px;
+      background:linear-gradient(135deg,#0be6aa,#0bb98d);
+      color:#02241c;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      font-size:21px;
+      box-shadow:0 0 25px rgba(0,230,168,.15);
+    }
+
+    .brand-name{
+      font-size:19px;
+      font-weight:800;
+      letter-spacing:2px;
+    }
+
+    .brand-tag{
+      font-size:7px;
+      color:var(--green);
+      letter-spacing:1px;
+      font-weight:800;
+      margin-top:2px;
+    }
+
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+    }
+
+    .nav a{
+      display:flex;
+      align-items:center;
+      gap:13px;
+      padding:12px 13px;
+      border-radius:11px;
+      color:#b5d0ca;
+      font-size:13px;
+      transition:.18s ease;
+    }
+
+    .nav a:hover{
+      background:rgba(0,230,168,.07);
+      color:#fff;
+    }
+
+    .nav a.active{
+      background:rgba(0,230,168,.09);
+      border:1px solid rgba(0,230,168,.22);
+      color:var(--green2);
+    }
+
+    .nav-icon{
+      width:17px;
+      text-align:center;
+      color:var(--green);
+      font-size:15px;
+    }
+
+    .sidebar-bottom{
+      margin-top:auto;
+    }
+
+    .system-status{
+      border:1px solid rgba(0,230,168,.20);
+      background:rgba(0,230,168,.035);
+      border-radius:12px;
+      padding:13px;
+    }
+
+    .status-line{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      font-size:11px;
+      font-weight:700;
+    }
+
+    .status-dot{
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:var(--green);
+      box-shadow:0 0 12px rgba(0,230,168,.7);
+    }
+
+    .status-sub{
+      color:var(--muted);
+      font-size:10px;
+      margin-top:6px;
+    }
+
+    /* =========================
+       TOPBAR
+       ========================= */
+
+    .main{
+      margin-left:var(--sidebar);
+      min-height:100vh;
+    }
+
+    .topbar{
+      height:var(--topbar);
+      border-bottom:1px solid rgba(0,230,168,.11);
+      display:flex;
+      align-items:center;
+      gap:22px;
+      padding:0 28px;
+      background:rgba(3,21,19,.72);
+      backdrop-filter:blur(15px);
+      position:sticky;
+      top:0;
+      z-index:40;
+    }
+
+    .search{
+      width:min(525px,52vw);
+      height:38px;
+      border:1px solid rgba(0,230,168,.20);
+      background:rgba(6,35,31,.7);
+      border-radius:22px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:0 15px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .search span{
+      color:var(--green);
+    }
+
+    .top-actions{
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      gap:9px;
+    }
+
+    .top-btn{
+      width:38px;
+      height:38px;
+      border-radius:12px;
+      border:1px solid rgba(0,230,168,.16);
+      background:rgba(6,35,31,.8);
+      color:#cce5df;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+
+    .profile{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding-left:7px;
+      margin-left:4px;
+      border-left:1px solid rgba(0,230,168,.12);
+    }
+
+    .profile-avatar{
+      width:34px;
+      height:34px;
+      border-radius:50%;
+      background:var(--green);
+      color:#02241c;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+    }
+
+    .profile-name{
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .profile-role{
+      color:var(--muted);
+      font-size:9px;
+      margin-top:2px;
+    }
+
+    /* =========================
+       CONTENT
+       ========================= */
+
+    .content{
+      padding:30px 26px 50px;
+      max-width:1500px;
+      margin:auto;
+    }
+
+    .eyebrow{
+      color:var(--green);
+      font-size:11px;
+      letter-spacing:1.7px;
+      font-weight:800;
+      text-transform:uppercase;
+      margin-bottom:7px;
+    }
+
+    h1{
+      margin:0;
+      font-size:30px;
+      letter-spacing:-.8px;
+    }
+
+    .subtitle{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:8px;
+      line-height:1.6;
+    }
+
+    /* =========================
+       UPLOAD CARD
+       ========================= */
+
+    .upload-card{
+      margin-top:25px;
+      border:1px solid rgba(0,230,168,.18);
+      border-radius:20px;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(8,42,37,.90),
+          rgba(4,29,25,.92)
+        );
+      box-shadow:var(--shadow);
+      padding:38px;
+      text-align:center;
+    }
+
+    .upload-icon{
+      width:46px;
+      height:46px;
+      border-radius:13px;
+      margin:0 auto 15px;
+      background:rgba(0,230,168,.08);
+      border:1px solid rgba(0,230,168,.16);
+      color:var(--green);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:21px;
+    }
+
+    .upload-title{
+      font-size:20px;
+      font-weight:800;
+    }
+
+    .upload-note{
+      color:var(--muted);
+      font-size:11px;
+      margin-top:8px;
+    }
+
+    .file-row{
+      margin:22px auto 0;
+      max-width:620px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .file-input{
+      flex:1;
+      min-width:0;
+      height:43px;
+      padding:8px 11px;
+      border-radius:11px;
+      border:1px solid rgba(0,230,168,.19);
+      background:#031b18;
+      color:#dff7f1;
+      font-size:12px;
+    }
+
+    .file-input::file-selector-button{
+      border:0;
+      border-radius:8px;
+      background:#0b5a4d;
+      color:white;
+      padding:8px 12px;
+      margin-right:10px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .analyze-btn{
+      height:43px;
+      border:0;
+      border-radius:11px;
+      padding:0 22px;
+      background:linear-gradient(135deg,#00e6a8,#19f5c1);
+      color:#02241c;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 8px 25px rgba(0,230,168,.13);
+    }
+
+    .analyze-btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .analyze-btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .message{
+      max-width:100%;
+      margin:18px auto 0;
+      min-height:31px;
+      border:1px solid rgba(0,230,168,.17);
+      border-radius:10px;
+      background:rgba(0,230,168,.035);
+      color:var(--green2);
+      padding:8px 12px;
+      font-size:11px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .message.error{
+      border-color:rgba(255,77,93,.30);
+      background:rgba(255,77,93,.05);
+      color:#ff8994;
+    }
+
+    /* =========================
+       RESULT SUMMARY
+       ========================= */
+
+    .result-card{
+      margin-top:18px;
+      border:1px solid rgba(0,230,168,.16);
+      border-radius:18px;
+      background:rgba(6,35,31,.86);
+      overflow:hidden;
+    }
+
+    .section-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:19px 20px;
+      border-bottom:1px solid rgba(0,230,168,.11);
+    }
+
+    .section-head h2{
+      margin:0;
+      font-size:15px;
+    }
+
+    .risk-badge{
+      padding:6px 12px;
+      border-radius:20px;
+      border:1px solid rgba(0,230,168,.28);
+      color:var(--green);
+      font-size:10px;
+      font-weight:800;
+      text-transform:uppercase;
+    }
+
+    .risk-badge.critical{
+      color:var(--critical);
+      border-color:rgba(255,77,93,.38);
+      background:rgba(255,77,93,.07);
+    }
+
+    .risk-badge.high{
+      color:var(--high);
+      border-color:rgba(255,159,67,.35);
+      background:rgba(255,159,67,.06);
+    }
+
+    .risk-badge.medium{
+      color:var(--medium);
+      border-color:rgba(255,200,87,.35);
+      background:rgba(255,200,87,.06);
+    }
+
+    .risk-badge.low{
+      color:#b29bff;
+      border-color:rgba(139,92,246,.35);
+      background:rgba(139,92,246,.06);
+    }
+
+    .risk-badge.minimal{
+      color:var(--green);
+      border-color:rgba(0,230,168,.28);
+      background:rgba(0,230,168,.05);
+    }
+
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:13px;
+      padding:18px;
+    }
+
+    .metric{
+      border:1px solid rgba(0,230,168,.12);
+      border-radius:13px;
+      background:rgba(3,21,19,.55);
+      padding:16px;
+      min-height:92px;
+    }
+
+    .metric-label{
+      color:var(--muted);
+      font-size:10px;
+    }
+
+    .metric-value{
+      margin-top:10px;
+      font-size:23px;
+      font-weight:850;
+    }
+
+    .metric-value.small{
+      font-size:14px;
+      line-height:1.45;
+    }
+
+    /* =========================
+       EMAIL DETAILS
+       ========================= */
+
+    .details{
+      padding:0 18px 18px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:13px;
+    }
+
+    .detail-box{
+      border:1px solid rgba(0,230,168,.12);
+      border-radius:13px;
+      padding:15px;
+      background:rgba(3,21,19,.46);
+    }
+
+    .detail-label{
+      color:var(--muted);
+      font-size:10px;
+      margin-bottom:7px;
+    }
+
+    .detail-value{
+      font-size:12px;
+      line-height:1.5;
+      word-break:break-word;
+    }
+
+    /* =========================
+       INDICATORS
+       ========================= */
+
+    .indicator-list{
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .indicator{
+      border:1px solid rgba(0,230,168,.12);
+      background:rgba(3,21,19,.50);
+      border-radius:10px;
+      padding:11px 13px;
+      font-size:11px;
+      color:#d7ebe7;
+    }
+
+    .indicator::before{
+      content:"";
+      display:inline-block;
+      width:5px;
+      height:5px;
+      border-radius:50%;
+      background:var(--green);
+      margin-right:9px;
+      vertical-align:middle;
+    }
+
+    /* =========================
+       RECOMMENDATION
+       ========================= */
+
+    .recommendation{
+      margin:0 18px 18px;
+      padding:15px;
+      border-left:3px solid var(--green);
+      border-radius:0 10px 10px 0;
+      background:rgba(0,230,168,.045);
+      color:#d9eee9;
+      font-size:11px;
+      line-height:1.65;
+    }
+
+    .recommendation strong{
+      color:var(--green2);
+      display:block;
+      margin-bottom:5px;
+    }
+
+    /* =========================
+       URL TABLE
+       ========================= */
+
+    .table-wrap{
+      padding:0 18px 20px;
+      overflow-x:auto;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:700px;
+    }
+
+    th{
+      text-align:left;
+      color:var(--muted);
+      font-size:9px;
+      text-transform:uppercase;
+      letter-spacing:.7px;
+      padding:12px 10px;
+      border-bottom:1px solid rgba(0,230,168,.14);
+    }
+
+    td{
+      padding:13px 10px;
+      border-bottom:1px solid rgba(0,230,168,.08);
+      font-size:11px;
+      vertical-align:top;
+    }
+
+    td.url{
+      max-width:420px;
+      word-break:break-all;
+      color:#cce8e1;
+    }
+
+    .url-risk{
+      display:inline-block;
+      padding:5px 9px;
+      border-radius:15px;
+      font-size:9px;
+      font-weight:800;
+      border:1px solid rgba(0,230,168,.20);
+    }
+
+    .url-risk.critical{
+      color:var(--critical);
+      border-color:rgba(255,77,93,.35);
+    }
+
+    .url-risk.high{
+      color:var(--high);
+      border-color:rgba(255,159,67,.35);
+    }
+
+    .url-risk.medium{
+      color:var(--medium);
+      border-color:rgba(255,200,87,.35);
+    }
+
+    .url-risk.low{
+      color:#b29bff;
+      border-color:rgba(139,92,246,.35);
+    }
+
+    .url-risk.minimal{
+      color:var(--green);
+    }
+
+    .empty{
+      color:var(--muted);
+      text-align:center;
+      padding:28px;
+      font-size:11px;
+    }
+
+    /* =========================
+       LOADING
+       ========================= */
+
+    .loading{
+      display:none;
+      align-items:center;
+      justify-content:center;
+      gap:9px;
+      color:var(--green2);
+      font-size:11px;
+      margin-top:12px;
+    }
+
+    .loading.show{
+      display:flex;
+    }
+
+    .spinner{
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      border:2px solid rgba(0,230,168,.20);
+      border-top-color:var(--green);
+      animation:spin .7s linear infinite;
+    }
+
+    @keyframes spin{
+      to{transform:rotate(360deg)}
+    }
+
+    /* =========================
+       RAW RESPONSE
+       ========================= */
+
+    details.raw{
+      margin-top:18px;
+      border:1px solid rgba(0,230,168,.12);
+      border-radius:13px;
+      background:rgba(3,21,19,.50);
+      overflow:hidden;
+    }
+
+    details.raw summary{
+      cursor:pointer;
+      padding:13px 15px;
+      color:var(--green2);
+      font-size:11px;
+      font-weight:700;
+    }
+
+    pre{
+      margin:0;
+      padding:15px;
+      max-height:400px;
+      overflow:auto;
+      color:#a9c9c2;
+      font-size:10px;
+      line-height:1.5;
+      border-top:1px solid rgba(0,230,168,.10);
+    }
+
+    /* =========================
+       RESPONSIVE
+       ========================= */
+
+    @media(max-width:900px){
+      :root{
+        --sidebar:205px;
+      }
+
+      .summary-grid{
+        grid-template-columns:1fr;
+      }
+
+      .details{
+        grid-template-columns:1fr;
+      }
+
+      .topbar{
+        padding:0 15px;
+      }
+
+      .search{
+        display:none;
+      }
+    }
+
+    @media(max-width:650px){
+      .sidebar{
+        position:relative;
+        width:100%;
+        height:auto;
+        min-height:0;
+      }
+
+      .main{
+        margin-left:0;
+      }
+
+      .nav{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+      }
+
+      .sidebar-bottom{
+        margin-top:15px;
+      }
+
+      .topbar{
+        position:relative;
+      }
+
+      .content{
+        padding:22px 13px 40px;
+      }
+
+      .file-row{
+        flex-direction:column;
+      }
+
+      .file-input,
+      .analyze-btn{
+        width:100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       SIDEBAR
+       ========================= -->
+
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brand-logo">A</div>
+
+      <div>
+        <div class="brand-name">AEGIS</div>
+        <div class="brand-tag">DETECT • ANALYZE • PROTECT</div>
       </div>
-    </div></header><div class="page-shell">
-    <aside class="sidebar">
-      <div class="side-brand"><a class="brand" href="dashboard.html"><span class="brand-mark">A</span><span class="brand-copy">AEGIS<small>DETECT • ANALYZE • PROTECT</small></span></a></div>
-      <nav class="side-nav">
-        <a data-page="dashboard.html" href="dashboard.html"><span class="side-icon">⌂</span>Dashboard</a>
-        <a data-page="url-scanner.html" href="url-scanner.html"><span class="side-icon">⌁</span>URL Scanner</a>
-        <a data-page="email-analyzer.html" href="email-analyzer.html"><span class="side-icon">✉</span>Email Analyzer</a>
-        <a data-page="report-threat.html" href="report-threat.html"><span class="side-icon">▣</span>Incident Reports</a>
-        <a data-page="alerts.html" href="alerts.html"><span class="side-icon">♧</span>Alerts</a>
-        <a data-page="security-monitor.html" href="security-monitor.html"><span class="side-icon">⌁</span>Security Monitoring</a>
-        <a data-page="security-assistant.html" href="security-assistant.html"><span class="side-icon">✦</span>Security Assistant</a>
-        <a data-page="settings.html" href="settings.html"><span class="side-icon">⚙</span>Settings</a>
-        
-      </nav>
-      <div class="side-bottom"><div class="side-status"><span class="dot"></span><strong style="font-size:11px">System Online</strong><div class="small muted" style="margin-top:5px">AEGIS services operational</div></div></div>
-    </aside><main class="main">
-<div class="page-head"><div><div class="eyebrow">Message intelligence</div><h1>Email Analyzer</h1><p>Upload an .eml file. AEGIS extracts URLs and analyzes them without opening them.</p></div></div>
-<section class="card"><div style="text-align:center;padding:25px"><div class="stat-icon" style="margin:auto">✉</div><h2 style="font:700 20px Manrope">Upload an EML file</h2><p class="muted small">Maximum 10 MB · EML only</p><input id="file" type="file" accept=".eml" style="margin-top:10px"><br><button class="btn" id="emailBtn" style="margin-top:14px" onclick="analyze()">Analyze email</button><div id="notice" class="notice"></div></div></section>
-<section id="summary" class="card" style="display:none;margin-top:14px"></section>
-<section id="links" style="margin-top:14px"></section>
-</main></div><script src="app.js"></script>
+    </div>
+
+    <nav class="nav">
+
+      <a href="dashboard.html">
+        <span class="nav-icon">⌂</span>
+        Dashboard
+      </a>
+
+      <a href="url-scanner.html">
+        <span class="nav-icon">⌁</span>
+        URL Scanner
+      </a>
+
+      <a href="email-analyzer.html" class="active">
+        <span class="nav-icon">✉</span>
+        Email Analyzer
+      </a>
+
+      <a href="report-threat.html">
+        <span class="nav-icon">▣</span>
+        Incident Reports
+      </a>
+
+      <a href="alerts.html">
+        <span class="nav-icon">♧</span>
+        Alerts
+      </a>
+
+      <a href="security-monitor.html">
+        <span class="nav-icon">⌁</span>
+        Security Monitoring
+      </a>
+
+      <a href="security-assistant.html">
+        <span class="nav-icon">✦</span>
+        Security Assistant
+      </a>
+
+      <a href="settings.html">
+        <span class="nav-icon">⚙</span>
+        Settings
+      </a>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+      <div class="system-status">
+
+        <div class="status-line">
+          <span class="status-dot"></span>
+          <span>System Online</span>
+        </div>
+
+        <div class="status-sub">
+          AEGIS services operational
+        </div>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+  <!-- =========================
+       MAIN
+       ========================= -->
+
+  <main class="main">
+
+    <!-- TOPBAR -->
+
+    <header class="topbar">
+
+      <div class="search">
+        <span>⌕</span>
+        <span>Search threats, URLs, emails, reports...</span>
+      </div>
+
+      <div class="top-actions">
+
+        <button
+          class="top-btn"
+          onclick="window.location.href='settings.html'"
+          title="Settings"
+        >
+          ⚙
+        </button>
+
+        <button
+          class="top-btn"
+          onclick="window.location.href='alerts.html'"
+          title="Alerts"
+        >
+          ♧
+        </button>
+
+        <div class="profile">
+
+          <div class="profile-avatar" id="profileAvatar">
+            A
+          </div>
+
+          <div>
+            <div class="profile-name" id="profileName">
+              AEGIS Administrator
+            </div>
+
+            <div class="profile-role" id="profileRole">
+              Administrator
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- CONTENT -->
+
+    <div class="content">
+
+      <div class="eyebrow">
+        MESSAGE INTELLIGENCE
+      </div>
+
+      <h1>
+        Email Analyzer
+      </h1>
+
+      <div class="subtitle">
+        Upload an .eml email file. AEGIS extracts URLs and analyzes
+        suspicious links without opening the destination in your browser.
+      </div>
+
+
+      <!-- =========================
+           UPLOAD
+           ========================= -->
+
+      <section class="upload-card">
+
+        <div class="upload-icon">
+          ✉
+        </div>
+
+        <div class="upload-title">
+          Upload an EML File
+        </div>
+
+        <div class="upload-note">
+          Maximum 10 MB • EML only
+        </div>
+
+        <div class="file-row">
+
+          <input
+            id="emailFile"
+            class="file-input"
+            type="file"
+            accept=".eml,message/rfc822"
+          >
+
+          <button
+            id="analyzeBtn"
+            class="analyze-btn"
+            type="button"
+          >
+            Analyze email
+          </button>
+
+        </div>
+
+        <div id="message" class="message">
+          Select an .eml file to begin analysis.
+        </div>
+
+        <div id="loading" class="loading">
+          <span class="spinner"></span>
+          <span>Analyzing email and extracted URLs...</span>
+        </div>
+
+      </section>
+
+
+      <!-- =========================
+           RESULT
+           ========================= -->
+
+      <section
+        id="resultArea"
+        style="display:none"
+      >
+
+        <!-- SUMMARY -->
+
+        <section class="result-card">
+
+          <div class="section-head">
+
+            <h2>
+              Analysis Result
+            </h2>
+
+            <span
+              id="riskBadge"
+              class="risk-badge"
+            >
+              Unknown
+            </span>
+
+          </div>
+
+
+          <div class="summary-grid">
+
+            <div class="metric">
+
+              <div class="metric-label">
+                Risk Score
+              </div>
+
+              <div
+                class="metric-value"
+                id="riskScore"
+              >
+                —
+              </div>
+
+            </div>
+
+
+            <div class="metric">
+
+              <div class="metric-label">
+                URLs Extracted
+              </div>
+
+              <div
+                class="metric-value"
+                id="urlCount"
+              >
+                0
+              </div>
+
+            </div>
+
+
+            <div class="metric">
+
+              <div class="metric-label">
+                Confidence
+              </div>
+
+              <div
+                class="metric-value small"
+                id="confidence"
+              >
+                —
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- EMAIL DETAILS -->
+
+          <div class="details">
+
+            <div class="detail-box">
+
+              <div class="detail-label">
+                Sender
+              </div>
+
+              <div
+                class="detail-value"
+                id="sender"
+              >
+                —
+              </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+              <div class="detail-label">
+                Reply-To
+              </div>
+
+              <div
+                class="detail-value"
+                id="replyTo"
+              >
+                —
+              </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+              <div class="detail-label">
+                Subject
+              </div>
+
+              <div
+                class="detail-value"
+                id="subject"
+              >
+                —
+              </div>
+
+            </div>
+
+
+            <div class="detail-box">
+
+              <div class="detail-label">
+                Filename
+              </div>
+
+              <div
+                class="detail-value"
+                id="filename"
+              >
+                —
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- INDICATORS -->
+
+          <div class="section-head">
+            <h2>Security Indicators</h2>
+          </div>
+
+          <div
+            class="indicator-list"
+            id="indicatorList"
+          >
+            <div class="empty">
+              No indicators available.
+            </div>
+          </div>
+
+
+          <!-- RECOMMENDATION -->
+
+          <div
+            class="recommendation"
+            id="recommendationBox"
+          >
+
+            <strong>
+              Recommendation
+            </strong>
+
+            <span id="recommendation">
+              Review the detected indicators.
+            </span>
+
+          </div>
+
+        </section>
+
+
+        <!-- =========================
+             EXTRACTED URLS
+             ========================= -->
+
+        <section class="result-card">
+
+          <div class="section-head">
+
+            <h2>
+              Extracted URLs
+            </h2>
+
+            <span
+              id="urlHeaderCount"
+              class="risk-badge"
+            >
+              0 URLs
+            </span>
+
+          </div>
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    URL
+                  </th>
+
+                  <th>
+                    Risk
+                  </th>
+
+                  <th>
+                    Score
+                  </th>
+
+                  <th>
+                    Confidence
+                  </th>
+
+                  <th>
+                    Recommendation
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody id="urlTableBody">
+
+                <tr>
+                  <td
+                    colspan="5"
+                    class="empty"
+                  >
+                    No URLs extracted.
+                  </td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+
+        <!-- =========================
+             RAW RESPONSE
+             ========================= -->
+
+        <details class="raw">
+
+          <summary>
+            ▶ View raw email scanner response
+          </summary>
+
+          <pre id="rawResponse">
+No response yet.
+          </pre>
+
+        </details>
+
+      </section>
+
+    </div>
+
+  </main>
+
+
+  <script>
+
+    /* ============================================================
+       AEGIS API
+       ============================================================ */
+
+    const isLocal =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    const API_URL = isLocal
+      ? "http://127.0.0.1:8000"
+      : "https://aegis-4lcw.onrender.com";
+
+
+    /* ============================================================
+       DOM
+       ============================================================ */
+
+    const fileInput =
+      document.getElementById("emailFile");
+
+    const analyzeBtn =
+      document.getElementById("analyzeBtn");
+
+    const messageBox =
+      document.getElementById("message");
+
+    const loading =
+      document.getElementById("loading");
+
+    const resultArea =
+      document.getElementById("resultArea");
+
+
+    /* ============================================================
+       USER PROFILE
+       ============================================================ */
+
+    function getUser(){
+
+      try{
+
+        return JSON.parse(
+          localStorage.getItem("aegisUser") || "null"
+        );
+
+      }catch(error){
+
+        return null;
+
+      }
+
+    }
+
+
+    function setupProfile(){
+
+      const user =
+        getUser();
+
+      if(!user){
+        return;
+      }
+
+      const name =
+        user.name ||
+        user.email ||
+        "AEGIS User";
+
+      const role =
+        user.role ||
+        "User";
+
+      document.getElementById(
+        "profileName"
+      ).textContent = name;
+
+      document.getElementById(
+        "profileRole"
+      ).textContent = role;
+
+      document.getElementById(
+        "profileAvatar"
+      ).textContent =
+        String(name)
+          .trim()
+          .charAt(0)
+          .toUpperCase() || "A";
+
+    }
+
+
+    setupProfile();
+
+
+    /* ============================================================
+       MESSAGE
+       ============================================================ */
+
+    function showMessage(
+      text,
+      error = false
+    ){
+
+      messageBox.textContent =
+        text;
+
+      messageBox.classList.toggle(
+        "error",
+        error
+      );
+
+    }
+
+
+    /* ============================================================
+       ESCAPE HTML
+       ============================================================ */
+
+    function esc(value){
+
+      return String(
+        value ?? ""
+      ).replace(
+        /[&<>"']/g,
+        function(character){
+
+          return {
+            "&":"&amp;",
+            "<":"&lt;",
+            ">":"&gt;",
+            '"':"&quot;",
+            "'":"&#039;"
+          }[character];
+
+        }
+      );
+
+    }
+
+
+    /* ============================================================
+       NORMALIZE RISK
+       ============================================================ */
+
+    function normalizeRisk(
+      value
+    ){
+
+      if(
+        value === null ||
+        value === undefined ||
+        value === ""
+      ){
+
+        return "Unknown";
+
+      }
+
+      const risk =
+        String(value)
+          .trim()
+          .toLowerCase();
+
+      if(risk === "critical"){
+        return "Critical";
+      }
+
+      if(risk === "high"){
+        return "High";
+      }
+
+      if(risk === "medium"){
+        return "Medium";
+      }
+
+      if(risk === "low"){
+        return "Low";
+      }
+
+      if(
+        risk === "minimal" ||
+        risk === "safe"
+      ){
+
+        return "Minimal";
+
+      }
+
+      return String(value);
+
+    }
+
+
+    /* ============================================================
+       RISK CLASS
+       ============================================================ */
+
+    function riskClass(
+      risk
+    ){
+
+      return String(
+        normalizeRisk(risk)
+      )
+      .toLowerCase()
+      .replace(
+        /\s+/g,
+        "-"
+      );
+
+    }
+
+
+    /* ============================================================
+       NORMALIZE SCORE
+       ============================================================ */
+
+    function normalizeScore(
+      value
+    ){
+
+      if(
+        value === null ||
+        value === undefined ||
+        value === ""
+      ){
+
+        return "—";
+
+      }
+
+      const number =
+        Number(value);
+
+      if(
+        Number.isFinite(number)
+      ){
+
+        return Math.round(number);
+
+      }
+
+      return value;
+
+    }
+
+
+    /* ============================================================
+       FIND URL ARRAY
+       ============================================================ */
+
+    function getUrlArray(
+      analysis
+    ){
+
+      const candidates = [
+
+        analysis.urls,
+
+        analysis.extracted_urls,
+
+        analysis.extractedUrls,
+
+        analysis.url_results,
+
+        analysis.urlResults,
+
+        analysis.results,
+
+        analysis.links
+
+      ];
+
+      for(
+        const candidate of candidates
+      ){
+
+        if(
+          Array.isArray(candidate)
+        ){
+
+          return candidate;
+
+        }
+
+      }
+
+      return [];
+
+    }
+
+
+    /* ============================================================
+       NORMALIZE URL RESULT
+       ============================================================ */
+
+    function normalizeUrlResult(
+      item
+    ){
+
+      if(
+        typeof item === "string"
+      ){
+
+        return {
+          url:item,
+          risk_level:"Unknown",
+          risk_score:"—",
+          confidence:"—",
+          recommendation:"No URL-level result was returned."
+        };
+
+      }
+
+
+      if(
+        !item ||
+        typeof item !== "object"
+      ){
+
+        return {
+          url:"",
+          risk_level:"Unknown",
+          risk_score:"—",
+          confidence:"—",
+          recommendation:"No URL-level result was returned."
+        };
+
+      }
+
+
+      let result =
+        item.result ||
+        item.analysis ||
+        item.scan_result ||
+        item;
+
+
+      if(
+        result &&
+        typeof result === "object"
+      ){
+
+        return {
+
+          url:
+            item.url ||
+            result.url ||
+            item.link ||
+            result.link ||
+            "",
+
+          risk_level:
+            result.risk_level ||
+            result.riskLevel ||
+            item.risk_level ||
+            item.riskLevel ||
+            "Unknown",
+
+          risk_score:
+            result.risk_score ??
+            result.riskScore ??
+            item.risk_score ??
+            item.riskScore ??
+            "—",
+
+          confidence:
+            result.confidence ||
+            item.confidence ||
+            "—",
+
+          recommendation:
+            result.recommendation ||
+            item.recommendation ||
+            "Review the detected indicators.",
+
+          indicators:
+            result.indicators ||
+            item.indicators ||
+            []
+
+        };
+
+      }
+
+
+      return {
+
+        url:
+          item.url ||
+          "",
+
+        risk_level:
+          item.risk_level ||
+          "Unknown",
+
+        risk_score:
+          item.risk_score ??
+          "—",
+
+        confidence:
+          item.confidence ||
+          "—",
+
+        recommendation:
+          item.recommendation ||
+          "Review the detected indicators.",
+
+        indicators:
+          item.indicators ||
+          []
+
+      };
+
+    }
+
+
+    /* ============================================================
+       GET OVERALL RESULT
+       ============================================================ */
+
+    function getOverallResult(
+      data
+    ){
+
+      const candidates = [
+
+        data,
+
+        data.analysis,
+
+        data.result,
+
+        data.email_analysis,
+
+        data.emailAnalysis,
+
+        data.summary
+
+      ];
+
+      for(
+        const candidate of candidates
+      ){
+
+        if(
+          candidate &&
+          typeof candidate === "object"
+        ){
+
+          if(
+            candidate.risk_level ||
+            candidate.risk_score !== undefined ||
+            candidate.confidence ||
+            candidate.recommendation
+          ){
+
+            return candidate;
+
+          }
+
+        }
+
+      }
+
+      return data || {};
+
+    }
+
+
+    /* ============================================================
+       BUILD OVERALL RESULT FROM URL RESULTS
+       ============================================================ */
+
+    function deriveFromUrls(
+      urls,
+      analysis
+    ){
+
+      if(
+        !Array.isArray(urls) ||
+        urls.length === 0
+      ){
+
+        return {
+
+          risk_level:
+            normalizeRisk(
+              analysis.risk_level ||
+              analysis.riskLevel
+            ),
+
+          risk_score:
+            normalizeScore(
+              analysis.risk_score ??
+              analysis.riskScore
+            ),
+
+          confidence:
+            analysis.confidence ||
+            "—",
+
+          recommendation:
+            analysis.recommendation ||
+            "No URL-level analysis was returned."
+
+        };
+
+      }
+
+
+      const normalized =
+        urls.map(
+          normalizeUrlResult
+        );
+
+
+      const severityOrder = {
+
+        "Critical":5,
+        "High":4,
+        "Medium":3,
+        "Low":2,
+        "Minimal":1,
+        "Unknown":0
+
+      };
+
+
+      let highest =
+        normalized[0];
+
+
+      for(
+        const current of normalized
+      ){
+
+        if(
+          (
+            severityOrder[
+              normalizeRisk(
+                current.risk_level
+              )
+            ] || 0
+          )
+          >
+          (
+            severityOrder[
+              normalizeRisk(
+                highest.risk_level
+              )
+            ] || 0
+          )
+        ){
+
+          highest =
+            current;
+
+        }
+
+      }
+
+
+      let score =
+        highest.risk_score;
+
+
+      if(
+        score === "—"
+      ){
+
+        const scores =
+          normalized
+            .map(
+              item =>
+                Number(
+                  item.risk_score
+                )
+            )
+            .filter(
+              Number.isFinite
+            );
+
+        if(scores.length){
+
+          score =
+            Math.max(
+              ...scores
+            );
+
+        }
+
+      }
+
+
+      return {
+
+        risk_level:
+          normalizeRisk(
+            analysis.risk_level ||
+            analysis.riskLevel ||
+            highest.risk_level
+          ),
+
+        risk_score:
+          normalizeScore(
+            analysis.risk_score ??
+            analysis.riskScore ??
+            score
+          ),
+
+        confidence:
+          analysis.confidence ||
+          highest.confidence ||
+          "—",
+
+        recommendation:
+          analysis.recommendation ||
+          highest.recommendation ||
+          "Review the detected indicators."
+
+      };
+
+    }
+
+
+    /* ============================================================
+       RENDER RISK BADGE
+       ============================================================ */
+
+    function renderRiskBadge(
+      element,
+      risk
+    ){
+
+      const normalized =
+        normalizeRisk(risk);
+
+      element.textContent =
+        normalized;
+
+      element.className =
+        "risk-badge " +
+        riskClass(normalized);
+
+    }
+
+
+    /* ============================================================
+       RENDER INDICATORS
+       ============================================================ */
+
+    function renderIndicators(
+      indicators
+    ){
+
+      const container =
+        document.getElementById(
+          "indicatorList"
+        );
+
+
+      let all = [];
+
+
+      if(
+        Array.isArray(indicators)
+      ){
+
+        all =
+          indicators;
+
+      }
+      else if(
+        typeof indicators === "string" &&
+        indicators.trim()
+      ){
+
+        all =
+          indicators
+            .split(",")
+            .map(
+              item => item.trim()
+            )
+            .filter(Boolean);
+
+      }
+
+
+      if(
+        !all.length
+      ){
+
+        container.innerHTML = `
+          <div class="empty">
+            No significant suspicious indicators were returned.
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      container.innerHTML =
+        all.map(
+          indicator => `
+            <div class="indicator">
+              ${esc(indicator)}
+            </div>
+          `
+        ).join("");
+
+    }
+
+
+    /* ============================================================
+       RENDER URL TABLE
+       ============================================================ */
+
+    function renderUrls(
+      urls
+    ){
+
+      const tbody =
+        document.getElementById(
+          "urlTableBody"
+        );
+
+      const headerCount =
+        document.getElementById(
+          "urlHeaderCount"
+        );
+
+
+      headerCount.textContent =
+        `${urls.length} URL${urls.length === 1 ? "" : "s"}`;
+
+
+      if(
+        !urls.length
+      ){
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty">
+              No URLs were extracted from this email.
+            </td>
+          </tr>
+        `;
+
+        return;
+
+      }
+
+
+      tbody.innerHTML =
+        urls.map(
+          rawItem => {
+
+            const item =
+              normalizeUrlResult(
+                rawItem
+              );
+
+            const risk =
+              normalizeRisk(
+                item.risk_level
+              );
+
+            return `
+              <tr>
+
+                <td class="url">
+                  ${esc(item.url || "Unknown URL")}
+                </td>
+
+                <td>
+                  <span
+                    class="url-risk ${riskClass(risk)}"
+                  >
+                    ${esc(risk)}
+                  </span>
+                </td>
+
+                <td>
+                  ${esc(
+                    normalizeScore(
+                      item.risk_score
+                    )
+                  )}
+                </td>
+
+                <td>
+                  ${esc(
+                    item.confidence || "—"
+                  )}
+                </td>
+
+                <td>
+                  ${esc(
+                    item.recommendation ||
+                    "Review the detected indicators."
+                  )}
+                </td>
+
+              </tr>
+            `;
+
+          }
+        ).join("");
+
+    }
+
+
+    /* ============================================================
+       RENDER ANALYSIS
+       ============================================================ */
+
+    function renderAnalysis(
+      data
+    ){
+
+      const analysis =
+        getOverallResult(
+          data
+        );
+
+
+      const rawUrls =
+        getUrlArray(
+          analysis
+        );
+
+
+      const urls =
+        rawUrls.length
+          ? rawUrls
+          : getUrlArray(data);
+
+
+      const overall =
+        deriveFromUrls(
+          urls,
+          analysis
+        );
+
+
+      /* ---------- Risk ---------- */
+
+      renderRiskBadge(
+        document.getElementById(
+          "riskBadge"
+        ),
+        overall.risk_level
+      );
+
+
+      document.getElementById(
+        "riskScore"
+      ).textContent =
+        normalizeScore(
+          overall.risk_score
+        );
+
+
+      document.getElementById(
+        "urlCount"
+      ).textContent =
+        urls.length;
+
+
+      document.getElementById(
+        "confidence"
+      ).textContent =
+        overall.confidence || "—";
+
+
+      /* ---------- Email details ---------- */
+
+      document.getElementById(
+        "sender"
+      ).textContent =
+        analysis.sender ||
+        analysis.from ||
+        analysis.sender_email ||
+        "Not available";
+
+
+      document.getElementById(
+        "replyTo"
+      ).textContent =
+        analysis.reply_to ||
+        analysis.replyTo ||
+        "Not available";
+
+
+      document.getElementById(
+        "subject"
+      ).textContent =
+        analysis.subject ||
+        "No subject";
+
+
+      document.getElementById(
+        "filename"
+      ).textContent =
+        analysis.filename ||
+        "Uploaded EML file";
+
+
+      /* ---------- Indicators ---------- */
+
+      let indicators =
+        analysis.indicators ||
+        analysis.security_indicators ||
+        analysis.securityIndicators ||
+        [];
+
+
+      if(
+        !Array.isArray(indicators) &&
+        typeof indicators !== "string"
+      ){
+
+        indicators = [];
+
+      }
+
+
+      /* Add URL indicators if overall email result has none */
+
+      if(
+        (
+          !Array.isArray(indicators) ||
+          indicators.length === 0
+        ) &&
+        urls.length
+      ){
+
+        const collected = [];
+
+        for(
+          const rawItem of urls
+        ){
+
+          const item =
+            normalizeUrlResult(
+              rawItem
+            );
+
+          if(
+            Array.isArray(
+              item.indicators
+            )
+          ){
+
+            collected.push(
+              ...item.indicators
+            );
+
+          }
+
+        }
+
+        indicators =
+          [...new Set(collected)];
+
+      }
+
+
+      renderIndicators(
+        indicators
+      );
+
+
+      /* ---------- Recommendation ---------- */
+
+      document.getElementById(
+        "recommendation"
+      ).textContent =
+        overall.recommendation ||
+        "Review the detected indicators before interacting with the email.";
+
+
+      /* ---------- URL table ---------- */
+
+      renderUrls(
+        urls
+      );
+
+
+      /* ---------- Raw response ---------- */
+
+      document.getElementById(
+        "rawResponse"
+      ).textContent =
+        JSON.stringify(
+          data,
+          null,
+          2
+        );
+
+
+      /* ---------- Show ---------- */
+
+      resultArea.style.display =
+        "block";
+
+
+      resultArea.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      });
+
+    }
+
+
+    /* ============================================================
+       ANALYZE EMAIL
+       ============================================================ */
+
+    async function analyzeEmail(){
+
+      const file =
+        fileInput.files[0];
+
+
+      if(!file){
+
+        showMessage(
+          "Please select an .eml file first.",
+          true
+        );
+
+        return;
+
+      }
+
+
+      if(
+        !file.name
+          .toLowerCase()
+          .endsWith(".eml")
+      ){
+
+        showMessage(
+          "Only .eml email files are supported.",
+          true
+        );
+
+        return;
+
+      }
+
+
+      if(
+        file.size >
+        10 * 1024 * 1024
+      ){
+
+        showMessage(
+          "The email file must be 10 MB or smaller.",
+          true
+        );
+
+        return;
+
+      }
+
+
+      analyzeBtn.disabled =
+        true;
+
+      loading.classList.add(
+        "show"
+      );
+
+      resultArea.style.display =
+        "none";
+
+
+      showMessage(
+        "Uploading email for analysis..."
+      );
+
+
+      try{
+
+        const formData =
+          new FormData();
+
+        formData.append(
+          "file",
+          file
+        );
+
+
+        const response =
+          await fetch(
+            `${API_URL}/analyze-email`,
+            {
+              method:"POST",
+              body:formData
+            }
+          );
+
+
+        let data = null;
+
+        try{
+
+          data =
+            await response.json();
+
+        }catch(error){
+
+          data = null;
+
+        }
+
+
+        if(
+          !response.ok
+        ){
+
+          const detail =
+            data?.detail ||
+            data?.message ||
+            `Email analysis failed with HTTP ${response.status}.`;
+
+          throw new Error(
+            detail
+          );
+
+        }
+
+
+        showMessage(
+          "Email analysis completed successfully."
+        );
+
+
+        renderAnalysis(
+          data
+        );
+
+      }
+      catch(error){
+
+        console.error(
+          "AEGIS EMAIL ANALYZER ERROR:",
+          error
+        );
+
+
+        showMessage(
+          error?.message ||
+          "Unable to analyze the email.",
+          true
+        );
+
+      }
+      finally{
+
+        analyzeBtn.disabled =
+          false;
+
+        loading.classList.remove(
+          "show"
+        );
+
+      }
+
+    }
+
+
+    /* ============================================================
+       EVENTS
+       ============================================================ */
+
+    analyzeBtn.addEventListener(
+      "click",
+      analyzeEmail
+    );
+
+
+    fileInput.addEventListener(
+      "change",
+      function(){
+
+        const file =
+          fileInput.files[0];
+
+        if(!file){
+
+          showMessage(
+            "Select an .eml file to begin analysis."
+          );
+
+          return;
+
+        }
+
+
+        showMessage(
+          `Selected: ${file.name}`
+        );
+
+      }
+    );
+
+
+    /* ============================================================
+       INITIAL
+       ============================================================ */
+
+    console.log(
+      "AEGIS Email Analyzer API:",
+      API_URL
+    );
+
+  </script>
+
+</body>
+</html>
