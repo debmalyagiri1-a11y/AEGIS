@@ -1515,7 +1515,293 @@ def admin_stats(
             db.query(QuizResult).count()
 
     }
+# ============================================================
+# DASHBOARD OVERVIEW
+# ============================================================
 
+@app.get("/dashboard/overview")
+def dashboard_overview(
+    db: Session = Depends(get_db)
+):
+    """Return the live data required by the AEGIS dashboard."""
+
+    # -----------------------------
+    # URL scan statistics
+    # -----------------------------
+    total_url_scans = db.query(URLScan).count()
+
+    critical_urls = db.query(URLScan).filter(
+        URLScan.risk_level == "Critical"
+    ).count()
+
+    high_urls = db.query(URLScan).filter(
+        URLScan.risk_level == "High"
+    ).count()
+
+    medium_urls = db.query(URLScan).filter(
+        URLScan.risk_level == "Medium"
+    ).count()
+
+    low_urls = db.query(URLScan).filter(
+        URLScan.risk_level == "Low"
+    ).count()
+
+    minimal_urls = db.query(URLScan).filter(
+        URLScan.risk_level == "Minimal"
+    ).count()
+
+    high_risk_urls = critical_urls + high_urls
+    safe_urls = low_urls + minimal_urls
+
+    # -----------------------------
+    # Incident statistics
+    # -----------------------------
+    total_threat_reports = db.query(ThreatReport).count()
+
+    pending_reports = db.query(ThreatReport).filter(
+        ThreatReport.status == "Pending"
+    ).count()
+
+    critical_reports = db.query(ThreatReport).filter(
+        ThreatReport.severity == "Critical"
+    ).count()
+
+    high_reports = db.query(ThreatReport).filter(
+        ThreatReport.severity == "High"
+    ).count()
+
+    # -----------------------------
+    # Login statistics
+    # -----------------------------
+    failed_logins = db.query(LoginEvent).filter(
+        LoginEvent.success == 0
+    ).count()
+
+    successful_logins = db.query(LoginEvent).filter(
+        LoginEvent.success == 1
+    ).count()
+
+    # -----------------------------
+    # SECURITY SCORE
+    # -----------------------------
+    score = 100
+
+    score -= critical_urls * 12
+    score -= high_urls * 7
+    score -= medium_urls * 2
+
+    score -= critical_reports * 10
+    score -= high_reports * 6
+
+    score -= failed_logins * 2
+
+    score = max(0, min(100, score))
+
+    if score >= 85:
+        security_status = "Secure"
+    elif score >= 70:
+        security_status = "Good"
+    elif score >= 50:
+        security_status = "Needs attention"
+    elif score >= 25:
+        security_status = "At risk"
+    else:
+        security_status = "Critical"
+
+    # -----------------------------
+    # THREAT DISTRIBUTION
+    # -----------------------------
+    threat_distribution = {
+        "Critical": critical_urls,
+        "High": high_urls,
+        "Medium": medium_urls,
+        "Low": low_urls,
+        "Minimal": minimal_urls
+    }
+
+    # -----------------------------
+    # RECENT URL SCANS
+    # -----------------------------
+    recent_scans = db.query(URLScan).order_by(
+        URLScan.id.desc()
+    ).limit(10).all()
+
+    # -----------------------------
+    # RECENT INCIDENT REPORTS
+    # -----------------------------
+    recent_reports = db.query(ThreatReport).order_by(
+        ThreatReport.id.desc()
+    ).limit(10).all()
+
+    recent_threats = []
+
+    for scan_item in recent_scans:
+
+        recent_threats.append({
+            "id": scan_item.id,
+            "type": "URL Scan",
+            "url": scan_item.url,
+            "domain": scan_item.domain,
+            "severity": scan_item.risk_level or "Low",
+            "status": "Analyzed",
+            "description": (
+                scan_item.recommendation
+                or "URL analyzed by AEGIS."
+            )
+        })
+
+    for report_item in recent_reports:
+
+        recent_threats.append({
+            "id": report_item.id,
+            "type": report_item.threat_type or "Threat Report",
+            "url": None,
+            "domain": None,
+            "severity": report_item.severity or "Medium",
+            "status": report_item.status or "Pending",
+            "description": report_item.description
+        })
+
+    recent_threats = recent_threats[:10]
+
+    # -----------------------------
+    # SECURITY ALERTS
+    # -----------------------------
+    alerts = []
+
+    for scan_item in recent_scans:
+
+        if scan_item.risk_level in [
+            "Critical",
+            "High"
+        ]:
+
+            alerts.append({
+                "severity": scan_item.risk_level,
+                "title": (
+                    f"{scan_item.risk_level} URL detected"
+                ),
+                "description": (
+                    f"{scan_item.domain or scan_item.url} "
+                    f"received a risk score of "
+                    f"{scan_item.risk_score}."
+                )
+            })
+
+    for report_item in recent_reports:
+
+        if report_item.severity in [
+            "Critical",
+            "High"
+        ]:
+
+            alerts.append({
+                "severity": report_item.severity,
+                "title": (
+                    f"{report_item.severity} incident reported"
+                ),
+                "description": report_item.description
+            })
+
+    # -----------------------------
+    # RECENT FAILED LOGINS
+    # -----------------------------
+    recent_failed = db.query(LoginEvent).filter(
+        LoginEvent.success == 0
+    ).order_by(
+        LoginEvent.id.desc()
+    ).limit(5).all()
+
+    for login_item in recent_failed:
+
+        if login_item.risk_level in [
+            "High",
+            "Critical"
+        ]:
+
+            alerts.append({
+                "severity": login_item.risk_level,
+                "title": "Suspicious login activity",
+                "description": (
+                    login_item.anomaly_reason
+                    or "Repeated failed login attempts detected."
+                )
+            })
+
+    alerts = alerts[:5]
+
+    # -----------------------------
+    # RECENT AUDIT ACTIVITY
+    # -----------------------------
+    recent_logs = db.query(AuditLog).order_by(
+        AuditLog.id.desc()
+    ).limit(10).all()
+
+    recent_activity = [
+
+        {
+            "id": log.id,
+            "action": log.action,
+            "details": log.details or "",
+            "created_at": log.created_at
+        }
+
+        for log in recent_logs
+    ]
+
+    # -----------------------------
+    # FINAL DASHBOARD RESPONSE
+    # -----------------------------
+    return {
+
+        "statistics": {
+
+            "total_url_scans":
+                total_url_scans,
+
+            "total_threat_reports":
+                total_threat_reports,
+
+            "high_risk_urls":
+                high_risk_urls,
+
+            "safe_urls":
+                safe_urls,
+
+            "failed_logins":
+                failed_logins,
+
+            "successful_logins":
+                successful_logins,
+
+            "pending_reports":
+                pending_reports,
+
+            "critical_reports":
+                critical_reports,
+
+            "high_reports":
+                high_reports
+        },
+
+        "security_score":
+            score,
+
+        "security_status":
+            security_status,
+
+        "threat_distribution":
+            threat_distribution,
+
+        "alerts":
+            alerts,
+
+        "recent_threats":
+            recent_threats,
+
+        "recent_activity":
+            recent_activity
+    }
 
 # ============================================================
 # GET USER
