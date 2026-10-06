@@ -1770,13 +1770,105 @@ def check_malpedia_api():
         }
 
 
+def check_phishtank(url: str):
+    """
+    Check a URL against PhishTank phishing intelligence.
+
+    The URL is submitted only for reputation lookup; AEGIS does not
+    open or visit the destination. A PhishTank application key may be
+    configured as PHISHTANK_APP_KEY, but the API also supports limited
+    unauthenticated lookups.
+    """
+
+    try:
+        payload = {
+            "url": url,
+            "format": "json",
+        }
+
+        app_key = os.getenv("PHISHTANK_APP_KEY", "").strip()
+        if app_key:
+            payload["app_key"] = app_key
+
+        response = requests.post(
+            "https://checkurl.phishtank.com/checkurl/",
+            data=payload,
+            headers={
+                "User-Agent": "AEGIS-URL-Scanner/1.0"
+            },
+            timeout=10,
+        )
+
+        if response.status_code != 200:
+            return {
+                "found": False,
+                "verified": False,
+                "available": False,
+                "message": f"PhishTank returned HTTP {response.status_code}.",
+                "phish_id": None,
+                "detail_url": None,
+            }
+
+        data = response.json()
+        result = data.get("results", {})
+
+        if isinstance(result, list):
+            result = result[0] if result else {}
+
+        in_database = str(result.get("in_database", "false")).lower() == "true"
+        verified = str(result.get("verified", "no")).lower() in {"yes", "y", "true", "1"}
+        valid = str(result.get("valid", "no")).lower() in {"yes", "y", "true", "1"}
+
+        found = in_database and verified and valid
+
+        if found:
+            return {
+                "found": True,
+                "verified": True,
+                "available": True,
+                "message": "URL matched a verified and valid PhishTank phishing record.",
+                "phish_id": result.get("phish_id"),
+                "detail_url": result.get("phish_detail_page"),
+            }
+
+        if in_database:
+            return {
+                "found": False,
+                "verified": verified,
+                "available": True,
+                "message": "URL exists in PhishTank, but the returned record is not currently verified and valid.",
+                "phish_id": result.get("phish_id"),
+                "detail_url": result.get("phish_detail_page"),
+            }
+
+        return {
+            "found": False,
+            "verified": False,
+            "available": True,
+            "message": "URL was not found in PhishTank phishing intelligence.",
+            "phish_id": None,
+            "detail_url": None,
+        }
+
+    except Exception as error:
+        return {
+            "found": False,
+            "verified": False,
+            "available": False,
+            "message": "PhishTank intelligence check unavailable.",
+            "phish_id": None,
+            "detail_url": None,
+            "error": str(error),
+        }
+
+
 def scan_url(url: str):
     """
     Advanced URL scanner.
 
-    Runs local static analysis first, then checks URLhaus
-    threat intelligence. The submitted URL is sent to URLhaus
-    only for reputation lookup.
+    Runs local static analysis plus external reputation checks.
+    A verified phishing/malware intelligence match always overrides
+    the static score and is classified as Critical.
     """
 
     result = detect_threat(url)
@@ -1818,46 +1910,107 @@ def scan_url(url: str):
             "note": "IP intelligence was unavailable."
         }
 
-    intelligence = check_urlhaus(url)
+    # --------------------------------------------------------
+    # External reputation checks
+    # --------------------------------------------------------
+
+    phishtank = check_phishtank(url)
+    urlhaus = check_urlhaus(url)
 
     result["threat_intelligence"] = {
-        "source": "URLhaus",
-        "available": intelligence.get("available", False),
-        "found": intelligence.get("found", False),
-        "message": intelligence.get("message", "")
+        "sources": ["PhishTank", "URLhaus"],
+        "available": bool(
+            phishtank.get("available") or urlhaus.get("available")
+        ),
+        "phishtank": {
+            "available": phishtank.get("available", False),
+            "found": phishtank.get("found", False),
+            "verified": phishtank.get("verified", False),
+            "message": phishtank.get("message", ""),
+            "phish_id": phishtank.get("phish_id"),
+            "detail_url": phishtank.get("detail_url"),
+        },
+        "urlhaus": {
+            "available": urlhaus.get("available", False),
+            "found": urlhaus.get("found", False),
+            "message": urlhaus.get("message", ""),
+        },
     }
 
-    if intelligence.get("found"):
-
+    # A verified phishing match is decisive.
+    if phishtank.get("found"):
         result["risk_score"] = 100
         result["risk_level"] = "Critical"
         result["confidence"] = "Very High"
 
-        indicator = (
-            "URL matched URLhaus malware URL intelligence."
+        indicator = "URL matched verified PhishTank phishing intelligence."
+        if indicator not in result["indicators"]:
+            result["indicators"].append(indicator)
+
+        phish_id = phishtank.get("phish_id")
+        if phish_id:
+            result["indicators"].append(
+                f"PhishTank phishing record ID: {phish_id}."
+            )
+
+        result["recommendation"] = (
+            "CRITICAL: Do not open this URL. PhishTank identified the URL "
+            "as a verified phishing URL. Do not enter credentials, payment "
+            "information, OTPs, or personal data."
         )
 
+        return result
+
+    # A malware URLhaus match is also decisive.
+    if urlhaus.get("found"):
+        result["risk_score"] = 100
+        result["risk_level"] = "Critical"
+        result["confidence"] = "Very High"
+
+        indicator = "URL matched URLhaus malware URL intelligence."
         if indicator not in result["indicators"]:
             result["indicators"].append(indicator)
 
         result["recommendation"] = (
-            "Do not open this URL. Threat intelligence identified "
-            "the URL as associated with malicious activity. Do not "
-            "enter credentials, payment information, OTPs, or "
-            "personal data."
+            "CRITICAL: Do not open this URL. Threat intelligence identified "
+            "the URL as associated with malicious activity. Do not enter "
+            "credentials, payment information, OTPs, or personal data."
         )
 
-    elif not intelligence.get("available"):
+        return result
 
+    # Important: no reputation match is NOT proof that a URL is safe.
+    reputation_available = bool(
+        phishtank.get("available") or urlhaus.get("available")
+    )
+
+    if not reputation_available:
         indicator = (
-            "External URLhaus threat-intelligence check was unavailable; "
-            "static analysis was used."
+            "External phishing/malware reputation checks were unavailable; "
+            "static analysis was used and the result must not be interpreted as proof of safety."
+        )
+    else:
+        indicator = (
+            "No verified phishing or malware match was returned by the checked "
+            "reputation sources; this does not guarantee that the URL is safe."
         )
 
-        if indicator not in result["indicators"]:
-            result["indicators"].append(indicator)
+    if indicator not in result["indicators"]:
+        result["indicators"].append(indicator)
+
+    # If static analysis says Minimal but reputation was unavailable,
+    # don't display an overly confident 'safe' result.
+    if not reputation_available and result.get("risk_level") == "Minimal":
+        result["risk_level"] = "Low"
+        result["confidence"] = "Low"
+        result["recommendation"] = (
+            "No strong malicious pattern was detected by static analysis, "
+            "but external reputation checks were unavailable. This result "
+            "does not guarantee that the destination is safe."
+        )
 
     return result
+
 
 def check_urlhaus(url: str):
     """
@@ -1865,9 +2018,18 @@ def check_urlhaus(url: str):
     """
 
     try:
+        headers = {
+            "User-Agent": "AEGIS-URL-Scanner/1.0"
+        }
+
+        auth_key = os.getenv("URLHAUS_AUTH_KEY", "").strip()
+        if auth_key:
+            headers["Auth-Key"] = auth_key
+
         response = requests.post(
             "https://urlhaus-api.abuse.ch/v1/url/",
             data={"url": url},
+            headers=headers,
             timeout=8
         )
 
