@@ -14,9 +14,10 @@ function getUID(){
   const u=getUser(); return u ? Number(u.id ?? u.user_id ?? u.userId) : null;
 }
 function requireAuth(){
-  if(!getUser()) location.href="login.html";
+  if(!getUser() || !sessionStorage.getItem("aegisAccessToken")) location.href="login.html";
 }
 function logout(){
+  sessionStorage.removeItem("aegisAccessToken");
   localStorage.removeItem("aegisUser");
   localStorage.removeItem("aegisUserId");
   location.href="login.html";

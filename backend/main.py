@@ -15,11 +15,14 @@ from passlib.context import CryptContext
 
 from datetime import datetime, timedelta
 
-import random
+import secrets
 import os
 import tempfile
+from backend.auth import create_token, read_token, deliver_mfa, is_local_demo, rate_limit
+from fastapi.responses import JSONResponse
 
 from backend.email_analyzer import analyze_eml_file
+from backend.fact_checker import fact_check_text
 
 from backend.database import Base, engine, SessionLocal
 
@@ -38,7 +41,8 @@ from backend.schemas import (
     UserLogin,
     ThreatReportCreate,
     URLScanRequest,
-    MFAVerifyRequest
+    MFAVerifyRequest,
+    FactCheckRequest,
 )
 
 from backend.detector import (
@@ -67,8 +71,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["https://debmalyagiri1-a11y.github.io", "http://127.0.0.1:5500", "http://localhost:5500", "http://127.0.0.1:8000"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"]
 )
@@ -123,66 +127,8 @@ def verify_password(
 # DEFAULT ADMIN ACCOUNT
 # ============================================================
 
-def create_default_admin():
-
-    db = SessionLocal()
-
-    try:
-
-        admin_email = "admin@aegis.com"
-
-        existing_admin = db.query(
-            User
-        ).filter(
-            User.email == admin_email
-        ).first()
-
-        if existing_admin:
-
-            print(
-                "AEGIS admin account already exists"
-            )
-
-            return
-
-        admin = User(
-
-            name="AEGIS Administrator",
-
-            email=admin_email,
-
-            password=hash_password(
-                "Admin@123"
-            ),
-
-            role="admin"
-
-        )
-
-        db.add(admin)
-
-        db.commit()
-
-        print(
-            "Default AEGIS admin account created successfully"
-        )
-
-    except Exception as e:
-
-        db.rollback()
-
-        print(
-            f"Admin creation error: {e}"
-        )
-
-    finally:
-
-        db.close()
-
-
-# Create admin when backend starts
-create_default_admin()
-
+# Administrators must be provisioned manually; never create a known-password account.
+# If a legacy admin account uses Admin@123, change its password immediately.
 
 # ============================================================
 # DATABASE SESSION
@@ -234,6 +180,46 @@ def user_dict(user):
 
     }
 
+
+# Authenticate and authorize centrally, including endpoints using arbitrary user_id.
+# The database is the source of truth for roles; token roles are not trusted.
+@app.middleware("http")
+async def enforce_access(request: Request, call_next):
+    path = request.url.path
+    if request.method == "OPTIONS" or path in ("/", "/health", "/openapi.json", "/docs", "/redoc", "/login", "/register", "/verify-mfa"):
+        return await call_next(request)
+    authorization = request.headers.get("authorization", "")
+    token = authorization[7:] if authorization.lower().startswith("bearer ") else ""
+    try:
+        user_id = read_token(token, purpose="access")
+    except ValueError:
+        return JSONResponse({"detail": "Authentication required"}, status_code=401)
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return JSONResponse({"detail": "Account not found"}, status_code=401)
+        admin = str(user.role).lower() == "admin"
+        admin_paths = ("/audit-logs", "/login-events", "/url-scans", "/admin/", "/threat-report/")
+        if (path in ("/audit-logs", "/login-events", "/url-scans", "/threat-reports") or path.startswith(("/admin/", "/threat-report/"))) and not admin:
+            return JSONResponse({"detail": "Administrator access required"}, status_code=403)
+        for prefix in ("/url-scan-history/", "/login-events/", "/users/", "/threat-reports/"):
+            if path.startswith(prefix):
+                try:
+                    target = int(path[len(prefix):].split("/")[0])
+                except ValueError:
+                    return JSONResponse({"detail": "Invalid user ID"}, status_code=400)
+                if target != user.id and not admin:
+                    return JSONResponse({"detail": "Access denied"}, status_code=403)
+        if path in ("/scan-url", "/threat-report") and request.method == "POST":
+            # Body is parsed in endpoint; request.state.user_id is enforced there.
+            request.state.user_id = user.id
+            request.state.is_admin = admin
+        request.state.authenticated_user_id = user.id
+        request.state.is_admin = admin
+    finally:
+        db.close()
+    return await call_next(request)
 
 # ============================================================
 # HOME
@@ -291,11 +277,11 @@ def register(
             )
 
 
-        if len(data.password) < 6:
+        if len(data.password) < 12:
 
             raise HTTPException(
                 status_code=400,
-                detail="Password must contain at least 6 characters"
+                detail="Password must contain at least 12 characters"
             )
 
 
@@ -398,6 +384,7 @@ def login(
     email = str(data.email).strip().lower()
 
     ip = client_ip(request)
+    rate_limit("login:" + ip + ":" + email, limit=8, window=900)
 
     user_agent = request.headers.get(
         "User-Agent",
@@ -508,12 +495,7 @@ def login(
     for old_code in old_codes:
         old_code.verified = 1
 
-    code = str(
-        random.randint(
-            100000,
-            999999
-        )
-    )
+    code = f"{secrets.randbelow(1000000):06d}"
 
     expires_at = (
         datetime.utcnow()
@@ -538,15 +520,17 @@ def login(
         )
     )
 
+    deliver_mfa(email, code)
     db.commit()
 
     return {
+        "mfa_challenge": create_token(user.id, "mfa", 300),
         "message": "Password verified. MFA required.",
         "mfa_required": True,
         "user": user_dict(user),
         **user_dict(user),
         "login_security": anomaly,
-        "demo_mfa_code": code
+        "delivery": "local-demo" if is_local_demo() else "email"
     }
 
 
@@ -566,6 +550,14 @@ def verify_mfa(
     db: Session = Depends(get_db)
 
 ):
+
+    try:
+        challenge_user_id = read_token(data.challenge, purpose="mfa")
+    except ValueError:
+        raise HTTPException(401, "MFA challenge expired or invalid")
+    if challenge_user_id != data.user_id:
+        raise HTTPException(403, "MFA challenge does not match user")
+    rate_limit(f"mfa:{data.user_id}:{client_ip(request)}", limit=6, window=300)
 
     user = db.query(
         User
@@ -673,6 +665,8 @@ def verify_mfa(
 
         "login_success":
             True,
+        "access_token": create_token(user.id, "access", 3600),
+        "token_type": "bearer",
 
         "user":
             user_dict(user),
@@ -865,6 +859,9 @@ def scan(
     db: Session = Depends(get_db)
 
 ):
+
+    if data.user_id != request.state.user_id and not request.state.is_admin:
+        raise HTTPException(403, "Cannot submit data for another user")
 
     existing_user = db.query(
         User
@@ -1168,6 +1165,9 @@ def report(
 
 ):
 
+    if data.user_id != request.state.user_id and not request.state.is_admin:
+        raise HTTPException(403, "Cannot submit data for another user")
+
     existing_user = db.query(
         User
     ).filter(
@@ -1284,6 +1284,14 @@ def report(
 
     }
 
+
+@app.get("/threat-reports/{user_id}")
+def own_reports(user_id: int, request: Request, db: Session = Depends(get_db)):
+    if user_id != request.state.authenticated_user_id and not request.state.is_admin:
+        raise HTTPException(403, "Access denied")
+    items = db.query(ThreatReport).filter(ThreatReport.user_id == user_id).order_by(ThreatReport.id.desc()).all()
+    return [{"id": x.id, "user_id": x.user_id, "threat_type": x.threat_type,
+             "description": x.description, "severity": x.severity, "status": x.status} for x in items]
 
 # ============================================================
 # ALL THREAT REPORTS
@@ -1521,8 +1529,24 @@ def admin_stats(
 
 @app.get("/dashboard/overview")
 def dashboard_overview(
+    request: Request,
     db: Session = Depends(get_db)
 ):
+    if not request.state.is_admin:
+        uid = request.state.authenticated_user_id
+        scans = db.query(URLScan).filter(URLScan.user_id == uid).order_by(URLScan.id.desc()).all()
+        reports = db.query(ThreatReport).filter(ThreatReport.user_id == uid).order_by(ThreatReport.id.desc()).all()
+        logins = db.query(LoginEvent).filter(LoginEvent.user_id == uid).all()
+        high = sum(x.risk_level in ("High", "Critical") for x in scans)
+        safe = sum(x.risk_level in ("Low", "Minimal", "Safe") for x in scans)
+        return {
+            "total_url_scans": len(scans), "total_threats": len(scans) + len(reports),
+            "high_risk_urls": high, "safe_urls": safe,
+            "failed_logins": sum(x.success == 0 for x in logins),
+            "security_score": max(0, 100 - high * 10),
+            "recent_threats": [{"id": x.id, "url": x.url, "risk_level": x.risk_level, "risk_score": x.risk_score} for x in scans[:10]],
+            "recent_activity": [], "alerts": [],
+        }
     """Return the live data required by the AEGIS dashboard."""
 
     # -----------------------------
@@ -1923,7 +1947,41 @@ async def analyze_email(
             except Exception:
 
                 pass
+# ============================================================
+# AI FACT CHECKER
+# ============================================================
 
+@app.post("/fact-check")
+def fact_check(
+    data: FactCheckRequest,
+):
+    try:
+        result = fact_check_text(data.text)
+
+        if not result.get("success"):
+            raise HTTPException(
+                status_code=400,
+                detail=result.get(
+                    "message",
+                    "Fact checking failed."
+                ),
+            )
+
+        return result
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print(
+            "AEGIS FACT CHECK ERROR:",
+            repr(error)
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Fact checker encountered an internal error.",
+        )
 
 # ============================================================
 # SERVER START MESSAGE

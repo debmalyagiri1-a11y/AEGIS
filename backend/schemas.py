@@ -50,5 +50,15 @@ class URLScanRequest(BaseModel):
 
 class MFAVerifyRequest(BaseModel):
 
+    challenge: str
     user_id: int
     code: str
+
+
+# ============================================================
+# AI FACT CHECKER
+# ============================================================
+
+class FactCheckRequest(BaseModel):
+
+    text: str

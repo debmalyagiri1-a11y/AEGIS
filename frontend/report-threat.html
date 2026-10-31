@@ -251,6 +251,7 @@
 
 </div>
 
+<script src="auth-fetch.js"></script>
 <script src="app.js"></script>
 
 <script> requireAuth(); initShell(); document .getElementById("reportForm") .addEventListener("submit", async function (e) { e.preventDefault(); const reportBtn = document.getElementById("reportBtn"); const threatType = document.getElementById("threatType"); const severity = document.getElementById("severity"); const description = document.getElementById("description"); reportBtn.disabled = true; reportBtn.textContent = "Submitting…"; try { const response = await fetch( API_URL + "/threat-report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ user_id: getUID(), threat_type: threatType.value, description: description.value.trim(), severity: severity.value }) } ); const data = await response.json(); if (!response.ok) { throw new Error( data.detail || "Report failed" ); } notify( `Incident #${data.report_id} submitted successfully.`, "success" ); e.target.reset(); } catch (error) { notify( error.message || "Report failed", "error" ); } finally { reportBtn.disabled = false; reportBtn.textContent = "Submit incident"; } }); </script>
