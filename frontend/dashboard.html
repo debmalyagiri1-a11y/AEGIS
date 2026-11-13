@@ -1346,41 +1346,61 @@ async function loadDashboard(){
       );
 
 
-    /* SECURITY SCORE */
+    /* SECURITY SCORE AND EVIDENCE-BASED STATUS */
+    const rawScore = Number(data.security_score);
+    const hasScore = data.security_score !== null &&
+      data.security_score !== undefined && Number.isFinite(rawScore);
+    const score = hasScore ? Math.max(0, Math.min(100, rawScore)) : null;
 
-    const score =
-      Number(
-        data.security_score || 0
-      );
+    const dist = data.threat_distribution || {};
+    const levels = ["Critical", "High", "Medium", "Low", "Minimal"];
+    const distributionCount = levels.reduce((sum, level) =>
+      sum + Math.max(0, Number(dist[level]) || 0), 0);
+    const reportedCount = Number(stats.total_url_scans ?? stats.url_scans);
+    const hasReportedCount = Number.isFinite(reportedCount) &&
+      (stats.total_url_scans != null || stats.url_scans != null);
+    const scanCount = hasReportedCount ? reportedCount : distributionCount;
+    const high = Math.max(0, Number(stats.high_risk_urls) || 0);
+    const medium = Math.max(0, Number(dist.Medium) || 0);
+    const critical = Math.max(0, Number(dist.Critical) || 0);
 
+    let status;
+    if (scanCount <= 0) {
+      status = "Not Assessed";
+    } else if (high > 0 || critical > 0) {
+      status = "At Risk";
+    } else if (medium > 0) {
+      status = "Warning";
+    } else if (distributionCount > 0 &&
+               distributionCount === scanCount) {
+      status = "No Threats Detected";
+    } else {
+      status = "Insufficient Data";
+    }
 
-    document.getElementById(
-      "scoreNumber"
-    ).textContent =
-      score + "%";
+    const statusColors = {
+      "Not Assessed": "#9ab8b2",
+      "At Risk": "#ff4d5d",
+      "Warning": "#ffc857",
+      "No Threats Detected": "#00e6a8",
+      "Insufficient Data": "#9ab8b2"
+    };
 
-
-    document.getElementById(
-      "scoreStatus"
-    ).textContent =
-      data.security_status ||
-      "Unknown";
-
-
-    document.getElementById(
-      "heroStatus"
-    ).textContent =
-      data.security_status ||
-      "Unknown";
-
-
-    document.getElementById(
-      "scoreRing"
-    ).style.setProperty(
-      "--score",
-      score
+    document.getElementById("scoreNumber").textContent =
+      scanCount <= 0 || score === null ? "—" : score + "%";
+    document.getElementById("scoreStatus").textContent = status;
+    const heroStatus = document.getElementById("heroStatus");
+    heroStatus.textContent = status;
+    heroStatus.style.color = statusColors[status];
+    document.getElementById("scoreRing").style.setProperty(
+      "--score", scanCount <= 0 || score === null ? 0 : score
     );
-
+    document.getElementById("scoreNote").textContent =
+      scanCount <= 0
+        ? "No recorded URL scans yet — security has not been assessed."
+        : score === null
+          ? "Security score unavailable from the backend."
+          : "Based on recorded AEGIS activity; not a security guarantee.";
 
     /* CHARTS */
 
