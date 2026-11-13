@@ -1,258 +1,989 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AEGIS — Advanced URL Scanner</title>
+
 <style>
-:root{
-  --bg:#031513;--panel:#061d1a;--panel2:#082721;--border:#0b5a4d;
-  --green:#00e6a8;--green2:#19f5c1;--text:#f4fffc;--muted:#9ab8b2;
-  --critical:#ff4d5d;--high:#ff9f43;--medium:#ffc857;--low:#8b5cf6;
+:root {
+  --bg:#031513;
+  --panel:#061d1a;
+  --panel2:#082721;
+  --border:#0b5a4d;
+  --green:#00e6a8;
+  --green2:#19f5c1;
+  --text:#f4fffc;
+  --muted:#9ab8b2;
+  --critical:#ff4d5d;
+  --high:#ff9f43;
+  --medium:#ffc857;
+  --low:#8b5cf6;
   --shadow:0 18px 50px rgba(0,0,0,.28);
 }
-*{box-sizing:border-box}
-body{margin:0;background:radial-gradient(circle at 70% -10%,rgba(0,230,168,.10),transparent 35%),var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}
-a{text-decoration:none;color:inherit}
-button,input{font:inherit}
-.layout{display:flex;min-height:100vh}
-.sidebar{width:245px;background:#041a17;border-right:1px solid var(--border);position:fixed;inset:0 auto 0 0;padding:22px 16px;display:flex;flex-direction:column;z-index:20}
-.brand{display:flex;align-items:center;gap:11px;margin-bottom:30px}
-.logo{width:40px;height:40px;border:1px solid var(--green);border-radius:12px;display:grid;place-items:center;color:var(--green);font-weight:900;font-size:20px;box-shadow:0 0 22px rgba(0,230,168,.13)}
-.brand b{font-size:19px;letter-spacing:2px}.brand small{display:block;color:var(--muted);font-size:8px;letter-spacing:1.4px;margin-top:2px}
-.nav{display:grid;gap:6px}.nav a{padding:12px 13px;border-radius:10px;color:var(--muted);display:flex;gap:11px;align-items:center;font-size:13px}
-.nav a:hover,.nav a.active{background:#082b25;color:var(--text);border:1px solid #0b4f45}
-.nav .icon{width:22px;text-align:center;color:var(--green)}
-.side-bottom{margin-top:auto}.status{border:1px solid var(--border);border-radius:12px;padding:13px;background:#06231f;color:var(--muted);font-size:11px}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);margin-right:6px}
-.main{margin-left:245px;width:calc(100% - 245px);padding:25px 30px 50px}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
-.eyebrow{color:var(--green);font-size:11px;letter-spacing:1.7px;text-transform:uppercase}
-h1{font-size:30px;margin:7px 0}.sub{color:var(--muted);font-size:13px;max-width:800px}
-.actions{display:flex;gap:8px}.btn{border:1px solid var(--border);background:#06231f;color:var(--text);padding:10px 14px;border-radius:9px;cursor:pointer}.btn:hover{border-color:var(--green);color:var(--green2)}
-.card{background:linear-gradient(145deg,rgba(8,39,33,.96),rgba(4,27,24,.96));border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow)}
-.scanner{padding:20px;margin-bottom:18px}.label{font-size:12px;color:var(--muted);margin-bottom:8px}
-.input-row{display:flex;gap:10px}.url-input{flex:1;background:#02110f;border:1px solid #126353;color:var(--text);border-radius:10px;padding:15px 16px;outline:none}.url-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,230,168,.08)}
-.scan{background:var(--green);color:#00140f;border:0;font-weight:800;padding:0 22px;border-radius:10px;cursor:pointer}.scan:hover{background:var(--green2)}.scan:disabled{opacity:.55;cursor:not-allowed}
-.message{display:none;margin-top:12px;padding:11px 13px;border-radius:9px;font-size:12px}.message.show{display:block}.error{border:1px solid rgba(255,77,93,.5);background:rgba(255,77,93,.08);color:#ffb3bb}.info{border:1px solid rgba(0,230,168,.3);background:rgba(0,230,168,.06);color:#aaf8df}
-.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.result{padding:20px}.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.section-head h2{font-size:15px;margin:0}.muted{color:var(--muted)}
-.risk-wrap{display:grid;grid-template-columns:170px 1fr;gap:22px;align-items:center}.ring{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--green) calc(var(--score)*1%),#0b3831 0);position:relative}.ring:before{content:"";position:absolute;width:116px;height:116px;background:#051c18;border-radius:50%}.ring-inner{position:relative;text-align:center}.score{font-size:31px;font-weight:900}.score-label{font-size:10px;color:var(--muted);margin-top:3px}
-.level{font-size:25px;font-weight:900;margin-bottom:8px}.level.minimal,.level.low{color:var(--green)}.level.medium{color:var(--medium)}.level.high{color:var(--high)}.level.critical{color:var(--critical)}
-.meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.meta-box{background:#041915;border:1px solid #0a4038;border-radius:10px;padding:10px}.meta-box span{display:block;color:var(--muted);font-size:10px;margin-bottom:4px}.meta-box strong{font-size:12px;word-break:break-word}
-.list{display:grid;gap:8px}.indicator{padding:11px 12px;border:1px solid #0a4038;background:#041a16;border-radius:9px;font-size:12px;line-height:1.45}.indicator:before{content:"•";color:var(--green);margin-right:8px}
-.recommendation{margin-top:15px;padding:13px;border-left:3px solid var(--green);background:#041b17;color:#c9e9e1;font-size:12px;line-height:1.5}
-.intel{padding:20px}.intel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.intel-item{padding:12px;border:1px solid #0a4038;background:#041a16;border-radius:10px}.intel-item span{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}.intel-item strong{font-size:12px;word-break:break-word}
-.note{margin-top:12px;color:var(--muted);font-size:10px;line-height:1.5}
-.raw{margin-top:18px}.raw pre{white-space:pre-wrap;word-break:break-word;background:#020d0c;border:1px solid #0a4038;border-radius:10px;padding:14px;color:#9de7d2;font-size:10px;max-height:330px;overflow:auto}
-.empty{padding:45px 20px;text-align:center;color:var(--muted);font-size:12px}.loading{display:none}.loading.show{display:inline}
-@media(max-width:900px){.sidebar{width:205px}.main{margin-left:205px;width:calc(100% - 205px);padding:20px}.grid{grid-template-columns:1fr}.risk-wrap{grid-template-columns:1fr;text-align:center}.meta{grid-template-columns:1fr 1fr}.input-row{flex-direction:column}.scan{padding:13px}.intel-grid{grid-template-columns:1fr}}
-@media(max-width:650px){.sidebar{position:relative;width:100%;height:auto;border-right:0;border-bottom:1px solid var(--border)}.layout{display:block}.main{margin-left:0;width:100%}.nav{grid-template-columns:1fr 1fr}.side-bottom{display:none}.top{display:block}.actions{margin-top:12px}.meta{grid-template-columns:1fr}.main{padding:16px}}
+
+* {box-sizing:border-box}
+
+body {
+  margin:0;
+  background:
+    radial-gradient(
+      circle at 70% -10%,
+      rgba(0,230,168,.10),
+      transparent 35%
+    ),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+}
+
+a {text-decoration:none;color:inherit}
+button,input {font:inherit}
+
+.layout {display:flex;min-height:100vh}
+
+.sidebar {
+  width:245px;
+  background:#041a17;
+  border-right:1px solid var(--border);
+  position:fixed;
+  inset:0 auto 0 0;
+  padding:22px 16px;
+  display:flex;
+  flex-direction:column;
+  z-index:20;
+}
+
+.brand {
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-bottom:30px;
+}
+
+.logo {
+  width:40px;
+  height:40px;
+  border:1px solid var(--green);
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  color:var(--green);
+  font-weight:900;
+  font-size:20px;
+  box-shadow:0 0 22px rgba(0,230,168,.13);
+}
+
+.brand b {font-size:19px;letter-spacing:2px}
+
+.brand small {
+  display:block;
+  color:var(--muted);
+  font-size:8px;
+  letter-spacing:1.4px;
+  margin-top:2px;
+}
+
+.nav {display:grid;gap:6px}
+
+.nav a {
+  padding:12px 13px;
+  border-radius:10px;
+  color:var(--muted);
+  display:flex;
+  gap:11px;
+  align-items:center;
+  font-size:13px;
+}
+
+.nav a:hover,
+.nav a.active {
+  background:#082b25;
+  color:var(--text);
+  border:1px solid #0b4f45;
+}
+
+.nav .icon {
+  width:22px;
+  text-align:center;
+  color:var(--green);
+}
+
+.side-bottom {margin-top:auto}
+
+.status {
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:13px;
+  background:#06231f;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.dot {
+  display:inline-block;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 10px var(--green);
+  margin-right:6px;
+}
+
+.main {
+  margin-left:245px;
+  width:calc(100% - 245px);
+  padding:25px 30px 50px;
+}
+
+.top {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+}
+
+.eyebrow {
+  color:var(--green);
+  font-size:11px;
+  letter-spacing:1.7px;
+  text-transform:uppercase;
+}
+
+h1 {font-size:30px;margin:7px 0}
+
+.sub {
+  color:var(--muted);
+  font-size:13px;
+  max-width:800px;
+}
+
+.actions {display:flex;gap:8px}
+
+.btn {
+  border:1px solid var(--border);
+  background:#06231f;
+  color:var(--text);
+  padding:10px 14px;
+  border-radius:9px;
+  cursor:pointer;
+}
+
+.btn:hover {
+  border-color:var(--green);
+  color:var(--green2);
+}
+
+.card {
+  background:linear-gradient(
+    145deg,
+    rgba(8,39,33,.96),
+    rgba(4,27,24,.96)
+  );
+  border:1px solid var(--border);
+  border-radius:16px;
+  box-shadow:var(--shadow);
+}
+
+.scanner {padding:20px;margin-bottom:18px}
+
+.label {
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+.input-row {display:flex;gap:10px}
+
+.url-input {
+  flex:1;
+  min-width:0;
+  background:#02110f;
+  border:1px solid #126353;
+  color:var(--text);
+  border-radius:10px;
+  padding:15px 16px;
+  outline:none;
+}
+
+.url-input:focus {
+  border-color:var(--green);
+  box-shadow:0 0 0 3px rgba(0,230,168,.08);
+}
+
+.scan {
+  background:var(--green);
+  color:#00140f;
+  border:0;
+  font-weight:800;
+  padding:0 22px;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.scan:hover {background:var(--green2)}
+.scan:disabled {opacity:.55;cursor:not-allowed}
+
+.message {
+  display:none;
+  margin-top:12px;
+  padding:11px 13px;
+  border-radius:9px;
+  font-size:12px;
+}
+
+.message.show {display:block}
+
+.error {
+  border:1px solid rgba(255,77,93,.5);
+  background:rgba(255,77,93,.08);
+  color:#ffb3bb;
+}
+
+.info {
+  border:1px solid rgba(0,230,168,.3);
+  background:rgba(0,230,168,.06);
+  color:#aaf8df;
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:18px;
+}
+
+.result {padding:20px}
+
+.section-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+  gap:10px;
+}
+
+.section-head h2 {font-size:15px;margin:0}
+.muted {color:var(--muted)}
+
+.risk-wrap {
+  display:grid;
+  grid-template-columns:170px 1fr;
+  gap:22px;
+  align-items:center;
+}
+
+.ring {
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:conic-gradient(
+    var(--green) calc(var(--score)*1%),
+    #0b3831 0
+  );
+  position:relative;
+}
+
+.ring:before {
+  content:"";
+  position:absolute;
+  width:116px;
+  height:116px;
+  background:#051c18;
+  border-radius:50%;
+}
+
+.ring-inner {position:relative;text-align:center}
+.score {font-size:31px;font-weight:900}
+
+.score-label {
+  font-size:10px;
+  color:var(--muted);
+  margin-top:3px;
+}
+
+.level {
+  font-size:25px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+.level.minimal,
+.level.low {color:var(--green)}
+.level.medium {color:var(--medium)}
+.level.high {color:var(--high)}
+.level.critical {color:var(--critical)}
+
+.meta {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.meta-box {
+  background:#041915;
+  border:1px solid #0a4038;
+  border-radius:10px;
+  padding:10px;
+}
+
+.meta-box span {
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  margin-bottom:4px;
+}
+
+.meta-box strong {
+  font-size:12px;
+  word-break:break-word;
+}
+
+.list {display:grid;gap:8px}
+
+.indicator {
+  padding:11px 12px;
+  border:1px solid #0a4038;
+  background:#041a16;
+  border-radius:9px;
+  font-size:12px;
+  line-height:1.45;
+}
+
+.indicator:before {
+  content:"•";
+  color:var(--green);
+  margin-right:8px;
+}
+
+.recommendation {
+  margin-top:15px;
+  padding:13px;
+  border-left:3px solid var(--green);
+  background:#041b17;
+  color:#c9e9e1;
+  font-size:12px;
+  line-height:1.5;
+}
+
+.intel {padding:20px}
+
+.intel-grid {
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:9px;
+}
+
+.intel-item {
+  padding:12px;
+  border:1px solid #0a4038;
+  background:#041a16;
+  border-radius:10px;
+}
+
+.intel-item span {
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  margin-bottom:5px;
+}
+
+.intel-item strong {
+  font-size:12px;
+  word-break:break-word;
+}
+
+.note {
+  margin-top:12px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.5;
+}
+
+.raw {margin-top:18px}
+
+.raw pre {
+  white-space:pre-wrap;
+  word-break:break-word;
+  background:#020d0c;
+  border:1px solid #0a4038;
+  border-radius:10px;
+  padding:14px;
+  color:#9de7d2;
+  font-size:10px;
+  max-height:330px;
+  overflow:auto;
+}
+
+.empty {
+  padding:45px 20px;
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.loading {display:none}
+.loading.show {display:inline}
+
+@media(max-width:900px) {
+  .sidebar {width:205px}
+  .main {
+    margin-left:205px;
+    width:calc(100% - 205px);
+    padding:20px;
+  }
+  .grid {grid-template-columns:1fr}
+  .risk-wrap {
+    grid-template-columns:1fr;
+    text-align:center;
+  }
+  .meta {grid-template-columns:1fr 1fr}
+  .input-row {flex-direction:column}
+  .scan {padding:13px}
+  .intel-grid {grid-template-columns:1fr}
+}
+
+@media(max-width:650px) {
+  .sidebar {
+    position:relative;
+    width:100%;
+    height:auto;
+    border-right:0;
+    border-bottom:1px solid var(--border);
+  }
+  .layout {display:block}
+  .main {
+    margin-left:0;
+    width:100%;
+    padding:16px;
+  }
+  .nav {grid-template-columns:1fr 1fr}
+  .side-bottom {display:none}
+  .top {display:block}
+  .actions {margin-top:12px}
+  .meta {grid-template-columns:1fr}
+}
 </style>
 </head>
+
 <body>
 <div class="layout">
+
 <aside class="sidebar">
   <a class="brand" href="dashboard.html">
     <span class="logo">A</span>
-    <span><b>AEGIS</b><small>DETECT • ANALYZE • PROTECT</small></span>
+    <span>
+      <b>AEGIS</b>
+      <small>DETECT • ANALYZE • PROTECT</small>
+    </span>
   </a>
+
   <nav class="nav">
-    <a href="dashboard.html"><span class="icon">⌂</span>Dashboard</a>
-    <a href="url-scanner.html" class="active"><span class="icon">⌁</span>URL Scanner</a>
-    <a href="email-analyzer.html"><span class="icon">✉</span>Email Analyzer</a>
-    <a href="report-threat.html"><span class="icon">▣</span>Incident Reports</a>
-    <a href="alerts.html"><span class="icon">♧</span>Alerts</a>
-    <a href="security-monitor.html"><span class="icon">◉</span>Security Monitoring</a>
-    <a href="security-assistant.html"><span class="icon">✦</span>Security Assistant</a>
-    <a href="settings.html"><span class="icon">⚙</span>Settings</a>
+    <a href="dashboard.html">
+      <span class="icon">⌂</span>Dashboard
+    </a>
+    <a href="url-scanner.html" class="active">
+      <span class="icon">⌁</span>URL Scanner
+    </a>
+    <a href="email-analyzer.html">
+      <span class="icon">✉</span>Email Analyzer
+    </a>
+    <a href="report-threat.html">
+      <span class="icon">▣</span>Incident Reports
+    </a>
+    <a href="alerts.html">
+      <span class="icon">♧</span>Alerts
+    </a>
+    <a href="security-monitor.html">
+      <span class="icon">◉</span>Security Monitoring
+    </a>
+    <a href="security-assistant.html">
+      <span class="icon">✦</span>Security Assistant
+    </a>
+    <a href="settings.html">
+      <span class="icon">⚙</span>Settings
+    </a>
   </nav>
-  <div class="side-bottom"><div class="status"><span class="dot"></span><b style="color:#f4fffc">System Online</b><br><span style="display:block;margin-top:5px">AEGIS analysis services operational</span></div></div>
+
+  <div class="side-bottom">
+    <div class="status">
+      <span class="dot"></span>
+      <b style="color:#f4fffc">System Online</b>
+      <span style="display:block;margin-top:5px">
+        AEGIS analysis services operational
+      </span>
+    </div>
+  </div>
 </aside>
 
 <main class="main">
+
   <div class="top">
     <div>
-      <div class="eyebrow">Advanced threat intelligence</div>
+      <div class="eyebrow">
+        Advanced threat intelligence
+      </div>
       <h1>URL Security Scanner</h1>
-      <div class="sub">Analyze URL structure, suspicious indicators, threat intelligence and resolved server infrastructure without opening the destination in your browser.</div>
+      <div class="sub">
+        Analyze URL structure, suspicious indicators,
+        threat intelligence and resolved server
+        infrastructure without opening the destination
+        in your browser.
+      </div>
     </div>
-    <div class="actions"><button class="btn" onclick="location.href='dashboard.html'">← Dashboard</button></div>
+
+    <div class="actions">
+      <button class="btn"
+        onclick="location.href='dashboard.html'">
+        ← Dashboard
+      </button>
+    </div>
   </div>
 
   <section class="card scanner">
     <div class="label">URL to analyze</div>
+
     <div class="input-row">
-      <input id="urlInput" class="url-input" type="text" placeholder="https://example.com/login" autocomplete="off">
-      <button id="scanBtn" class="scan" onclick="scanURL()">SCAN URL <span id="loading" class="loading">…</span></button>
+      <input
+        id="urlInput"
+        class="url-input"
+        type="text"
+        placeholder="https://example.com/login"
+        autocomplete="off"
+      >
+
+      <button
+        id="scanBtn"
+        class="scan"
+        onclick="scanURL()">
+        SCAN URL
+        <span id="loading" class="loading">…</span>
+      </button>
     </div>
+
     <div id="message" class="message"></div>
   </section>
 
   <div id="results" style="display:none">
+
     <div class="grid">
+
       <section class="card result">
-        <div class="section-head"><h2>Analysis Result</h2><span class="muted" id="analyzedUrl">—</span></div>
+        <div class="section-head">
+          <h2>Analysis Result</h2>
+          <span class="muted" id="analyzedUrl">—</span>
+        </div>
+
         <div class="risk-wrap">
-          <div class="ring" id="riskRing" style="--score:0"><div class="ring-inner"><div class="score" id="riskScore">0</div><div class="score-label">RISK SCORE</div></div></div>
+
+          <div class="ring" id="riskRing"
+               style="--score:0">
+            <div class="ring-inner">
+              <div class="score" id="riskScore">0</div>
+              <div class="score-label">RISK SCORE</div>
+            </div>
+          </div>
+
           <div>
-            <div id="riskLevel" class="level">Unknown</div>
+            <div id="riskLevel" class="level">
+              Unknown
+            </div>
+
             <div class="meta">
-              <div class="meta-box"><span>Confidence</span><strong id="confidence">—</strong></div>
-              <div class="meta-box"><span>Domain</span><strong id="domain">—</strong></div>
-              <div class="meta-box"><span>Protocol</span><strong id="protocol">—</strong></div>
+              <div class="meta-box">
+                <span>Confidence</span>
+                <strong id="confidence">—</strong>
+              </div>
+
+              <div class="meta-box">
+                <span>Domain</span>
+                <strong id="domain">—</strong>
+              </div>
+
+              <div class="meta-box">
+                <span>Protocol</span>
+                <strong id="protocol">—</strong>
+              </div>
             </div>
           </div>
         </div>
-        <div class="recommendation" id="recommendation">—</div>
+
+        <div class="recommendation"
+             id="recommendation">—</div>
       </section>
 
       <section class="card intel">
-        <div class="section-head"><h2>Server Intelligence</h2><span class="muted">DNS / IP</span></div>
-        <div class="intel-grid">
-          <div class="intel-item"><span>Server IP</span><strong id="serverIP">Not resolved</strong></div>
-          <div class="intel-item"><span>Country</span><strong id="serverCountry">Unavailable</strong></div>
-          <div class="intel-item"><span>Region</span><strong id="serverRegion">Unavailable</strong></div>
-          <div class="intel-item"><span>City</span><strong id="serverCity">Unavailable</strong></div>
-          <div class="intel-item"><span>ASN</span><strong id="serverASN">Unavailable</strong></div>
-          <div class="intel-item"><span>Organization</span><strong id="serverOrg">Unavailable</strong></div>
+        <div class="section-head">
+          <h2>Server Intelligence</h2>
+          <span class="muted">DNS / IP</span>
         </div>
-        <div class="note" id="serverNote">IP geolocation describes the approximate location of the resolved server/CDN infrastructure.</div>
+
+        <div class="intel-grid">
+          <div class="intel-item">
+            <span>Server IP</span>
+            <strong id="serverIP">Not resolved</strong>
+          </div>
+          <div class="intel-item">
+            <span>Country</span>
+            <strong id="serverCountry">Unavailable</strong>
+          </div>
+          <div class="intel-item">
+            <span>Region</span>
+            <strong id="serverRegion">Unavailable</strong>
+          </div>
+          <div class="intel-item">
+            <span>City</span>
+            <strong id="serverCity">Unavailable</strong>
+          </div>
+          <div class="intel-item">
+            <span>ASN</span>
+            <strong id="serverASN">Unavailable</strong>
+          </div>
+          <div class="intel-item">
+            <span>Organization</span>
+            <strong id="serverOrg">Unavailable</strong>
+          </div>
+        </div>
+
+        <div class="note" id="serverNote">
+          IP geolocation describes the approximate
+          location of the resolved server/CDN infrastructure.
+        </div>
       </section>
     </div>
 
-    <section class="card result" style="margin-top:18px">
-      <div class="section-head"><h2>Security Indicators</h2><span class="muted" id="indicatorCount">0 indicators</span></div>
+    <section class="card result"
+             style="margin-top:18px">
+      <div class="section-head">
+        <h2>Security Indicators</h2>
+        <span class="muted" id="indicatorCount">
+          0 indicators
+        </span>
+      </div>
       <div id="indicators" class="list"></div>
     </section>
 
     <section class="card result raw">
-      <div class="section-head"><h2>Threat Intelligence</h2><span class="muted" id="tiStatus">—</span></div>
-      <div id="tiMessage" class="muted" style="font-size:12px">—</div>
-      <details style="margin-top:14px"><summary style="cursor:pointer;color:var(--green);font-size:11px">View raw scanner response</summary><pre id="rawResponse"></pre></details>
+      <div class="section-head">
+        <h2>Threat Intelligence</h2>
+        <span class="muted" id="tiStatus">—</span>
+      </div>
+
+      <div id="tiMessage" class="muted"
+           style="font-size:12px">—</div>
+
+      <details style="margin-top:14px">
+        <summary style="cursor:pointer;color:var(--green);font-size:11px">
+          View raw scanner response
+        </summary>
+        <pre id="rawResponse"></pre>
+      </details>
     </section>
   </div>
 
-  <div id="empty" class="card empty">Enter a URL above and run an AEGIS security scan.</div>
+  <div id="empty" class="card empty">
+    Enter a URL above and run an AEGIS security scan.
+  </div>
+
 </main>
 </div>
 
 <script src="auth-fetch.js"></script>
+
 <script>
-const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-const API_URL = isLocal ? "http://127.0.0.1:8000" : "https://aegis-4lcw.onrender.com";
+const isLocal =
+  location.hostname === "localhost" ||
+  location.hostname === "127.0.0.1";
 
-function getUserId(){
-  const keys = ["user_id","userId","aegis_user_id","currentUserId"];
-  for(const key of keys){
-    const value = localStorage.getItem(key);
-    if(value && /^\d+$/.test(value)) return Number(value);
+const API_URL = isLocal
+  ? "http://127.0.0.1:8000"
+  : "https://aegis-4lcw.onrender.com";
+
+/*
+  Authentication fix:
+  Match storage keys used by login.html.
+  Never invent a default user ID.
+*/
+function getUserId() {
+  const storedId = localStorage.getItem("aegisUserId");
+
+  if (
+    storedId &&
+    /^[1-9]\d*$/.test(storedId)
+  ) {
+    return Number(storedId);
   }
-  try{
-    const user = JSON.parse(localStorage.getItem("user") || localStorage.getItem("aegis_user") || "null");
-    if(user && user.id) return Number(user.id);
-  }catch(e){}
-  return 1;
+
+  try {
+    const user = JSON.parse(
+      localStorage.getItem("aegisUser") || "null"
+    );
+
+    const id = user?.id ?? user?.user_id;
+
+    if (
+      id != null &&
+      /^[1-9]\d*$/.test(String(id))
+    ) {
+      return Number(id);
+    }
+  } catch (error) {
+    console.error(
+      "AEGIS: invalid stored user profile",
+      error
+    );
+  }
+
+  return null;
 }
 
-function showMessage(text,type="info"){
-  const box=document.getElementById("message");
-  box.textContent=text;
-  box.className="message show "+type;
+function showMessage(text, type = "info") {
+  const box = document.getElementById("message");
+  box.textContent = text;
+  box.className = "message show " + type;
 }
-function hideMessage(){document.getElementById("message").className="message";}
-function esc(value){
-  const d=document.createElement("div");
-  d.textContent=String(value ?? "");
+
+function hideMessage() {
+  document.getElementById("message").className =
+    "message";
+}
+
+function esc(value) {
+  const d = document.createElement("div");
+  d.textContent = String(value ?? "");
   return d.innerHTML;
 }
-function riskClass(level){return String(level||"").toLowerCase().replace(/[^a-z]/g,"");}
 
-function renderResult(data){
-  const result=data.result || data || {};
-  const score=Math.max(0,Math.min(100,Number(result.risk_score)||0));
-  const level=result.risk_level || "Unknown";
-
-  document.getElementById("results").style.display="block";
-  document.getElementById("empty").style.display="none";
-  document.getElementById("analyzedUrl").textContent=result.url || "—";
-  document.getElementById("riskScore").textContent=score;
-  document.getElementById("riskRing").style.setProperty("--score",score);
-  const levelEl=document.getElementById("riskLevel");
-  levelEl.textContent=level;
-  levelEl.className="level "+riskClass(level);
-  document.getElementById("confidence").textContent=result.confidence || "—";
-  document.getElementById("domain").textContent=result.domain || "—";
-  document.getElementById("protocol").textContent=result.protocol || "—";
-  document.getElementById("recommendation").textContent=result.recommendation || "No recommendation returned.";
-
-  const indicators=Array.isArray(result.indicators) ? result.indicators : [];
-  document.getElementById("indicatorCount").textContent=indicators.length+" indicator"+(indicators.length===1?"":"s");
-  const indicatorBox=document.getElementById("indicators");
-  indicatorBox.innerHTML=indicators.length
-    ? indicators.map(x=>`<div class="indicator">${esc(x)}</div>`).join("")
-    : '<div class="indicator">No significant suspicious structural indicators detected.</div>';
-
-  const ipInfo=result.ip_intelligence || {};
-  const geo=ipInfo.geolocation || {};
-  document.getElementById("serverIP").textContent=ipInfo.primary_ip || "Not resolved";
-  document.getElementById("serverCountry").textContent=geo.country ? `${geo.country}${geo.country_code ? " ("+geo.country_code+")" : ""}` : "Unavailable";
-  document.getElementById("serverRegion").textContent=geo.region || "Unavailable";
-  document.getElementById("serverCity").textContent=geo.city || "Unavailable";
-  document.getElementById("serverASN").textContent=geo.asn || "Unavailable";
-  document.getElementById("serverOrg").textContent=geo.organization || "Unavailable";
-  document.getElementById("serverNote").textContent=ipInfo.note || "IP intelligence describes the resolved server/CDN infrastructure.";
-
-  const ti=result.threat_intelligence || {};
-  document.getElementById("tiStatus").textContent=ti.available ? (ti.found ? "MATCH FOUND" : "Checked") : "Unavailable";
-  document.getElementById("tiMessage").textContent=ti.message || "No external threat-intelligence message returned.";
-  document.getElementById("rawResponse").textContent=JSON.stringify(data,null,2);
+function riskClass(level) {
+  return String(level || "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
 }
 
-async function scanURL(){
-  const input=document.getElementById("urlInput");
-  const button=document.getElementById("scanBtn");
-  const loading=document.getElementById("loading");
-  const url=input.value.trim();
+function renderResult(data) {
+  const result = data.result || data || {};
 
-  if(!url){
-    showMessage("Please enter a URL first.","error");
+  const score = Math.max(
+    0,
+    Math.min(100, Number(result.risk_score) || 0)
+  );
+
+  const level = result.risk_level || "Unknown";
+
+  document.getElementById("results").style.display =
+    "block";
+
+  document.getElementById("empty").style.display =
+    "none";
+
+  document.getElementById("analyzedUrl").textContent =
+    result.url || "—";
+
+  document.getElementById("riskScore").textContent =
+    score;
+
+  document.getElementById("riskRing")
+    .style.setProperty("--score", score);
+
+  const levelEl =
+    document.getElementById("riskLevel");
+
+  levelEl.textContent = level;
+  levelEl.className =
+    "level " + riskClass(level);
+
+  document.getElementById("confidence").textContent =
+    result.confidence || "—";
+
+  document.getElementById("domain").textContent =
+    result.domain || "—";
+
+  document.getElementById("protocol").textContent =
+    result.protocol || "—";
+
+  document.getElementById("recommendation").textContent =
+    result.recommendation ||
+    "No recommendation returned.";
+
+  const indicators = Array.isArray(result.indicators)
+    ? result.indicators
+    : [];
+
+  document.getElementById("indicatorCount").textContent =
+    indicators.length +
+    " indicator" +
+    (indicators.length === 1 ? "" : "s");
+
+  const indicatorBox =
+    document.getElementById("indicators");
+
+  indicatorBox.innerHTML = indicators.length
+    ? indicators.map(
+        x => `<div class="indicator">${esc(x)}</div>`
+      ).join("")
+    : '<div class="indicator">No significant suspicious structural indicators detected.</div>';
+
+  const ipInfo = result.ip_intelligence || {};
+  const geo = ipInfo.geolocation || {};
+
+  document.getElementById("serverIP").textContent =
+    ipInfo.primary_ip || "Not resolved";
+
+  document.getElementById("serverCountry").textContent =
+    geo.country
+      ? `${geo.country}${geo.country_code ? " (" + geo.country_code + ")" : ""}`
+      : "Unavailable";
+
+  document.getElementById("serverRegion").textContent =
+    geo.region || "Unavailable";
+
+  document.getElementById("serverCity").textContent =
+    geo.city || "Unavailable";
+
+  document.getElementById("serverASN").textContent =
+    geo.asn || "Unavailable";
+
+  document.getElementById("serverOrg").textContent =
+    geo.organization || "Unavailable";
+
+  document.getElementById("serverNote").textContent =
+    ipInfo.note ||
+    "IP intelligence describes the resolved server/CDN infrastructure.";
+
+  const ti = result.threat_intelligence || {};
+
+  document.getElementById("tiStatus").textContent =
+    ti.available
+      ? (ti.found ? "MATCH FOUND" : "Checked")
+      : "Unavailable";
+
+  document.getElementById("tiMessage").textContent =
+    ti.message ||
+    "No external threat-intelligence message returned.";
+
+  document.getElementById("rawResponse").textContent =
+    JSON.stringify(data, null, 2);
+}
+
+async function scanURL() {
+  const input = document.getElementById("urlInput");
+  const button = document.getElementById("scanBtn");
+  const loading = document.getElementById("loading");
+
+  const url = input.value.trim();
+
+  if (!url) {
+    showMessage(
+      "Please enter a URL first.",
+      "error"
+    );
     input.focus();
     return;
   }
 
+  // Read the same user ID saved after MFA login.
+  const userId = getUserId();
+
+  if (userId === null) {
+    showMessage(
+      "Your login user ID is missing. Please sign in again to restore your session.",
+      "error"
+    );
+    return;
+  }
+
+  // Ensure the user has an authenticated session.
+  const token =
+    sessionStorage.getItem("aegisAccessToken");
+
+  if (!token) {
+    showMessage(
+      "Your authentication token is missing. Please sign in again.",
+      "error"
+    );
+    return;
+  }
+
   hideMessage();
-  button.disabled=true;
+  button.disabled = true;
   loading.classList.add("show");
 
-  try{
-    const response=await fetch(`${API_URL}/scan-url`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({url:url,user_id:getUserId()})
-    });
+  try {
+    const response = await fetch(
+      `${API_URL}/scan-url`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          url: url,
+          user_id: userId
+        })
+      }
+    );
 
-    const text=await response.text();
+    const responseText = await response.text();
+
     let data;
-    try{data=JSON.parse(text)}catch(e){throw new Error("Backend returned an invalid response.")}
 
-    if(!response.ok){
-      throw new Error(data.detail || data.message || `Scanner request failed (${response.status}).`);
+    try {
+      data = JSON.parse(responseText);
+    } catch (error) {
+      throw new Error(
+        "Backend returned an invalid response."
+      );
+    }
+
+    if (!response.ok) {
+      const detail =
+        data.detail || data.message;
+
+      const errorMessage =
+        typeof detail === "string"
+          ? detail
+          : detail
+            ? JSON.stringify(detail)
+            : `Scanner request failed (${response.status}).`;
+
+      throw new Error(errorMessage);
     }
 
     renderResult(data);
-    showMessage("URL analysis completed successfully.","info");
-  }catch(error){
-    console.error("AEGIS scanner error:",error);
-    showMessage(error.message || "Unable to connect to the AEGIS scanner.","error");
-  }finally{
-    button.disabled=false;
+
+    showMessage(
+      "URL analysis completed successfully.",
+      "info"
+    );
+
+  } catch (error) {
+    console.error(
+      "AEGIS scanner error:",
+      error
+    );
+
+    showMessage(
+      error.message ||
+      "Unable to connect to the AEGIS scanner.",
+      "error"
+    );
+
+  } finally {
+    button.disabled = false;
     loading.classList.remove("show");
   }
 }
 
-document.getElementById("urlInput").addEventListener("keydown",e=>{
-  if(e.key==="Enter") scanURL();
-});
+document.getElementById("urlInput")
+  .addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      scanURL();
+    }
+  });
 </script>
+
 </body>
 </html>
