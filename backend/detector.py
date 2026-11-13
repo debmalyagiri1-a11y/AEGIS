@@ -3577,15 +3577,9 @@ def scan_url(url: str):
 
     3. URLhaus malware intelligence
 
-    4. PhishTank phishing intelligence
+    4. Google Safe Browsing phishing/malware intelligence
 
-
-
-    PhishTank API key is OPTIONAL.
-
-    If PHISHTANK_APP_KEY exists, it is used.
-
-    Otherwise PhishTank is queried without an app key.
+    Requires GOOGLE_SAFE_BROWSING_API_KEY in Render Environment.
 
     """
 
@@ -3705,267 +3699,84 @@ def scan_url(url: str):
     # Threat intelligence checks
 
     # --------------------------------------------------------
-
-
+    # Threat intelligence: URLhaus + Google Safe Browsing
+    # --------------------------------------------------------
 
     urlhaus_result = check_urlhaus(url)
+    google_result = check_google_safe_browsing(url)
 
-    phishtank_result = check_phishtank(url)
+    sources = {"urlhaus": urlhaus_result, "google_safe_browsing": google_result}
+    available = [name for name, item in sources.items() if item.get("available")]
+    unavailable = [name for name, item in sources.items() if not item.get("available")]
+    matches = [name for name, item in sources.items() if item.get("found") and item.get("available")]
 
-
-
-    urlhaus_available = urlhaus_result.get("available", False)
-
-    urlhaus_found = urlhaus_result.get("found", False)
-
-
-
-    phishtank_available = phishtank_result.get("available", False)
-
-    phishtank_found = phishtank_result.get("found", False)
-
-
-
-    any_available = urlhaus_available or phishtank_available
-
-    any_found = urlhaus_found or phishtank_found
-
-
-
-    # --------------------------------------------------------
-
-    # Threat intelligence response
-
-    # --------------------------------------------------------
-
-
+    if matches:
+        status = "match_found"
+    elif len(available) == len(sources):
+        status = "checked"
+    elif available:
+        status = "partial"
+    else:
+        status = "unavailable"
 
     result["threat_intelligence"] = {
-
-        "source": "URLhaus + PhishTank",
-
-        "available": any_available,
-
-        "found": any_found,
-
-        "sources": {
-
-            "urlhaus": urlhaus_result,
-
-            "phishtank": phishtank_result
-
-        }
-
+        "source": "URLhaus + Google Safe Browsing",
+        "available": bool(available),
+        "found": bool(matches),
+        "status": status,
+        "sources": sources,
     }
 
-
-
-    # --------------------------------------------------------
-
-    # CONFIRMED MALICIOUS
-
-    # --------------------------------------------------------
-
-
-
-    if urlhaus_found or phishtank_found:
-
-
-
+    if matches:
         result["risk_score"] = 100
-
         result["risk_level"] = "Critical"
-
         result["confidence"] = "Very High"
-
-
-
         indicators = result.setdefault("indicators", [])
-
-
-
-        if urlhaus_found:
-
-            indicator = (
-
-                "URL matched URLhaus malware URL intelligence."
-
-            )
-
-
-
-            if indicator not in indicators:
-
-                indicators.append(indicator)
-
-
-
-        if phishtank_found:
-
-            indicator = (
-
-                "URL matched a verified and valid phishing record "
-
-                "in PhishTank."
-
-            )
-
-
-
-            if indicator not in indicators:
-
-                indicators.append(indicator)
-
-
-
+        if "urlhaus" in matches:
+            indicators.append("URL matched URLhaus malware intelligence.")
+        if "google_safe_browsing" in matches:
+            categories = google_result.get("threat_types", [])
+            indicators.append("Google Safe Browsing flagged this URL: " + ", ".join(categories))
+        result["threat_intelligence"]["message"] = "Confirmed threat-intelligence match from: " + ", ".join(matches) + "."
         result["recommendation"] = (
-
-            "Do not open this URL. External threat intelligence "
-
-            "identified this URL as malicious or phishing-related. "
-
-            "Do not enter passwords, OTPs, payment information, "
-
-            "recovery codes, or personal data."
-
+            "Do not open this URL or enter credentials or personal information. "
+            "A configured reputation provider reported a threat match."
         )
-
-
-
         return result
 
-
-
-    # --------------------------------------------------------
-
-    # EXTERNAL DATABASES AVAILABLE BUT NO MATCH
-
-    # --------------------------------------------------------
-
-
-
-    if any_available and not any_found:
-
-
-
-        indicator = (
-
-            "No confirmed malicious match was found in the "
-
-            "available external reputation databases."
-
+    if unavailable:
+        unavailable_names = ", ".join(unavailable)
+        result.setdefault("indicators", []).append(
+            "Reputation verification incomplete: " + unavailable_names + " unavailable."
         )
-
-
-
-        if indicator not in result["indicators"]:
-
-            result["indicators"].append(indicator)
-
-
-
         result["threat_intelligence"]["message"] = (
-
-            "External reputation checks completed. "
-
-            "No confirmed malicious match was found."
-
+            "Partial reputation check; no match from responding providers. "
+            "Unavailable: " + unavailable_names + "."
+            if available else "Reputation services unavailable; only structural URL analysis completed."
         )
-
-
-
         result["recommendation"] = (
-
-            "No confirmed phishing or malware record was found "
-
-            "in the checked reputation databases. This does not "
-
-            "prove that the URL is completely safe. Review the "
-
-            "URL carefully before opening it."
-
+            "No match was reported by responding providers, but reputation verification "
+            "was incomplete. Do not interpret the risk score as proof of safety."
         )
-
-
-
+        result["confidence"] = "Low"
         return result
 
-
-
-    # --------------------------------------------------------
-
-    # ALL EXTERNAL DATABASES UNAVAILABLE
-
-    # --------------------------------------------------------
-
-
-
-    indicator = (
-
-        "External phishing/malware reputation checks were "
-
-        "unavailable; static analysis was used and the result "
-
-        "must not be interpreted as proof of safety."
-
+    result.setdefault("indicators", []).append(
+        "No malicious match in the configured reputation services; this does not prove safety."
     )
-
-
-
-    if indicator not in result["indicators"]:
-
-        result["indicators"].append(indicator)
-
-
-
-    # Never present an unavailable reputation check as Safe/Minimal.
-
-    # Keep a clean URL at Low instead.
-
-    if result.get("risk_score", 0) < 15:
-
-        result["risk_score"] = 0
-
-        result["risk_level"] = "Low"
-
-        result["confidence"] = "Low"
-
-
-
     result["threat_intelligence"]["message"] = (
-
-        "External threat-intelligence services were unavailable. "
-
-        "Only static URL analysis was performed."
-
+        "URLhaus and Google Safe Browsing checks completed; neither reported a match."
     )
-
-
-
     result["recommendation"] = (
-
-        "No strong malicious pattern was detected by static analysis, "
-
-        "but external reputation checks were unavailable. "
-
-        "This result does not guarantee that the destination is safe."
-
+        "No known threat was reported by the configured providers. "
+        "New or unlisted phishing websites may still be dangerous."
     )
-
-
-
     return result
 
 
-
-
-
 # ============================================================
-
 # URLHAUS
-
 # ============================================================
-
 
 
 def check_urlhaus(url: str):
@@ -4100,444 +3911,73 @@ def check_urlhaus(url: str):
 
 # ============================================================
 
-# PHISHTANK
+# GOOGLE SAFE BROWSING
 
 # ============================================================
+# GOOGLE SAFE BROWSING (v4 threatMatches:find)
+# ============================================================
 
+def check_google_safe_browsing(url: str):
+    """Check a URL against Google Safe Browsing using a server-side API key.
 
-
-def check_phishtank(url: str):
-
+    Configure GOOGLE_SAFE_BROWSING_API_KEY in Render Environment.
+    The key must never be embedded in browser-side HTML/JavaScript.
+    This API is intended for eligible non-commercial use; review Google's terms.
     """
+    api_key = os.getenv("GOOGLE_SAFE_BROWSING_API_KEY", "").strip()
+    if not api_key:
+        return {
+            "available": False, "found": False,
+            "message": "Google Safe Browsing API key is not configured."
+        }
 
-    Check a URL against PhishTank phishing intelligence.
-
-
-
-    IMPORTANT:
-
-    PHISHTANK_APP_KEY is OPTIONAL.
-
-
-
-    If the environment variable exists, it is sent to PhishTank.
-
-    If it does not exist, the request is still performed without
-
-    an API key.
-
-
-
-    PhishTank requires a descriptive User-Agent.
-
-    """
-
-
-
+    payload = {
+        "client": {"clientId": "aegis-campus-security", "clientVersion": "1.0"},
+        "threatInfo": {
+            "threatTypes": [
+                "MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE",
+                "POTENTIALLY_HARMFUL_APPLICATION"
+            ],
+            "platformTypes": ["ANY_PLATFORM"],
+            "threatEntryTypes": ["URL"],
+            "threatEntries": [{"url": url}]
+        }
+    }
     try:
-
-        headers = {
-
-            "User-Agent": "AEGIS-URL-Scanner/1.0"
-
-        }
-
-
-
-        data = {
-
-            "url": url,
-
-            "format": "json"
-
-        }
-
-
-
-        app_key = os.getenv("PHISHTANK_APP_KEY")
-
-
-
-        if app_key:
-
-            data["app_key"] = app_key
-
-
-
         response = requests.post(
-
-            "https://checkurl.phishtank.com/checkurl/",
-
-            data=data,
-
-            headers=headers,
-
-            timeout=10
-
+            "https://safebrowsing.googleapis.com/v4/threatMatches:find",
+            params={"key": api_key},
+            json=payload,
+            timeout=12,
         )
-
-
-
-        # ----------------------------------------------------
-
-        # Rate limit
-
-        # ----------------------------------------------------
-
-
-
-        if response.status_code == 509:
-
-            return {
-
-                "found": False,
-
-                "available": False,
-
-                "rate_limited": True,
-
-                "message": (
-
-                    "PhishTank rate limit reached. "
-
-                    "The API can still be used without a key, "
-
-                    "but requests are more limited."
-
-                )
-
-            }
-
-
-
-        # ----------------------------------------------------
-
-        # Other HTTP errors
-
-        # ----------------------------------------------------
-
-
-
         if response.status_code != 200:
-
             return {
-
-                "found": False,
-
-                "available": False,
-
-                "rate_limited": False,
-
-                "message": (
-
-                    "PhishTank returned HTTP "
-
-                    f"{response.status_code}."
-
-                )
-
+                "available": False, "found": False,
+                "http_status": response.status_code,
+                "message": "Google Safe Browsing returned HTTP " + str(response.status_code) + ". Check API enablement, key restrictions and quota."
             }
-
-
-
-        # ----------------------------------------------------
-
-        # Parse JSON
-
-        # ----------------------------------------------------
-
-
-
-        try:
-
-            data_response = response.json()
-
-
-
-        except ValueError:
-
-            return {
-
-                "found": False,
-
-                "available": False,
-
-                "message": (
-
-                    "PhishTank returned an invalid JSON response."
-
-                )
-
-            }
-
-
-
-        # ----------------------------------------------------
-
-        # PhishTank response
-
-        # ----------------------------------------------------
-
-
-
-        results = data_response.get("results", {})
-
-
-
-        # PhishTank normally returns a dictionary for a single
-
-        # URL lookup. Handle a list too for compatibility.
-
-        if isinstance(results, list):
-
-
-
-            if not results:
-
-                return {
-
-                    "found": False,
-
-                    "available": True,
-
-                    "message": (
-
-                        "PhishTank returned no matching record."
-
-                    )
-
-                }
-
-
-
-            record = results[0]
-
-
-
-        elif isinstance(results, dict):
-
-            record = results
-
-
-
-        else:
-
-            record = {}
-
-
-
-        # ----------------------------------------------------
-
-        # Normalize values
-
-        # ----------------------------------------------------
-
-
-
-        in_database = record.get("in_database", False)
-
-        verified = record.get("verified", False)
-
-        valid = record.get("valid", False)
-
-
-
-        def is_true(value):
-
-            return value is True or str(value).lower() in {
-
-                "true",
-
-                "yes",
-
-                "y",
-
-                "1"
-
-            }
-
-
-
-        in_database = is_true(in_database)
-
-        verified = is_true(verified)
-
-        valid = is_true(valid)
-
-
-
-        phish_id = record.get("phish_id")
-
-        detail_page = record.get("phish_detail_page")
-
-
-
-        # ----------------------------------------------------
-
-        # CONFIRMED PHISH
-
-        # ----------------------------------------------------
-
-
-
-        if in_database and verified and valid:
-
-
-
-            return {
-
-                "found": True,
-
-                "available": True,
-
-                "verified": True,
-
-                "valid": True,
-
-                "phish_id": phish_id,
-
-                "phish_detail_page": detail_page,
-
-                "message": (
-
-                    "URL matched a verified and valid "
-
-                    "PhishTank phishing record."
-
-                )
-
-            }
-
-
-
-        # ----------------------------------------------------
-
-        # FOUND BUT NOT CONFIRMED
-
-        # ----------------------------------------------------
-
-
-
-        if in_database:
-
-
-
-            return {
-
-                "found": False,
-
-                "available": True,
-
-                "verified": verified,
-
-                "valid": valid,
-
-                "phish_id": phish_id,
-
-                "phish_detail_page": detail_page,
-
-                "message": (
-
-                    "URL exists in PhishTank but is not "
-
-                    "currently confirmed as a valid phishing record."
-
-                )
-
-            }
-
-
-
-        # ----------------------------------------------------
-
-        # NOT FOUND
-
-        # ----------------------------------------------------
-
-
-
+        data = response.json()
+        if not isinstance(data, dict):
+            return {"available": False, "found": False, "message": "Unexpected Google Safe Browsing response."}
+        matches = data.get("matches", [])
+        if not isinstance(matches, list):
+            return {"available": False, "found": False, "message": "Malformed Google Safe Browsing matches response."}
+        threat_types = sorted({
+            str(match.get("threatType"))
+            for match in matches if isinstance(match, dict) and match.get("threatType")
+        })
         return {
-
-            "found": False,
-
             "available": True,
-
-            "verified": False,
-
-            "valid": False,
-
-            "phish_id": None,
-
-            "phish_detail_page": None,
-
+            "found": bool(matches),
+            "threat_types": threat_types,
             "message": (
-
-                "URL was not found in the PhishTank database."
-
-            )
-
-        }
-
-
-
-    except requests.exceptions.Timeout:
-
-
-
-        return {
-
-            "found": False,
-
-            "available": False,
-
-            "message": (
-
-                "PhishTank request timed out."
-
-            )
-
-        }
-
-
-
-    except requests.exceptions.RequestException as error:
-
-
-
-        return {
-
-            "found": False,
-
-            "available": False,
-
-            "message": (
-
-                "PhishTank request failed."
-
+                "Google Safe Browsing reported a threat match."
+                if matches else "No Google Safe Browsing threat match was returned."
             ),
-
-            "error": str(error)
-
         }
-
-
-
-    except Exception as error:
-
-
-
+    except (requests.RequestException, ValueError) as error:
         return {
-
-            "found": False,
-
-            "available": False,
-
-            "message": (
-
-                "PhishTank intelligence check unavailable."
-
-            ),
-
-            "error": str(error)
-
+            "available": False, "found": False,
+            "message": "Google Safe Browsing check unavailable.",
+            "error": str(error)[:200],
         }
